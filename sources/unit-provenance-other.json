@@ -1,0 +1,336 @@
+[
+  {
+    "id": "night-swarm-of-rats",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "U Swarm of Rats.png",
+    "back": "U Swarm of Rats Back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "night-wolf-pack",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "U Wolf Pack.png",
+    "back": "U Wolf Pack Back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "night-giant-bats",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "U Giant Bats.png",
+    "back": "U Giant Bats Back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "night-vengeful-ghost",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "U Vengeful Ghost.png",
+    "back": "U Vengeful Ghost Back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "night-ghouls",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "U Ghouls.png",
+    "back": "U Ghouls Back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "night-emissaries",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "U Emissaries.png",
+    "back": "U Emissaries Back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "night-vampire-knights",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "U Vampire Knights.png",
+    "back": "U Vampire Knights Back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "night-siege-engine",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "U Siege Engine.png",
+    "back": "U Siege Engine Back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "empire-akritoi",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Akritoi.png",
+    "back": "Akritoi back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [
+      "Akritoi cost1 (official errata)"
+    ],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "empire-psiloi",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Psiloi.png",
+    "back": "Psiloi back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "empire-kontari",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Kontari.png",
+    "back": "Kontari back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "empire-siege-engine",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Siege Engine EE.png",
+    "back": "Siege Engine  back EE.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "empire-korsari",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Korsari.png",
+    "back": "Korsari back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "empire-varyags",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Varyags.png",
+    "back": "Varyags back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "empire-cataphracts",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Cataphracts.png",
+    "back": "Cataphracts back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "goblins-goblin-warriors",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Goblin Warriors.png",
+    "back": "Goblin Warriors back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "goblins-goblin-sneaks",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Goblin Sneaks.png",
+    "back": "Goblin Sneaks back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "goblins-goblin-elites",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Goblin Elites.png",
+    "back": "Goblin Elites back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "goblins-hobgoblins",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Hobogoblins.png",
+    "back": "Hobogoblin  back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "goblins-plague-flies",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Plague Flies.png",
+    "back": "Plague Flies back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "goblins-hill-troll",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Hill Troll.png",
+    "back": "Hill Troll back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "goblins-mountain-troll",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Mountain Troll.png",
+    "back": "Mountain Troll back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "goblins-siege-engine",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Goblin Siege Engine.png",
+    "back": "Goblin Siege Engine back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "orcs-orc-reavers",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Orc Reavers.png",
+    "back": "Orc Reavers back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "orcs-orc-scouts",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Orc Scouts.png",
+    "back": "Orc Scouts back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "orcs-wolf-riders",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Orc Wolf Riders.png",
+    "back": "Orc Wolf Riders back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "orcs-siege-engine",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Orc Siege Engine.png",
+    "back": "Orc Siege Engine back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "orcs-black-axes",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Black Axes.png",
+    "back": "Black Axes back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "orcs-ogre",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Ogre.png",
+    "back": "Ogre back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [
+      "Ogre movement2 (official errata)"
+    ],
+    "mechanicsOnly": true
+  },
+  {
+    "id": "orcs-dire-raven",
+    "sourceId": "vassal-component-pack-1.7",
+    "front": "Dire Raven.png",
+    "back": "Dire Raven back.png",
+    "countMethod": "SetupStack PieceSlots with same entryName under owningBoard",
+    "diceMethod": "First dice prototype cross-checked against counter symbols",
+    "status": "front-and-back-visually-verified",
+    "corrections": [],
+    "mechanicsOnly": true
+  }
+]

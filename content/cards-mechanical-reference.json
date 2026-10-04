@@ -1,0 +1,515 @@
+{
+  "version": 1,
+  "cards": [
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-01",
+      "name": "Heat Ray",
+      "kind": "spell",
+      "cantrip": true,
+      "mageRequired": true,
+      "range": {
+        "min": 0,
+        "max": 2
+      },
+      "timing": "battle-magic",
+      "target": [
+        "unit",
+        "monster",
+        "garrison"
+      ],
+      "effect": {
+        "type": "modify-combat-dice",
+        "heavy": -1
+      },
+      "noEffectWhen": "target has no heavy dice"
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-02",
+      "name": "Dust Devil",
+      "kind": "spell",
+      "cantrip": true,
+      "mageRequired": true,
+      "range": {
+        "min": 0,
+        "max": 3
+      },
+      "timing": "battle-magic",
+      "target": [
+        "unit",
+        "monster",
+        "garrison"
+      ],
+      "effect": {
+        "type": "modify-combat-dice",
+        "light": -1
+      },
+      "noEffectWhen": "target has no light dice"
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-03",
+      "name": "Sudden Fog",
+      "kind": "spell",
+      "cantrip": false,
+      "mageRequired": true,
+      "range": {
+        "min": 0,
+        "max": 2
+      },
+      "timing": "battle-magic",
+      "target": [
+        "stack",
+        "monster",
+        "garrison"
+      ],
+      "effect": {
+        "type": "choose-combat-dice-reduction",
+        "choices": [
+          {
+            "light": -2
+          },
+          {
+            "heavy": -1
+          }
+        ]
+      },
+      "notes": [
+        "Does not affect independent Strike dice such as Lightning Bolt."
+      ]
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-08",
+      "name": "Lightning Bolt",
+      "kind": "spell",
+      "cantrip": false,
+      "mageRequired": true,
+      "range": {
+        "min": 3,
+        "max": 5
+      },
+      "timing": "activation",
+      "target": [
+        "stack",
+        "monster",
+        "garrison"
+      ],
+      "targetRestriction": "target in or adjacent to mountain hex",
+      "effect": {
+        "type": "strike",
+        "light": 0,
+        "heavy": 2,
+        "optionalExtraSpellDiscard": {
+          "heavy": 1
+        }
+      },
+      "notes": [
+        "Choose extra discarded Spell and heavy die before rolling."
+      ]
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-09",
+      "name": "Swarm of Bees",
+      "kind": "spell",
+      "cantrip": true,
+      "mageRequired": true,
+      "range": {
+        "min": 0,
+        "max": 2
+      },
+      "timing": "battle-magic",
+      "target": [
+        "unit",
+        "monster",
+        "garrison"
+      ],
+      "effect": {
+        "type": "grant-combat-benefit",
+        "light": 1,
+        "abilities": [
+          "stealth"
+        ]
+      },
+      "notes": [
+        "Ambush remains optional."
+      ]
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-13",
+      "name": "Tidal Shelter",
+      "kind": "spell",
+      "cantrip": true,
+      "mageRequired": true,
+      "range": null,
+      "timing": "hits-pending",
+      "target": [
+        "stack",
+        "monster",
+        "garrison"
+      ],
+      "effect": {
+        "type": "prevent-hits-by-successes",
+        "light": 3
+      },
+      "notes": [
+        "Roll 3d6; each success negates one hit from currently pending batch."
+      ]
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-15",
+      "name": "Negation",
+      "kind": "spell",
+      "cantrip": true,
+      "mageRequired": true,
+      "range": null,
+      "timing": "opponent-card-cast",
+      "target": [
+        "treasure",
+        "spell",
+        "blessing"
+      ],
+      "effect": {
+        "type": "cancel-card",
+        "eliminateCaster": true
+      },
+      "notes": [
+        "Cast card still counts as played. Monster cannot cast elimination spell. Defender cannot use this after final attacker Cantrip window."
+      ]
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-16",
+      "name": "Sleep",
+      "kind": "spell",
+      "cantrip": true,
+      "mageRequired": true,
+      "range": {
+        "min": 0,
+        "max": 2
+      },
+      "timing": "battle-magic",
+      "target": [
+        "attacking-army"
+      ],
+      "effect": {
+        "type": "finish-stack-cancel-combat"
+      },
+      "notes": [
+        "Stacked Hero also finished; negating Sleep resumes combat."
+      ]
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-17",
+      "name": "Cure Wounds",
+      "kind": "spell",
+      "cantrip": true,
+      "mageRequired": true,
+      "range": {
+        "min": 0,
+        "max": 3
+      },
+      "timing": "activation-including-between-hits",
+      "target": [
+        "army"
+      ],
+      "effect": {
+        "type": "recover"
+      },
+      "notes": [
+        "Recovery by card effect does not state payment/Settlement requirement; do not conflate with Recovery action. Can recover after first of two hits before second."
+      ]
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-26",
+      "name": "Earth to Mud",
+      "kind": "spell",
+      "cantrip": true,
+      "mageRequired": true,
+      "range": {
+        "min": 0,
+        "max": 4
+      },
+      "timing": "just-moved-into-hex",
+      "target": [
+        "stack"
+      ],
+      "effect": {
+        "type": "finish-forbid-action"
+      },
+      "targetRestriction": "actual movement only, not flying, not ship movement, not prohibited finish hex",
+      "notes": [
+        "Printed trigger is immediately on entering hex; not retroactive. Built/Placed does not trigger."
+      ]
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-31",
+      "name": "Ice Storm",
+      "kind": "spell",
+      "cantrip": false,
+      "mageRequired": true,
+      "range": null,
+      "timing": "activation",
+      "target": [
+        "stack",
+        "monster",
+        "garrison"
+      ],
+      "effect": {
+        "type": "strike",
+        "light": 2,
+        "heavy": 0
+      }
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-32",
+      "name": "Blazing Hands",
+      "kind": "spell",
+      "cantrip": true,
+      "mageRequired": true,
+      "range": {
+        "min": 0,
+        "max": 0
+      },
+      "timing": "battle-magic",
+      "target": [
+        "caster"
+      ],
+      "effect": {
+        "type": "modify-combat-dice",
+        "light": 2
+      }
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-33",
+      "name": "Ray of Weakness",
+      "kind": "spell",
+      "cantrip": true,
+      "mageRequired": true,
+      "range": {
+        "min": 0,
+        "max": 2
+      },
+      "timing": "after-combat-or-strike-success-roll",
+      "target": [
+        "stack",
+        "monster",
+        "garrison"
+      ],
+      "effect": {
+        "type": "change-one-success-to-failure"
+      }
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-36",
+      "name": "Summon the Dead",
+      "kind": "spell",
+      "cantrip": false,
+      "mageRequired": true,
+      "range": {
+        "min": 0,
+        "max": 6
+      },
+      "timing": "battle-magic",
+      "target": [
+        "unit"
+      ],
+      "targetRestriction": "target in or adjacent to lair",
+      "effect": {
+        "type": "modify-combat-dice",
+        "heavy": 1
+      },
+      "notes": [
+        "Undying p47 removes printed Monster eligibility. Lair occupancy itself remains prohibited to units."
+      ]
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "spell-43",
+      "name": "Fireball",
+      "kind": "spell",
+      "cantrip": true,
+      "mageRequired": true,
+      "range": {
+        "min": 0,
+        "max": 1
+      },
+      "timing": "activation",
+      "target": [
+        "stack",
+        "monster",
+        "garrison"
+      ],
+      "effect": {
+        "type": "strike",
+        "light": 0,
+        "heavy": 1
+      }
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "blessing-fjordland-07",
+      "name": "Shield Wall",
+      "kind": "blessing",
+      "kingdom": "fjordland",
+      "cantrip": true,
+      "mageRequired": false,
+      "range": null,
+      "timing": "battle-magic",
+      "target": [
+        "fjordland-army",
+        "fjordland-garrison"
+      ],
+      "targetRestriction": "target is defender",
+      "effect": {
+        "type": "modify-combat-dice",
+        "heavy": 1
+      }
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "treasure-25",
+      "name": "Staff of Healing",
+      "kind": "treasure",
+      "cantrip": false,
+      "mageRequired": true,
+      "range": null,
+      "timing": "activation",
+      "target": [
+        "army"
+      ],
+      "duration": "rest-of-turn",
+      "effect": {
+        "type": "grant-ability",
+        "ability": "regenerate"
+      },
+      "notes": [
+        "Regenerate does not remove siege prohibition or waive printed Recovery gold cost."
+      ]
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "treasure-26",
+      "name": "Helm of Domination",
+      "kind": "treasure",
+      "cantrip": true,
+      "mageRequired": false,
+      "range": null,
+      "timing": "battle-magic",
+      "target": [
+        "caster-stack"
+      ],
+      "effect": {
+        "type": "dice-per-opponent-cards",
+        "heavyPerCard": 1,
+        "countTypes": [
+          "spell",
+          "treasure"
+        ],
+        "countsEarlierCardsInCurrentBattleMagic": true
+      },
+      "notes": [
+        "Counts opposing player cards, not other players/ally cards. No Blessings."
+      ]
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "hero-fjordland-13",
+      "name": "Freyja — Wings of Valor",
+      "kind": "hero-power",
+      "kingdom": "fjordland",
+      "cantrip": true,
+      "mageRequired": false,
+      "range": {
+        "min": 0,
+        "max": 4
+      },
+      "timing": "fjordland-hero-would-be-eliminated",
+      "target": [
+        "fjordland-hero"
+      ],
+      "effect": {
+        "type": "save-hero-place-adjacent-to-source",
+        "lockSource": true
+      },
+      "notes": [
+        "Saved Hero and card stay in play and retain lock. Cannot remain in elimination hex even if adjacent to Freyja. Freyja has Mage and Flying on face."
+      ]
+    },
+    {
+      "source": "VASSAL module v1.7 individual printed card faces; corrected by official Undying v1.1 §18",
+      "verification": "visually verified source face; mechanical facts paraphrased, no flavor/art copied",
+      "redistribution": "normalized mechanical facts only; original scans not authorized for public bundle",
+      "id": "hero-oathborn-16",
+      "name": "Dara Firemane — Lightning Rune",
+      "kind": "hero-power",
+      "kingdom": "oathborn",
+      "cantrip": true,
+      "mageRequired": false,
+      "range": {
+        "min": 0,
+        "max": 0
+      },
+      "timing": "activation",
+      "target": [
+        "source-hero"
+      ],
+      "effect": {
+        "type": "modify-combat-dice",
+        "light": 1,
+        "lockSource": true
+      },
+      "notes": [
+        "Source Dara is Mage on printed face."
+      ]
+    }
+  ]
+}

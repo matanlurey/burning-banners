@@ -1,0 +1,102 @@
+{
+  "retrievalDate": "2026-10-04",
+  "sources": [
+    {
+      "id": "publisher-hub",
+      "title": "Burning Banners: Rage of the Witch Queen \u2014 product and downloads",
+      "issuer": "Compass Games",
+      "url": "https://www.compassgames.com/product/burning-banners-rage-of-the-witch-queen/",
+      "retrieved": "2026-10-04",
+      "documentDate": null,
+      "authority": "publisher-primary",
+      "status": "verified-text",
+      "redistribution": "No asset permission inferred from product listing"
+    },
+    {
+      "id": "undying-rules-1.1",
+      "title": "Undying Rules v1.1",
+      "issuer": "Compass Games / Christopher Moeller",
+      "url": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying%20Rules%20v1.1.pdf",
+      "retrieved": "2026-10-04",
+      "documentDate": "2024-09-23 (publisher listing); PDF created 2024-09-20",
+      "internalVersion": "Cover v1.1; introduction body retains v1.0 label",
+      "authority": "publisher-primary",
+      "status": "verified-pages-and-text",
+      "pages": 60,
+      "redistribution": "Copyright Compass Games 2023; research copy only; do not bundle complete PDF",
+      "sha256": "77d904b41730edff5e00b4bba8c61b5dab38dafd5f6e3017ca1140b009e2f3f6",
+      "bytes": 13410446,
+      "researchPath": "/workspace/scratch/a8aa4deba18b/research/Undying-Rules-v1.1.pdf"
+    },
+    {
+      "id": "undying-campaign-notes-1.0",
+      "title": "Undying Campaign Notes v.1.0",
+      "issuer": "Compass Games / Christopher Moeller",
+      "url": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying%20Campaign%20Notes%20v.1.0.pdf",
+      "retrieved": "2026-10-04",
+      "documentDate": "2024-09-23 (publisher listing)",
+      "authority": "publisher-primary",
+      "status": "verified-text-and-pages-by-content-agent",
+      "redistribution": "Copyright Compass Games; research copy only",
+      "sha256": "fc1ba6525d0a3e797adce67638d345b3e242fa84bdc1eaff8ce0542892777d68",
+      "bytes": 1449299,
+      "researchPath": "/workspace/scratch/a8aa4deba18b/research/campaign-notes.pdf",
+      "pages": 2
+    },
+    {
+      "id": "official-errata-0824",
+      "title": "Burning Banners Clarifications & Errata as of 08/2024",
+      "issuer": "Compass Games / Christopher Moeller",
+      "url": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Burning%20Banners%20Clarifications%20%26%20Errata%200824.pdf",
+      "retrieved": "2026-10-04",
+      "documentDate": "2024-08-07 (publisher listing)",
+      "authority": "publisher-primary",
+      "status": "superseded-for-rulebook-by-undying-1.1; verified-text-for-component-corrections",
+      "pages": 3,
+      "redistribution": "Copyright Compass Games; research copy only",
+      "sha256": "53d0ce6846a8dd7504645f64b84ad67381eb1b068e65234e9345a812fa938424",
+      "bytes": 441315,
+      "researchPath": "/workspace/scratch/a8aa4deba18b/research/Burning-Banners-Clarifications-and-Errata-0824.pdf"
+    },
+    {
+      "id": "undying-mirror-boardgamesbot",
+      "title": "Mirror of Undying Rules v1.1",
+      "issuer": "BoardGamesBot hosting Compass Games PDF",
+      "url": "https://www.boardgamesbot.com/assets/games-library/burning-banners/manual_pt_br.pdf?raw=1",
+      "retrieved": "2026-10-04",
+      "documentDate": "Same PDF as publisher",
+      "authority": "byte-verified-mirror",
+      "status": "byte-identical-to-publisher",
+      "redistribution": "Does not independently authorize redistribution",
+      "sha256": "77d904b41730edff5e00b4bba8c61b5dab38dafd5f6e3017ca1140b009e2f3f6",
+      "bytes": 13410446,
+      "researchPath": "/workspace/scratch/a8aa4deba18b/research/undying-mirror.pdf"
+    },
+    {
+      "id": "vassal-component-pack-1.7",
+      "title": "Burning Banners VASSAL module v1.7 \u2014 component research",
+      "issuer": "VASSAL community module using physical components",
+      "url": "https://vassalengine.org/wiki_old/wiki/Module:Burning_Banners",
+      "retrieved": "2026-10-04",
+      "documentDate": null,
+      "authority": "component-scan-mirror",
+      "status": "verified-component-images: terrain/combat/actions charts, all Army fronts/backs; map work partial",
+      "redistribution": "Unverified redistribution rights; source images remain research-only",
+      "sha256": "edf9991723174a2c3105a70bbfe10a96da1f72f17581789d3524f7126a01927e",
+      "bytes": 47732730,
+      "researchPath": "/workspace/scratch/a8aa4deba18b/research-assets/Burning_Banners_v1.7.vmod",
+      "downloadUrl": "https://obj.vassalengine.org/images/8/84/Burning_Banners_v1.7.vmod"
+    },
+    {
+      "id": "community-player-aid-scribd",
+      "title": "Burning Banners Player Aid",
+      "issuer": "SCR (Scribd uploader), original aid authorship unverified",
+      "url": "https://www.scribd.com/document/848881511/Burning-Banners-Player-Aid",
+      "retrieved": "2026-10-04",
+      "documentDate": null,
+      "authority": "community-secondary",
+      "status": "partial-cross-check; known errors; not operative authority",
+      "redistribution": "All rights reserved; do not reproduce"
+    }
+  ]
+}

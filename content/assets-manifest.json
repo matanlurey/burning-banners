@@ -1,0 +1,302 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "id": "fortress-banner",
+      "path": "assets/fortress-banner.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "2097d55e2056d8dc29cc348b600f599ef8ebfa5d4b91d6eb2a007db7338f4149",
+      "width": 2172,
+      "height": 724,
+      "alpha": false
+    },
+    {
+      "id": "landmark-city",
+      "path": "assets/landmark-city.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "2923c9feb2e913ae44bbe983fb009e24f3d9e166954661275c9193e907edebb2",
+      "width": 384,
+      "height": 384,
+      "alpha": true
+    },
+    {
+      "id": "landmark-mine",
+      "path": "assets/landmark-mine.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "e8741b3579d0c67c0b36663f5d09ac0963dce3fb29d1d55dda2b098f7e14dbc9",
+      "width": 384,
+      "height": 384,
+      "alpha": true
+    },
+    {
+      "id": "landmark-port",
+      "path": "assets/landmark-port.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "3472c83446fcc5b9e72ff1e55e52a9827a649f75132fad2aaa5972425bce02ed",
+      "width": 384,
+      "height": 384,
+      "alpha": true
+    },
+    {
+      "id": "landmark-ruin",
+      "path": "assets/landmark-ruin.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "01e07dcabd54ae8456258eb60437f8b4be29836d9548757f8bb616c4c87844d9",
+      "width": 384,
+      "height": 384,
+      "alpha": true
+    },
+    {
+      "id": "landmark-spire",
+      "path": "assets/landmark-spire.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "41ae32a6ac08c55fd45dc7f6321e87c075efbe82a6808c583749dc644625a2ff",
+      "width": 384,
+      "height": 384,
+      "alpha": true
+    },
+    {
+      "id": "landmark-village",
+      "path": "assets/landmark-village.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "15b0342ea67172c8521d59f4a7ed54622fe504294ebc34fa058e5aa4c7c2c189",
+      "width": 384,
+      "height": 384,
+      "alpha": true
+    },
+    {
+      "id": "terrain-clear",
+      "path": "assets/terrain-clear.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "1b09e51903ef9847b06caa85ea66dc3bca93f4b298f5543449b6eeb756c30198",
+      "width": 512,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "id": "terrain-desert",
+      "path": "assets/terrain-desert.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "69215020c02b71d07e1f12b2c09d95be72b4492f66604847c5799d1623431926",
+      "width": 512,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "id": "terrain-forest",
+      "path": "assets/terrain-forest.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "8982a3a84aa6410811feb2e8e53db31bddcf524f858638f746a75e4bb5ebf107",
+      "width": 512,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "id": "terrain-mountain",
+      "path": "assets/terrain-mountain.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "7d523a1d7d9103f550f14eb3b78de789bb7b9037d3767774cddc839b4b1c23f2",
+      "width": 512,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "id": "terrain-sea",
+      "path": "assets/terrain-sea.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "d38fef19ecf212d01a34827d4acbb06c8e626058da0a5ca36357b8b2ed7d259c",
+      "width": 512,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "id": "terrain-swamp",
+      "path": "assets/terrain-swamp.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "9a4f3e45c6639e91bf31885f5e4a84aec2cbcaa1b716b32a345c5fb630d7a94d",
+      "width": 512,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "id": "troop-empire",
+      "path": "assets/troop-empire.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "350c91db55fd4065c85a9d28c8a9c2fc76ef91debc51f8c294091042233ced64",
+      "width": 512,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "id": "troop-fjordland",
+      "path": "assets/troop-fjordland.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "d865dd711f622850af9610b562786c7e35ea90e7fe3a7e275e7bd26a1671bf90",
+      "width": 512,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "id": "troop-goblins",
+      "path": "assets/troop-goblins.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "4ef2baf0a3ca791b345f529b31b368e39b5d2459b3abd1e6311d8d915d10ac31",
+      "width": 512,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "id": "troop-night",
+      "path": "assets/troop-night.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "1cc14f9f72279e73a03f1eadd2fbdfac38fcdaf58c77d94dcabdea962ea8e868",
+      "width": 512,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "id": "troop-oathborn",
+      "path": "assets/troop-oathborn.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "194f5e5a67656900ffcbb4cc72d4a4998b1d50968339c9932e8b935d3a6091f4",
+      "width": 512,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "id": "troop-orcs",
+      "path": "assets/troop-orcs.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "a4265efb417d7d534749f8b1effd5f789a700ef7801fb3b7f576264945db017a",
+      "width": 512,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "id": "unit-berserkir",
+      "path": "assets/unit-berserkir.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "ebadd29b5bce98eca9ebf9e88e7b32e682ae9460d9e85bba74347e325f28266e",
+      "width": 384,
+      "height": 384,
+      "alpha": false
+    },
+    {
+      "id": "unit-freeholders",
+      "path": "assets/unit-freeholders.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "8803c3beca75cbed9bc35fc8373659ce0d373b64d55bbe7d6af3424e737b35bd",
+      "width": 384,
+      "height": 384,
+      "alpha": false
+    },
+    {
+      "id": "unit-iron-legion",
+      "path": "assets/unit-iron-legion.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "f3277ba4359b20a4b0f2b11232b07c62ea72210d80dbcd7f5313966889d57d9b",
+      "width": 384,
+      "height": 384,
+      "alpha": false
+    },
+    {
+      "id": "unit-kings-crossbows",
+      "path": "assets/unit-kings-crossbows.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "de8093117309f3953fc6e55cbf18f761fe72720a3c4c031238f6ce3e6ce8f888",
+      "width": 384,
+      "height": 384,
+      "alpha": false
+    },
+    {
+      "id": "unit-miners",
+      "path": "assets/unit-miners.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "1bb1dc8b27dd406ed23fe5b8c29084e4ad23d01d10d90520decd729b5583fb33",
+      "width": 384,
+      "height": 384,
+      "alpha": false
+    },
+    {
+      "id": "unit-oath-takers",
+      "path": "assets/unit-oath-takers.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "a210a01a5a9fc9d14bdb7a107198aac8d8a3294a6943bc05757707d8b953e704",
+      "width": 384,
+      "height": 384,
+      "alpha": false
+    },
+    {
+      "id": "unit-rangers",
+      "path": "assets/unit-rangers.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "4c1c863751ba4a57470503afba6669abfed8f92b1450cc9f83e9c538ae02dc55",
+      "width": 384,
+      "height": 384,
+      "alpha": false
+    },
+    {
+      "id": "unit-sea-reavers",
+      "path": "assets/unit-sea-reavers.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original prompts for this project",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "d4bf50e88e1dac8f0d68fd20341fb9399e571662d784e769841db712ec7bf967",
+      "width": 384,
+      "height": 384,
+      "alpha": false
+    }
+  ]
+}

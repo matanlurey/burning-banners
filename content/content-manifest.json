@@ -1,0 +1,1725 @@
+{
+  "version": 1,
+  "researchDate": "2026-10-04",
+  "source": {
+    "url": "https://obj.vassalengine.org/images/8/84/Burning_Banners_v1.7.vmod",
+    "sha256": "edf9991723174a2c3105a70bbfe10a96da1f72f17581789d3524f7126a01927e",
+    "authority": "not an independent official rules source",
+    "scanRedistribution": "not-granted"
+  },
+  "reconciledCards": {
+    "spells": 52,
+    "treasures": 36,
+    "blessings": 60,
+    "heroCards": 38,
+    "informationCards": 6,
+    "total": 192
+  },
+  "armyDefinitions": {
+    "count": 44,
+    "counterCount": 146,
+    "kingdomCounters": {
+      "oathborn": 26,
+      "fjordland": 20,
+      "night": 23,
+      "empire": 24,
+      "goblins": 27,
+      "orcs": 26
+    },
+    "status": "verified-front-back-mechanics"
+  },
+  "monsterInventory": {
+    "land": 29,
+    "sea": 7,
+    "total": 36,
+    "status": "names-and-faces-acquired; executable-monster-mechanics-not-imported"
+  },
+  "map": {
+    "name": "The Wildlands",
+    "sourcePixelSize": [
+      1899,
+      2446
+    ],
+    "columns": 14,
+    "playableCenters": 217,
+    "coordinates": "flat-top axial r=offset-row-floor(q/2)",
+    "centerCalibrationStatus": "reviewed",
+    "terrainStatus": "source-center-interpretation",
+    "edgeStatus": "partial-southern-Drefeld-review; full-river-road-coast-topology-not-certified",
+    "otherBoardsStatus": "source-images-available; mechanical-graphs-not-imported"
+  },
+  "scenarios": [
+    {
+      "id": "drefeld-teaching",
+      "status": "original-digital-teaching-fixture",
+      "official": false
+    },
+    {
+      "id": "intro-invasion-of-drefeld",
+      "status": "partial-source; missing-full-official-opening-and-victory"
+    },
+    {
+      "id": "campaign-8",
+      "name": "Goblin Apocalypse",
+      "status": "unavailable-official-setup"
+    },
+    {
+      "id": "campaign-16",
+      "name": "Assault in the North",
+      "status": "verified-printed-header-and-corrections; missing-full-setup-and-special-rules"
+    }
+  ],
+  "physicalControlSupplyStatus": "unverified; VASSAL cloneable marker piles are not physical supply evidence",
+  "decks": [
+    {
+      "name": "Blessing Oathborn",
+      "count": 10,
+      "items": [
+        {
+          "id": "1730391484539",
+          "name": "1 The Deep Paths",
+          "sourceImage": "OB1 The Deep Paths.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484540",
+          "name": "2 Delve Greedly",
+          "sourceImage": "OB2 Delve Greedly.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484541",
+          "name": "3 Secret Ways",
+          "sourceImage": "OB3 Secret Ways.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484542",
+          "name": "4 The Ravens are Flying",
+          "sourceImage": "OB4 The Ravens are Flying.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484543",
+          "name": "5 Lost City of Kazhud",
+          "sourceImage": "OB5 Lost City of Kazhud.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484544",
+          "name": "6 Fury of the Ancestors",
+          "sourceImage": "OB6 Fury of the Ancestors.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484545",
+          "name": "7 Spirit of the Mountain",
+          "sourceImage": "OB7 Spirit of the Mountain.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484546",
+          "name": "8 Mountain Folk",
+          "sourceImage": "OB8 Mountain Folk.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484547",
+          "name": "9 Strongheart",
+          "sourceImage": "OB9 Strongheart.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484548",
+          "name": "10 Runestones",
+          "sourceImage": "OB10 Runestones.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Blessing Fjordland",
+      "count": 10,
+      "items": [
+        {
+          "id": "1730391484551",
+          "name": "Water Elemental",
+          "sourceImage": "FB1 Water Elemental.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484552",
+          "name": "Call of the Wild",
+          "sourceImage": "FB2 Call of the Wild.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484553",
+          "name": "Warriors of the North",
+          "sourceImage": "FB3 Warriors of the North.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484554",
+          "name": "Quest to the Western Isles",
+          "sourceImage": "FB4 Quest to the Western Isles.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484555",
+          "name": "Song of the Valkyries",
+          "sourceImage": "FB5 Song of the Valkyries.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484556",
+          "name": "Berserk Rage",
+          "sourceImage": "FB6 Berserk Rage.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484557",
+          "name": "Shield Wall",
+          "sourceImage": "FB7 Shield Wall.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484558",
+          "name": "Tyrs Favor",
+          "sourceImage": "FB8 Tyrs Favor.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484559",
+          "name": "Gydas Favor",
+          "sourceImage": "FB9 Gydas Favor.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484560",
+          "name": "Northern Rangers",
+          "sourceImage": "FB10 Northern Rangers.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Blessing Empire",
+      "count": 10,
+      "items": [
+        {
+          "id": "1730391484563",
+          "name": "1 Bread and Circuses",
+          "sourceImage": "EE-B 1 Bread and Circuses.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484564",
+          "name": "2 For the Emperor!",
+          "sourceImage": "EE-B 2 For the Emperor!.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484565",
+          "name": "3 Hand of the Emperor",
+          "sourceImage": "EE-B 3 Hand of the Emperor.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484566",
+          "name": "4 Heir of Bahuramman",
+          "sourceImage": "EE-B 4 Heir of Bahuramman.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484567",
+          "name": "5 Conscription",
+          "sourceImage": "EE-B 5 Conscription.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484568",
+          "name": "6 Massed Charge",
+          "sourceImage": "EE-B 6 Massed Charge.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484569",
+          "name": "7 Elite Archers",
+          "sourceImage": "EE-B 7 Elite Archers.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484570",
+          "name": "8 Disciplined Vetrans",
+          "sourceImage": "EE-B 8 Disciplined Vetrans.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484571",
+          "name": "9 Fist of the Emperor",
+          "sourceImage": "EE-B 9Fist of the Emperor.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484572",
+          "name": "10 Call to Glory",
+          "sourceImage": "EE-B 10 Call to Glory.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Blessing Army of the Night",
+      "count": 10,
+      "items": [
+        {
+          "id": "1730391484575",
+          "name": "1 Out of the Shadows",
+          "sourceImage": "  AotN 1 Out of the Shadows.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484576",
+          "name": "2 Enslave",
+          "sourceImage": "  AotN 2 Enslave.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484577",
+          "name": "3 Enslave",
+          "sourceImage": "  AotN 3 Enslave.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484578",
+          "name": "4 Enslave",
+          "sourceImage": "  AotN 4 Enslave.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484579",
+          "name": "5 Powerful and Eternal",
+          "sourceImage": "  AotN 5 Powerful and Eternal.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484580",
+          "name": "6 Your True Rulers",
+          "sourceImage": "  AotN 6 Your True Rulers.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484581",
+          "name": "7 Moonlit Campaign",
+          "sourceImage": "  AotN 7 Moonlit Campaign.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484582",
+          "name": "8 Knives in the Dark",
+          "sourceImage": "AotN 8 Knives in the Dark.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484583",
+          "name": "9 Shapeshift",
+          "sourceImage": "  AotN 9 Shapeshift.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484584",
+          "name": "10 Rule the Noght",
+          "sourceImage": "  AotN 10 Rule the Noght.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Blessing Goblins",
+      "count": 10,
+      "items": [
+        {
+          "id": "1730391484587",
+          "name": "1 Instruments of Mischief",
+          "sourceImage": "Goblin 1 Instruments of Mischief.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484588",
+          "name": "2 We have our Ways",
+          "sourceImage": "Goblin 2 We have our Ways.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484589",
+          "name": "3 Khark's Chosen",
+          "sourceImage": "Goblin 3 Khark's Chosen.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484590",
+          "name": "4 Quick and Quiet",
+          "sourceImage": "Goblin 4 Quick and Quiet.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484591",
+          "name": "5 Spy Network",
+          "sourceImage": "Goblin 5 Spy Network.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484592",
+          "name": "6 Natural Selection",
+          "sourceImage": "Goblin 6 Natural Selection.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484593",
+          "name": "7 Eye of Badrok",
+          "sourceImage": "Goblin 7 Eye of Badrok.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484594",
+          "name": "8 Sneak Atteck",
+          "sourceImage": "Goblin 8 Sneak Atteck.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484595",
+          "name": "9 Boulder Toss",
+          "sourceImage": "Goblin 9 Boulder Toss.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484596",
+          "name": "10 Infiltration",
+          "sourceImage": "Goblin 10 Infiltration.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Blessing Orcs",
+      "count": 10,
+      "items": [
+        {
+          "id": "1730391484599",
+          "name": "1 Whips of Grom",
+          "sourceImage": "Orc 1 Whips of Grom.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484600",
+          "name": "2 Grom's Forge",
+          "sourceImage": "Orc 2 Grom's Forge.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484601",
+          "name": "3 Pestilence",
+          "sourceImage": "Orc 3 Pestilence.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484602",
+          "name": "4 New Recruits",
+          "sourceImage": "Ocr 4 New Recruits.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484603",
+          "name": "5 Enforced Disclipine",
+          "sourceImage": "Orc 5 Enforced Disclipine.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484604",
+          "name": "6 Feed off the Land",
+          "sourceImage": "Orc 6 Feed off the Land.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484605",
+          "name": "7 Endless Hate",
+          "sourceImage": "Orc 7 Endless Hate.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484606",
+          "name": "8 Hate",
+          "sourceImage": "Orc 8 Hate.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484607",
+          "name": "9 Grom's Hammer",
+          "sourceImage": "Grom's Hammer.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484608",
+          "name": "10 Overrun",
+          "sourceImage": "Orc 10 Overrun.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "AotN_Hero",
+      "count": 6,
+      "items": [
+        {
+          "id": "1730391484077",
+          "name": "Bela",
+          "sourceImage": "Hero Bela.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484078",
+          "name": "Dominia",
+          "sourceImage": "Hero Dominia.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484079",
+          "name": "Kali",
+          "sourceImage": "Hero Kali.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484080",
+          "name": "Kharis",
+          "sourceImage": "Hero Kharis.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484081",
+          "name": "Lilith",
+          "sourceImage": "Hero Lilith.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484082",
+          "name": "Luna",
+          "sourceImage": "Hero Luia.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "EE_Hero",
+      "count": 6,
+      "items": [
+        {
+          "id": "1730391484139",
+          "name": "Anna Lontius",
+          "sourceImage": "Hero Anna.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484140",
+          "name": "Ariadie",
+          "sourceImage": "Hero Ariadie.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484141",
+          "name": "Bardas Maleinos",
+          "sourceImage": "Hero Bardas.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484142",
+          "name": "Frostheart",
+          "sourceImage": "Hero Frostheart.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484143",
+          "name": "Princess Sofia",
+          "sourceImage": "Hero Sofia.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484144",
+          "name": "Vesta Psellos",
+          "sourceImage": "Hero Vesta.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Fjordland_Hero",
+      "count": 7,
+      "items": [
+        {
+          "id": "1730391484196",
+          "name": "Astrid",
+          "sourceImage": "Hero astrid.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484197",
+          "name": "Cromax",
+          "sourceImage": "Hero Cromax.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484198",
+          "name": "Freyja",
+          "sourceImage": "Hero Frryja.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484199",
+          "name": "Karl",
+          "sourceImage": "Hero Karl.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484200",
+          "name": "Lieva",
+          "sourceImage": "Hero Lieva.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484201",
+          "name": "Saffi",
+          "sourceImage": "Hero Saffi.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484202",
+          "name": "Tbor",
+          "sourceImage": "Hero Tbor.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Goblins_Hero",
+      "count": 7,
+      "items": [
+        {
+          "id": "1730391484264",
+          "name": "Finger Cutter",
+          "sourceImage": "Hero Finger Cutter.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484265",
+          "name": "Iron Skull",
+          "sourceImage": "Hero Iron Skull.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484266",
+          "name": "Manstrangler",
+          "sourceImage": "Hero Manstrangler.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484267",
+          "name": "Siskar",
+          "sourceImage": "Hero Siskar.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484268",
+          "name": "Swarm Master",
+          "sourceImage": "Hero Swarm Master.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484269",
+          "name": "Turku",
+          "sourceImage": "Hero Turku.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484270",
+          "name": "Weasel Eyes",
+          "sourceImage": "Hero Weasel Eyes.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Oathborn_Hero",
+      "count": 6,
+      "items": [
+        {
+          "id": "1730391484330",
+          "name": "Dara",
+          "sourceImage": "Hero Dara.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484331",
+          "name": "Haga-Tor",
+          "sourceImage": "Hero Haga Tor.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484332",
+          "name": "Siege-Master",
+          "sourceImage": "Hero Smith Master.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484333",
+          "name": "Stormcaller",
+          "sourceImage": "Hero Stormcaller.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484334",
+          "name": "Throndil",
+          "sourceImage": "Hero Tbrondil.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484335",
+          "name": "Yeti Elder",
+          "sourceImage": "Hero Yeti.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Orc_Hero",
+      "count": 6,
+      "items": [
+        {
+          "id": "1730391484338",
+          "name": "Grond",
+          "sourceImage": "O Hero Gond.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484339",
+          "name": "Kagash Spy-Master",
+          "sourceImage": "O Hero Kag.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484340",
+          "name": "Karsch",
+          "sourceImage": "O Hero Karscb.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484341",
+          "name": "Kovat the Flayer",
+          "sourceImage": "O Hero Kowat.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484342",
+          "name": "Sumesh",
+          "sourceImage": "O Hero Surr.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484343",
+          "name": "Warlord Szark",
+          "sourceImage": "O Hero Sz.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Spell Deck",
+      "count": 52,
+      "items": [
+        {
+          "id": "1730391484403",
+          "name": "S1 Heat Ray",
+          "sourceImage": "1 Heat Ray.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484404",
+          "name": "S2 Dust Devil",
+          "sourceImage": "2 Dust Devil.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484405",
+          "name": "S3 Sudden Fog",
+          "sourceImage": "3 Sudden Fog.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484406",
+          "name": "S4 Earthquake",
+          "sourceImage": "4 Earthquake.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484407",
+          "name": "S5 Crushing Vines",
+          "sourceImage": "5 Crushing Vines.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484408",
+          "name": "S6 Tsunami",
+          "sourceImage": "6 Tsunami.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484409",
+          "name": "S7 Mage Arrow",
+          "sourceImage": "7 Mage Arrow.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484410",
+          "name": "S8 Lightning Bolt",
+          "sourceImage": "8 Lightning Bolt.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484411",
+          "name": "S9 Swarm of Bees",
+          "sourceImage": "9 Swarm of Bees.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484412",
+          "name": "S10 Necromancy",
+          "sourceImage": "10 Necromancy.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484413",
+          "name": "S11 Portal",
+          "sourceImage": "11 Portal.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484414",
+          "name": "S12 Wave Strider",
+          "sourceImage": "12 Wave Strider.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484415",
+          "name": "S13 Tidal Shelter",
+          "sourceImage": "13 Tidal Shelter.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484416",
+          "name": "S14 Illusion",
+          "sourceImage": "14 Illusion.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484417",
+          "name": "S15 Negation",
+          "sourceImage": "15 Negation.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484418",
+          "name": "S16 Sleep",
+          "sourceImage": "16 Sleep.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484419",
+          "name": "S17 Cure Wounds",
+          "sourceImage": "17 Cure Wounds.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484420",
+          "name": "S18 Blood Magic",
+          "sourceImage": "18 Blood Magic.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484421",
+          "name": "S19 Cloud of Darkness",
+          "sourceImage": "19 Cloud of Darkness.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484422",
+          "name": "S20 Monsters in the Hills",
+          "sourceImage": "20 Monsters in the Hills.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484423",
+          "name": "S21 Teleport",
+          "sourceImage": "S21 Teleport.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484424",
+          "name": "S22 Living Grimoire",
+          "sourceImage": "S22 Living Grimoire.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484425",
+          "name": "S23 Spoundbound",
+          "sourceImage": "S23 Spoundbound.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484426",
+          "name": "S24 Martyrdom",
+          "sourceImage": "S24 Martyrdom.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484427",
+          "name": "S25 Giants Strength",
+          "sourceImage": "S25 Giants Strength.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484428",
+          "name": "S26 Earth to Mud",
+          "sourceImage": "S26 Earth to Mud.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484429",
+          "name": "S27 Fear",
+          "sourceImage": "S27 Fear.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484430",
+          "name": "S28 Molten Hammer",
+          "sourceImage": "S28 Molten Hammer.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484431",
+          "name": "S29 Black Tide",
+          "sourceImage": "S29 Black Tide.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484432",
+          "name": "S30 Feral Mastery",
+          "sourceImage": "S30 Feral Mastery.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484433",
+          "name": "S31 Ice Storm",
+          "sourceImage": "S31 Ice Storm.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484434",
+          "name": "S32 Blazing Hands",
+          "sourceImage": "S32 Blazing Hands.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484435",
+          "name": "S33 Ray of Weakness",
+          "sourceImage": "S33 Ray of Weakness.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484436",
+          "name": "S34 Banished to Meji",
+          "sourceImage": "S34 Banished to Meji.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484437",
+          "name": "S35 Demonic Possession",
+          "sourceImage": "S35 Demonic Possession.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484438",
+          "name": "S36 Summon the Dead",
+          "sourceImage": "S36 Summon the Dead.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484439",
+          "name": "S37 Ritual of Power",
+          "sourceImage": "S37 Ritual of Power.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484440",
+          "name": "S38 Ritual of Speed",
+          "sourceImage": "S38 Ritual of Speed.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484441",
+          "name": "S39 Summon Kraken",
+          "sourceImage": "S39 Summon Kraken.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484442",
+          "name": "S40 Summon Morag",
+          "sourceImage": "S40 Summon Morag.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484443",
+          "name": "S41 Unerring Darts",
+          "sourceImage": "S41 Unerring Darts.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484444",
+          "name": "S42 Untertow",
+          "sourceImage": "S42 Untertow.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484445",
+          "name": "S43 Fireball",
+          "sourceImage": "S43 Fireball.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484446",
+          "name": "S44 Festering Wounds",
+          "sourceImage": "S44 Festering Wounds.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484447",
+          "name": "S45 Paths of Dread",
+          "sourceImage": "S45 Paths of Dread.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484448",
+          "name": "S46 The Four Fingered Fist",
+          "sourceImage": "S46 The Four Fingered Fist.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484449",
+          "name": "S47 Moryanas Fury",
+          "sourceImage": "S47 Moryanas Fury.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484450",
+          "name": "S48 Hawk Eye",
+          "sourceImage": "S48 Hawk Eye.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484451",
+          "name": "S49 Ritual of Vigilance",
+          "sourceImage": "S49 Ritual of Vigilance.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484452",
+          "name": "S50 Sigil of Courage",
+          "sourceImage": "S50 Sigil of Courage.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484453",
+          "name": "S51 Spirit Blade",
+          "sourceImage": "S51 Spirit Blade.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484454",
+          "name": "S52 Heat Lightning",
+          "sourceImage": "S52 Heat Lightning.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Treasure Deck",
+      "count": 36,
+      "items": [
+        {
+          "id": "1730391484457",
+          "name": "T1 Storm Gods Hammer",
+          "sourceImage": "T1 Storm Gods Hammer.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484458",
+          "name": "T2 Endless Satchel",
+          "sourceImage": "T2 Endless Satchel.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484459",
+          "name": "T3 Orb of Confusion",
+          "sourceImage": "T3 Orb of Confusion.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484460",
+          "name": "T4 Philosopers Stone",
+          "sourceImage": "T4 Philosopers Stone.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484461",
+          "name": "T5 Horn of Udun",
+          "sourceImage": "T5 Horn of Udun.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484462",
+          "name": "T6 Khadans Feathered Cloak",
+          "sourceImage": "T6 Khadans Feathered Cloak.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484463",
+          "name": "T7 Ring of the Moirai",
+          "sourceImage": "T7 Ring of the Moirai.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484464",
+          "name": "T8 The Journal of T Ogmundarson",
+          "sourceImage": "T8 The Journal of T Ogmundarson.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484465",
+          "name": "T9 Infernal Sphere",
+          "sourceImage": "T9 Infernal Sphere.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484466",
+          "name": "T10 Soul Drinker",
+          "sourceImage": "T10 Soul Drinker.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484467",
+          "name": "T11 Elven Bow",
+          "sourceImage": "T11 Elven Bow.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484468",
+          "name": "T12 Ring of Invisibility",
+          "sourceImage": "T12 Ring of Invisibility.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484469",
+          "name": "T13 Ring of Dragons",
+          "sourceImage": "T13 Ring of Dragons.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484470",
+          "name": "T14 Wizard Staff",
+          "sourceImage": "T14 Wizard Staff.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484471",
+          "name": "T15 Staff of Plagues",
+          "sourceImage": "T15 Staff of Plagues.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484472",
+          "name": "T16 Black Arrow",
+          "sourceImage": "T16 Black Arrow.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484473",
+          "name": "T17 Treasure Hoard",
+          "sourceImage": "T17 Treasure Hoard.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484474",
+          "name": "T18 Treasure Hoard",
+          "sourceImage": "T18 Treasure Hoard.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484475",
+          "name": "T19 Treasure Hoard",
+          "sourceImage": "T19 Treasure Hoard.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484476",
+          "name": "T20 Black Diamond",
+          "sourceImage": "T20 Black Diamond.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484477",
+          "name": "T21 Book of the Dead",
+          "sourceImage": "T21 Book of the Dead.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484478",
+          "name": "T22 Encyclopedia of Monstrosotoes",
+          "sourceImage": "T22 Encyclopedia of Monstrosotoes.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484479",
+          "name": "T23 The Astronomicon",
+          "sourceImage": "T23 The Astronomicon.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484480",
+          "name": "T24 Scrolls of Scholos",
+          "sourceImage": "T24 Scrolls of Scholos.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484481",
+          "name": "T25 Staff of Healing",
+          "sourceImage": "T25 Staff of Healing.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484482",
+          "name": "T26 Helm of Domination",
+          "sourceImage": "T26 Helm of Domination.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484483",
+          "name": "T27 Draconic Shield",
+          "sourceImage": "T27 Draconic Shield.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484484",
+          "name": "T28 White Wold Amulet",
+          "sourceImage": "T28 White Wold Amulet.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484485",
+          "name": "T29 Curse of Xaraxxes",
+          "sourceImage": "T29 Curse of Xaraxxes.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484486",
+          "name": "T30 The Red Wizards Curse",
+          "sourceImage": "T30 The Red Wizards Curse.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484487",
+          "name": "T31 Tablets of Amun Koth",
+          "sourceImage": "T31 Tablets of Amun Koth.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484488",
+          "name": "T32 Eye of Kagutomo",
+          "sourceImage": "T32 Eye of Kagutomo.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484489",
+          "name": "T33 Storm Giants Amulet",
+          "sourceImage": "T33 Storm Giants Amulet.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484490",
+          "name": "T34 Iron Golem",
+          "sourceImage": "T34 Iron Golem.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484491",
+          "name": "T35 Fountain of Power",
+          "sourceImage": "T35 Fountain of Power.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484492",
+          "name": "T36 Fountain of Valor",
+          "sourceImage": "T36 Fountain of Valor.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Land-Monster Pile",
+      "count": 29,
+      "items": [
+        {
+          "id": "1730391484499",
+          "name": "ML Baba Ti",
+          "sourceImage": "ML Baba Ti.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484500",
+          "name": "ML Banshee",
+          "sourceImage": "ML Banshee.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484501",
+          "name": "ML Basilisk",
+          "sourceImage": "ML Basilisk.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484502",
+          "name": "ML Black Tide Assassins",
+          "sourceImage": "ML Black Tide Assassins.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484503",
+          "name": "ML Colossal Worm",
+          "sourceImage": "ML Colossal Worm.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484504",
+          "name": "ML Corpse Golem",
+          "sourceImage": "ML Corpse Golem.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484505",
+          "name": "ML Dire Wolf",
+          "sourceImage": "ML Dire Wolf.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484506",
+          "name": "ML Djinn",
+          "sourceImage": "ML Djinn.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484507",
+          "name": "ML Droghir",
+          "sourceImage": "ML Droghir.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484508",
+          "name": "ML Feral Orcs",
+          "sourceImage": "ML Feral Orcs.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484509",
+          "name": "ML Fey Hunters",
+          "sourceImage": "ML Fey Hunters.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484510",
+          "name": "ML Fire Scarabs",
+          "sourceImage": "ML Fire Scarabs.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484511",
+          "name": "ML Floating Eye",
+          "sourceImage": "ML Floating Eye.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484512",
+          "name": "ML Ghost Bear",
+          "sourceImage": "ML Ghost Bear.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484513",
+          "name": "ML Giant Spiders",
+          "sourceImage": "ML Giant Spiders.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484514",
+          "name": "ML Granny Wink and Soot",
+          "sourceImage": "ML Granny Wink and Soot.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484515",
+          "name": "ML Gray Slime",
+          "sourceImage": "ML Gray Slime.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484516",
+          "name": "ML Great White Ape",
+          "sourceImage": "ML Great White Ape.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484517",
+          "name": "ML Harpy",
+          "sourceImage": "ML Harpy.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484518",
+          "name": "ML Hill Giant",
+          "sourceImage": "ML Hill Giant.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484519",
+          "name": "ML Karfang",
+          "sourceImage": "ML Karfang.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484520",
+          "name": "ML Kobolds",
+          "sourceImage": "ML Kobolds.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484521",
+          "name": "ML Marsh Troll",
+          "sourceImage": "ML Marsh Troll.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484522",
+          "name": "ML Osterlich",
+          "sourceImage": "ML Osterlich.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484523",
+          "name": "ML Plague Rats",
+          "sourceImage": "ML Plague Rats.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484524",
+          "name": "ML Red Mask Assassins",
+          "sourceImage": "ML Red Mask Assassins.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484525",
+          "name": "ML The Blue Wizard",
+          "sourceImage": "ML The Blue Wizard.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484526",
+          "name": "ML Wight",
+          "sourceImage": "ML Wight.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484527",
+          "name": "ML Xaraxxes",
+          "sourceImage": "ML Xaraxxes.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    },
+    {
+      "name": "Sea-Monster Pile",
+      "count": 7,
+      "items": [
+        {
+          "id": "1730391484530",
+          "name": "MS Ao-Bishi",
+          "sourceImage": "MS Ao-Bishi.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484531",
+          "name": "MS Bearshark",
+          "sourceImage": "MS Bearshark.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484532",
+          "name": "MS Hammerhead Walrus",
+          "sourceImage": "MS Hammerhead Walrus.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484533",
+          "name": "MS Kraken",
+          "sourceImage": "MS Kraken.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484534",
+          "name": "MS Kupa Raiders",
+          "sourceImage": "MS Kupa Raiders.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484535",
+          "name": "MS Leviathan",
+          "sourceImage": "MS Leviathan.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        },
+        {
+          "id": "1730391484536",
+          "name": "MS Siren",
+          "sourceImage": "MS Siren.png",
+          "effectStatus": "not-executable-imported",
+          "assetRedistribution": "not-granted"
+        }
+      ]
+    }
+  ]
+}
