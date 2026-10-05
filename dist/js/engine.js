@@ -1,5 +1,6 @@
 import * as Advanced from './advanced.js';
 import { validateContentPack } from './content-validation.js';
+import { validateTabletop } from './tabletop.js';
 import { validateCompanionShape } from './async-play.js';
 const DIRECTIONS = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
 const BOARD_CACHE = new WeakMap();
@@ -118,6 +119,8 @@ export function isBesieged(s, hexId) {
     return besiegers.length >= (horne ? 3 : h.settlement?.port ? 2 : 1);
 }
 function unitMayAct(s, u) {
+    if (s.tabletop?.enslaved?.some(x => x.armyId === u.id))
+        return false;
     return s.phase === 'activation' && !s.pendingCombat && u.kingdom === s.currentKingdom && !u.activated && !Advanced.stackIds(s, u.id).some(id => s.units.find(v => v.id === id)?.activated) && !s.advanced?.pending && (!s.activeUnitId || Advanced.stackIds(s, s.activeUnitId).includes(u.id));
 }
 export function moveOptions(s, unitId) {
@@ -155,12 +158,20 @@ export function moveOptions(s, unitId) {
     }
     return [...records.values()].sort((a, b) => a.cost - b.cost || a.hexId.localeCompare(b.hexId));
 }
+export function movementPreview(s, unitId, option, ship = false) {
+    const u = unitById(s, unitId), group = Advanced.stackIds(s, unitId), active = !!s.activeUnitId && group.includes(s.activeUnitId);
+    const spent = group.map(() => 0);
+    let from = u.hexId;
+    const steps = option.path.map(id => { const h = hexById(s, id), costs = group.map((member, i) => { const cost = ship ? 1 : movementCost(s, unitById(s, member), from, h); spent[i] += cost; return cost; }); from = id; return { hexId: id, name: h.settlement?.name ?? id, terrain: h.terrain, costs }; });
+    const units = group.map((id, i) => { const v = unitById(s, id), d = defOf(s, v), budget = active ? (s.advanced ? s.advanced.movement[id] ?? d.movement : s.remainingMP) : d.movement, bonus = !ship && option.roadOnly ? 1 : 0; return { unitId: id, name: rawDef(s, v).name, spent: spent[i], remaining: Math.max(0, budget + bonus - spent[i]), roadBonus: bonus, minimumMove: !ship && spent[i] > budget + bonus }; });
+    return { steps, units, ship };
+}
 export function shipOptions(s, unitId) {
     const u = unitById(s, unitId);
-    if (!unitMayAct(s, u) || (s.activeUnitId !== null && Advanced.stackIds(s, u.id).includes(s.activeUnitId) && s.shipUsed))
+    if (!unitMayAct(s, u) || s.advanced?.shipsThisTurn?.some(id => Advanced.stackIds(s, u.id).includes(id)) || (s.activeUnitId !== null && Advanced.stackIds(s, u.id).includes(s.activeUnitId) && s.shipUsed))
         return [];
-    const d = defOf(s, u);
-    if (Advanced.stackIds(s, u.id).some(id => { const d = defOf(s, unitById(s, id)); return characteristic(d, 'feral') || characteristic(d, 'huge'); }))
+    const d = defOf(s, u), wave = s.advanced?.effects.some(e => Advanced.stackIds(s, u.id).includes(e.target) && e.extra?.waveStrider);
+    if (!wave && Advanced.stackIds(s, u.id).some(id => { const d = defOf(s, unitById(s, id)); return characteristic(d, 'feral') || characteristic(d, 'huge'); }))
         return [];
     const start = hexById(s, u.hexId), port = aliveSettlement(s, start) && start.settlement?.port && isWelcoming(s, start, u.kingdom);
     const budget = (port || start.entry === u.kingdom ? 6 : 3) + (u.kingdom === 'fjordland' ? 2 : 0);
@@ -252,7 +263,10 @@ export function combatForecast(s, attackerId, targetHex) {
     if (penalty)
         explanation.push(`Fortification −${penalty} to each attacking die`);
     if (s.advanced) {
-        penalty += s.advanced.effects.filter(e => e.target === targetHex || e.target === d?.id).reduce((n, e) => n + (e.fortification ?? 0), 0);
+        const magical = s.advanced.effects.filter(e => e.target === targetHex || e.target === d?.id).reduce((n, e) => n + (e.fortification ?? 0), 0);
+        penalty += magical;
+        if (magical)
+            explanation.push(`Magical fortification −${magical} to each attacking die`);
     }
     const as = ability(ad, 'stealth'), ds = !!dd && ability(dd, 'stealth');
     return { attackerId, targetHex, attackerLight: ac.light, attackerHeavy: ac.heavy, defenderLight: dc.light, defenderHeavy: dc.heavy, fortificationPenalty: penalty, attackerExpected: diceExpected(ac.light, ac.heavy, penalty), defenderExpected: diceExpected(dc.light, dc.heavy, 0), attackerCanAmbush: as && !ds && (!aliveSettlement(s, h) || !h.settlement?.fortified), defenderCanAmbush: ds && !as, defenderUnitId: d?.id, explanation };
@@ -286,7 +300,7 @@ function buildLocations(s, d) {
     });
 }
 export function legalActions(s) {
-    if (s.phase === 'game-over')
+    if (s.phase === 'game-over' || s.tabletop?.review)
         return [];
     const extra = s.advanced ? Advanced.advancedLegalActions(s, advancedContext()) : { actions: [], exclusive: false };
     if (extra.exclusive)
@@ -441,6 +455,8 @@ function gainIncome(s, owner, amount = 1) { if (owner && !isShashka(owner)) {
 function raze(s, h, loot = false) {
     const owner = settlementController(s, h);
     if (loot && owner) {
+        if (s.advanced)
+            Advanced.queueAdvancedEvent(s, { type: 'settlement-looted', kingdom: owner, hexId: h.id });
         const k = kingdomOf(s, owner);
         k.gold += (isShashka(owner) ? 3 : 2) * (h.settlement?.city ? 2 : 1);
     }
@@ -524,15 +540,7 @@ function hitArmy(s, id, hits) {
     }
 }
 function strikeDice(s, u, target) {
-    const pool = diceFor(s, u);
-    if (!u)
-        return pool;
-    const d = defOf(s, u);
-    if (ranger(d) && wilderness(target) === 'forest')
-        pool.light++;
-    if (u.kingdom === 'night' && s.covens.includes(target.id))
-        pool.light++;
-    return pool;
+    return u ? diceFor(s, u) : { light: target.settlement?.city ? 3 : target.settlement ? 1 : 0, heavy: 0 };
 }
 function advanceInto(s, attackerId, targetHex) {
     const a = unitById(s, attackerId), h = hexById(s, targetHex), d = defOf(s, a);
@@ -552,6 +560,8 @@ function advanceInto(s, attackerId, targetHex) {
             const loot = (isShashka(a.kingdom) ? 3 : 2) * (h.settlement?.city ? 2 : 1);
             kingdomOf(s, a.kingdom).gold += loot;
             log(s, `${defOf(s, a).name} loots ${h.settlement?.name}: +${loot} gold.`);
+            if (s.advanced)
+                Advanced.queueAdvancedEvent(s, { type: 'settlement-looted', unitId: a.id, kingdom: a.kingdom, hexId: h.id });
         }
         loseIncome(s, former);
         delete s.controls[h.id];
@@ -607,7 +617,7 @@ function resolveCombat(s, ambush) {
     if (ambush) {
         const first = ambush === 'attacker' ? a : d, second = ambush === 'attacker' ? d : a;
         const firstTarget = ambush === 'attacker' ? h : hexById(s, a.hexId), secondTarget = ambush === 'attacker' ? hexById(s, a.hexId) : h;
-        const fp = strikeDice(s, first, firstTarget), fr = rollPool(s, fp.light, fp.heavy);
+        const fp = strikeDice(s, first, first ? hexById(s, first.hexId) : h), fr = rollPool(s, fp.light, fp.heavy);
         const hits = (fr.successes > 0 ? 1 : 0) + fr.confirmed;
         if (ambush === 'attacker') {
             defenderHits = hits;
@@ -620,7 +630,7 @@ function resolveCombat(s, ambush) {
         const secondSurvives = second ? s.units.some(u => u.id === second.id) : hits === 0;
         let sr = { rolls: [], successes: 0, confirmed: 0 };
         if (secondSurvives) {
-            const sp = strikeDice(s, second, secondTarget);
+            const sp = strikeDice(s, second, second ? hexById(s, second.hexId) : h);
             sr = rollPool(s, sp.light, sp.heavy);
             const backHits = (sr.successes > 0 ? 1 : 0) + sr.confirmed;
             if (ambush === 'attacker') {
@@ -684,7 +694,7 @@ function collapse(s, k, reason) {
     log(s, `${k.name} collapses: ${reason}.`);
 }
 function evaluateVictory(s, atDeadline = false) {
-    if (s.phase === 'game-over')
+    if (s.phase === 'game-over' || s.tabletop?.manualVictory)
         return;
     const invaderAlive = s.kingdoms.some(k => k.side === 'invader' && !k.collapsed), resistanceAlive = s.kingdoms.some(k => k.side === 'resistance' && !k.collapsed);
     if (!invaderAlive || !resistanceAlive) {
@@ -802,6 +812,8 @@ export function createGame(config) {
                 c.unitDefinitions.push(d);
     const s = { version: 1, hexes: c.hexes, unitDefinitions: c.unitDefinitions, scenario, kingdoms: scenario.kingdoms.map(k => ({ ...k, controller: c.controllers?.[k.id] ?? 'human', collapsed: false, hasEverControlled: Object.values(scenario.initialControls ?? {}).includes(k.id) })), units: scenario.initialUnits.map((u, i) => { const d = c.unitDefinitions.find(d => d.id === u.defId); if (!d)
             throw new Error(`Unknown opening Army ${u.defId}`); return { ...u, id: `unit-${i + 1}`, kingdom: d.kingdom, weakened: u.weakened ?? false, activated: false }; }), controls: { ...scenario.initialControls }, razed: [...scenario.initialRazed ?? []], covens: [...scenario.initialCovens ?? []], covenProtected: [], year: scenario.startYear, season: scenario.startSeason, phase: 'income-actions', turnIndex: 0, currentKingdom: scenario.turnOrder[0], activeUnitId: null, remainingMP: 0, allRoad: true, moved: false, shipUsed: false, pendingCombat: null, lastCombat: null, rng: (c.seed ?? 29051994) >>> 0 || 1, serial: scenario.initialUnits.length + 1, turnSerial: 0, newlyFriendly: [], incomeActionsUsed: [], winner: null, victoryReason: '', log: [] };
+    if (c.tabletop)
+        s.tabletop = { version: 1, review: null, rulings: [], manualVictory: true, setupSource: c.scenario.source };
     if (c.profile === 'advanced')
         Advanced.initializeAdvanced(s, c, advancedContext());
     const issues = validateState(s);
@@ -845,6 +857,7 @@ export function applyAction(state, action) {
                 evaluateVictory(s);
         }
         Advanced.resolveImmediateTreasures(s);
+        Advanced.flushAdvancedEvents(s, advancedContext());
         canonicalizeAdvanced(s);
         return s;
     }
@@ -878,6 +891,8 @@ export function applyAction(state, action) {
             const u = unitById(s, legal.unitId);
             startActivation(s, u);
             s.shipUsed = true;
+            if (s.advanced)
+                s.advanced.shipsThisTurn = [...s.advanced.shipsThisTurn ?? [], ...Advanced.stackIds(s, u.id)];
             const path = legal.path ?? [];
             if (s.advanced)
                 Advanced.beginMovement(s, u.id, path, true, advancedContext());
@@ -966,6 +981,8 @@ export function applyAction(state, action) {
             k.gold++;
             log(s, 'Oathborn Miners work a mine: +1 gold.');
             finishActivation(s);
+            if (s.advanced)
+                Advanced.queueAdvancedEvent(s, { type: 'after-mining-action', unitId: u.id, kingdom: u.kingdom });
             break;
         }
         case 'pass':
@@ -990,7 +1007,7 @@ export function applyAction(state, action) {
             break;
         }
         case 'coven': {
-            const h = hexById(s, legal.hexId), raw = randomDie(s, 6);
+            const h = hexById(s, legal.hexId), dominia = s.advanced && s.units.some(u => u.defId === 'hero-night-13' && Math.max(Math.abs(h.q - hexById(s, u.hexId).q), Math.abs(h.r - hexById(s, u.hexId).r), Math.abs(h.q + h.r - hexById(s, u.hexId).q - hexById(s, u.hexId).r)) <= 5), raw = dominia ? 5 : randomDie(s, 6);
             let modifier = 0;
             if (!s.units.some(u => u.hexId === h.id))
                 modifier++;
@@ -1001,7 +1018,7 @@ export function applyAction(state, action) {
             if (raw + modifier >= 5)
                 s.covens.push(h.id);
             s.incomeActionsUsed.push('coven');
-            log(s, `Coven placement at ${h.settlement?.name}: ${raw}+${modifier} ${raw + modifier >= 5 ? 'succeeds' : 'fails'}.`);
+            log(s, `Coven placement at ${h.settlement?.name}: ${dominia ? 'automatic near Dominia' : raw + '+' + modifier} ${raw + modifier >= 5 ? 'succeeds' : 'fails'}.`);
             break;
         }
         case 'lay-waste':
@@ -1107,8 +1124,10 @@ export function applyAction(state, action) {
             break;
         }
     }
-    if (s.advanced)
+    if (s.advanced) {
         Advanced.resolveImmediateTreasures(s);
+        Advanced.flushAdvancedEvents(s, advancedContext());
+    }
     canonicalizeAdvanced(s);
     return s;
 }
@@ -1218,6 +1237,9 @@ export function validateState(value) {
     if (!value || typeof value !== 'object')
         return ['Saved game must be an object.'];
     const s = value;
+    const tableIssues = validateTabletop(s.tabletop);
+    if (tableIssues.length)
+        return tableIssues;
     const advancedIssues = Advanced.validateAdvancedShape(s.advanced);
     if (advancedIssues.length)
         return advancedIssues;
@@ -1225,6 +1247,10 @@ export function validateState(value) {
         issues.push('Unsupported saved-game version.');
     if (!Array.isArray(s.hexes) || !Array.isArray(s.unitDefinitions) || !Array.isArray(s.units) || !Array.isArray(s.kingdoms))
         return [...issues, 'Missing board, Army definitions, units, or Kingdoms.'];
+    if (s.tabletop?.enslaved?.some(x => !s.units.some(u => u.id === x.armyId && !Advanced.isHero(s, u))))
+        return ['Unknown Enslaved Hero Army.'];
+    if (s.tabletop?.review && !s.advanced?.players.some(p => p.id === s.tabletop.review.playerId))
+        return ['Unknown table resolver.'];
     if (s.hexes.length > 5000 || s.units.length > 2000 || s.unitDefinitions.length > 1000 || s.kingdoms.length > 6)
         return ['Saved game exceeds supported limits.'];
     if (!s.scenario || !Array.isArray(s.scenario.turnOrder) || !s.scenario.objective)
@@ -1277,6 +1303,13 @@ export function validateState(value) {
         if (k.collapsed && s.units.some(u => u.kingdom === k.id))
             issues.push(`Collapsed Kingdom ${k.id} has Armies.`);
     }
+    let transit = null;
+    const findTransit = (p, depth = 0) => { if (!p || depth > 40)
+        return; if (p.kind === 'window' && p.window === 'movement' && Array.isArray(p.event?.path) && p.event.path.length)
+        transit = p.event; findTransit(p.resume, depth + 1); findTransit(p.immediateResume, depth + 1); };
+    findTransit(s.advanced?.pending);
+    const movingIds = transit && s.activeUnitId ? Advanced.stackIds(s, s.activeUnitId) : [];
+    const inTransit = (u) => !!transit && movingIds.includes(u.id) && u.hexId === transit.enteredHex;
     for (const u of s.units) {
         if (unitIds.has(u.id))
             issues.push('Duplicate Army instance IDs.');
@@ -1290,10 +1323,10 @@ export function validateState(value) {
             issues.push(`Army ${u.id} belongs to the wrong Kingdom.`);
         if (definition && characteristic(definition, 'fragile') && u.weakened)
             issues.push(`Fragile Army ${u.id} cannot be weakened.`);
-        const h = s.hexes.find(h => h.id === u.hexId);
-        if (h && (h.prohibited || h.terrain === 'lair' || (h.terrain === 'sea' && h.entry !== u.kingdom) || (h.entry && h.entry !== u.kingdom)))
+        const h = s.hexes.find(h => h.id === u.hexId), passing = !!h && inTransit(u) && canPass(s, u, h, !!transit.ship);
+        if (h && (h.prohibited || !passing && (h.terrain === 'lair' || (h.terrain === 'sea' && h.entry !== u.kingdom) || (h.entry && h.entry !== u.kingdom))))
             issues.push(`Army ${u.id} occupies prohibited terrain.`);
-        const occupants = s.units.filter(v => v.hexId === u.hexId);
+        const occupants = s.units.filter(v => v.hexId === u.hexId && !(transit && movingIds.includes(v.id) && inTransit(v)));
         if (occupants.length > 1 && !(s.advanced && occupants.length === 2 && occupants.filter(v => Advanced.isHero(s, v)).length === 1 && occupants.every(v => v.kingdom === u.kingdom))) {
             const active = occupants.find(v => v.id === s.activeUnitId);
             if (occupants.length !== 2 || !active || active.activated || occupants.some(v => v.kingdom !== active.kingdom) || !occupants.some(v => v.id !== active.id && v.activated))
@@ -1367,8 +1400,10 @@ export function importGame(json) {
     validateContentPack({ version: 1, hexes: s.hexes, unitDefinitions: s.unitDefinitions, scenario: s.scenario });
     return s;
 }
-export const advancedActor = (s) => Advanced.advancedActor(s);
-const ADVANCED_ACTIONS = new Set(['store-satchel', 'remove-curse', 'play-card', 'hero-power', 'magic-pass', 'study', 'finish-study', 'sell-treasure', 'finish-winter', 'recruit-hero', 'drop-hero', 'drop-army', 'request-cantrip', 'join-stack', 'allocate-hit', 'accept-hit', 'explore-lair', 'attack-monster', 'monster-strike', 'monster-pass', 'slink-away', 'command-monster', 'magic-choice']);
+export function consumeTableHit(s) { if (!s.tabletop)
+    throw new Error('This is not a tabletop campaign.'); Advanced.consumeTableHit(s, advancedContext()); Advanced.flushAdvancedEvents(s, advancedContext()); canonicalizeAdvanced(s); }
+export const advancedActor = (s) => s.tabletop?.review ? Advanced.playerFor(s, s.currentKingdom)?.id === s.tabletop.review.playerId ? s.currentKingdom : s.advanced.players.find(p => p.id === s.tabletop.review.playerId).kingdoms[0] : Advanced.advancedActor(s);
+const ADVANCED_ACTIONS = new Set(['winter-ruling', 'store-satchel', 'remove-curse', 'play-card', 'hero-power', 'magic-pass', 'study', 'finish-study', 'sell-treasure', 'finish-winter', 'recruit-hero', 'drop-hero', 'drop-army', 'request-cantrip', 'join-stack', 'allocate-hit', 'accept-hit', 'explore-lair', 'attack-monster', 'monster-strike', 'monster-pass', 'slink-away', 'command-monster', 'magic-choice']);
 function moveAdvancedStep(s, id, toId, ship, join) {
     const u = s.units.find(v => v.id === id);
     if (!u)

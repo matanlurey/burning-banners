@@ -2,7 +2,7 @@
 
 ## Garrison dice during an Ambush Strike
 
-The working interpretation excludes settlement garrison dice during Strikes. Undying 9.6 and 9.9.1 describe the Army striking with its Combat Rating; 9.7 removes terrain effects; the physical Terrain Effects chart classifies settlement defense by reference to garrisons. The text does not explicitly say “city garrison dice are omitted in Ambush,” and no attributable designer ruling was retrieved. Treat exclusion as a source-derived interpretation awaiting a direct ruling, not a separately stated rule.
+The living rules distinguish combat terrain bonuses from a garrison's own Combat Rating. A Strike by an occupied Army/Hero uses its unit rating and excludes ordinary terrain defense. An unoccupied defending garrison Strikes with one Light die, or three in a City; it does not add a second terrain-derived bonus. This source-derived reading corrects the former blanket exclusion. Tests cover a real unoccupied garrison Strike-back and forecast agreement. No separately attributable designer ruling was retrieved.
 
 ## Control-marker supply
 
@@ -18,7 +18,7 @@ The capture table 4.9.2 presents an income increase for its hostile outcome; 4.9
 
 ## Full support vs diagnostic content
 
-Basic rule verification does not establish complete official content support. Six kingdom unit rosters and broad faction mechanics can be used in a clearly labeled original diagnostic scenario. A synthetic map, unverified victory condition, or fixed initial army must not be presented as an official campaign. Advanced preview now implements its core private decisions, stacks, Study, Monsters and Winter. Its 45 unsupported effects remain reference-only and excluded from legal plays; cataloged printed facts alone do not establish complete Advanced fidelity. The two original fixtures and partial Wildlands graph remain diagnostic content. See [runtime coverage](../docs/advanced-runtime-coverage.md).
+Basic rule verification does not establish complete official content support. Six kingdom unit rosters and broad faction mechanics can be used in a clearly labeled original diagnostic scenario. A synthetic map, unverified victory condition, or fixed initial army must not be presented as an official campaign. Advanced preview now implements its core private decisions, stacks, Study, Monsters and Winter. Its 17 remaining automatic effects are excluded from preview decks/Powers and available through human Full tabletop resolution; cataloged printed facts alone do not establish complete Advanced fidelity. The two original fixtures and partial Wildlands graph remain diagnostic content. See [runtime coverage](../docs/advanced-runtime-coverage.md).
 
 ## Allied controller consent
 
@@ -26,8 +26,12 @@ Team side membership, shared victory, recovery beside allied welcoming settlemen
 
 ## Unsellable Treasures in Winter
 
-The two curse and two fountain Treasures have exceptional disposal/holding wording. A verified exception to ordinary Winter selling and holding limits has not been established for their combined edge cases. These four cards remain reference-only rather than allowing a mandatory cleanup deadlock or inventing a sale rule. Their exact gates are recorded in the [runtime coverage table](../docs/advanced-runtime-coverage.md).
+The ordinary effects of the two curse and two fountain Treasures are implemented. Their combined unsellable-only holding-limit conflict has no verified disposal exception in the retrieved sources. The engine pauses and offers an explicit human ruling retaining that excess. It records the exception as a table ruling; AI cannot approve it. This is an unresolved printed-rule edge case, not a certified official exception. Full tabletop can record a different agreed adjudication through private card controls. None of the final 36 Advanced balance games required this ruling.
 
 ## Partial campaigns and joined boards
 
 The source audit obtained 28 named starts but not complete official opening/victory instructions. The publisher advertises 29 scenarios; the discrepancy is retained. Four-board location inventories do not establish road, river, coast or shared half-hex topology. No source fragment is promoted into an invented official setup. See [campaign/map audit](../docs/campaign-map-audit.md).
+
+## Full tabletop calibration and manual lifecycle
+
+Full tabletop makes every card, named Hero, Monster and the four Enslaved Hero markers available. Its controls validate finite inventories and legal final placements, not the printed timing of every human ruling. Enslave's first hit, temporary Mage rating, release and caster-lock behavior remain human adjudication; marking an Army alone does not automate them. Four-board calibration templates use their own coordinate origins, blank terrain/crossing assumptions and separate board layouts. Named place inventories are not certified map topology. Enter the printed ledger/control supplies and adjudicate uncalibrated joins manually. See the [table guide](../docs/full-tabletop.md).

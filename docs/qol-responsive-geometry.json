@@ -1,0 +1,93 @@
+[
+  {
+    "size": "Desktop",
+    "oddsScrollWidth": 253,
+    "oddsWidth": 253,
+    "scrollWidth": 1280,
+    "sheet": {
+      "h": 655,
+      "w": 330,
+      "x": 950,
+      "y": 68
+    },
+    "width": 1280
+  },
+  {
+    "size": "Phone 390 × 844",
+    "oddsScrollWidth": 304,
+    "oddsWidth": 304,
+    "scrollWidth": 390,
+    "sheet": {
+      "h": 590.796875,
+      "w": 374,
+      "x": 8,
+      "y": 127.203125
+    },
+    "width": 390
+  },
+  {
+    "size": "Small phone",
+    "oddsScrollWidth": 274,
+    "oddsWidth": 274,
+    "scrollWidth": 360,
+    "sheet": {
+      "h": 508,
+      "w": 344,
+      "x": 8,
+      "y": 106
+    },
+    "width": 360
+  },
+  {
+    "size": "Compact phone",
+    "oddsScrollWidth": 234,
+    "oddsWidth": 234,
+    "scrollWidth": 320,
+    "sheet": {
+      "h": 336,
+      "w": 304,
+      "x": 8,
+      "y": 106
+    },
+    "width": 320
+  },
+  {
+    "size": "Tablet",
+    "oddsScrollWidth": 229,
+    "oddsWidth": 229,
+    "scrollWidth": 768,
+    "sheet": {
+      "h": 879,
+      "w": 300,
+      "x": 468,
+      "y": 68
+    },
+    "width": 768
+  },
+  {
+    "size": "Landscape",
+    "oddsScrollWidth": 229,
+    "oddsWidth": 229,
+    "scrollWidth": 844,
+    "sheet": {
+      "h": 245,
+      "w": 300,
+      "x": 544,
+      "y": 68
+    },
+    "width": 844
+  },
+  {
+    "size": "Small landscape",
+    "oddsScrollWidth": 256,
+    "oddsWidth": 256,
+    "scrollWidth": 736,
+    "sheet": {
+      "h": 241,
+      "w": 320,
+      "x": 408,
+      "y": 60
+    },
+    "width": 736
+  }
+]

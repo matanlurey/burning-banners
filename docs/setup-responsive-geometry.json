@@ -1,0 +1,72 @@
+[
+  {
+    "size": "Desktop",
+    "bodyOverflow": 0,
+    "h": 800,
+    "importVisible": true,
+    "modalInside": true,
+    "modalScroll": false,
+    "panelScroll": true,
+    "w": 1280
+  },
+  {
+    "size": "Phone 390 × 844",
+    "bodyOverflow": 0,
+    "h": 844,
+    "importVisible": true,
+    "modalInside": true,
+    "modalScroll": true,
+    "panelScroll": false,
+    "w": 390
+  },
+  {
+    "size": "Small phone",
+    "bodyOverflow": 0,
+    "h": 740,
+    "importVisible": true,
+    "modalInside": true,
+    "modalScroll": true,
+    "panelScroll": false,
+    "w": 360
+  },
+  {
+    "size": "Compact phone",
+    "bodyOverflow": 0,
+    "h": 568,
+    "importVisible": true,
+    "modalInside": true,
+    "modalScroll": true,
+    "panelScroll": false,
+    "w": 320
+  },
+  {
+    "size": "Tablet",
+    "bodyOverflow": 0,
+    "h": 1024,
+    "importVisible": true,
+    "modalInside": true,
+    "modalScroll": false,
+    "panelScroll": true,
+    "w": 768
+  },
+  {
+    "size": "Landscape",
+    "bodyOverflow": 0,
+    "h": 390,
+    "importVisible": true,
+    "modalInside": true,
+    "modalScroll": false,
+    "panelScroll": true,
+    "w": 844
+  },
+  {
+    "size": "Small landscape",
+    "bodyOverflow": 0,
+    "h": 414,
+    "importVisible": true,
+    "modalInside": true,
+    "modalScroll": true,
+    "panelScroll": false,
+    "w": 736
+  }
+]

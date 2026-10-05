@@ -57,7 +57,7 @@ test('timeline records real movement and returns a read-only board projection wi
 });
 
 test('private card acquisitions and future draw logs are visible only to the card owner', () => {
-  const s = active(); s.companion = createCompanion(s);
+  const s = active(); give(s,'player-orcs','spell-52');s.companion = createCompanion(s);
   const next = structuredClone(s);
   give(next, 'player-fjordland', 'spell-52');
   next.log.push('Fjordland drew The Wrath of Bakari.');
@@ -280,7 +280,7 @@ test('desk presentation escapes free-form chat and notes without creating execut
 });
 
 test('every opponent desk view keeps private hand receipts and private planning notes hidden', () => {
-  const s = active(); s.companion = createCompanion(s);
+  const s = active();give(s,'player-orcs','spell-52'); s.companion = createCompanion(s);
   const next = structuredClone(s); give(next, 'player-fjordland', 'spell-52');
   let after = recordCampaignEvent(s, next, { type: 'study', playerId: 'player-fjordland', discipline: 'spells' });
   after = savePrivateNote(after, 'fjordland', 'Secret plan: attack under moonlight.');
@@ -329,4 +329,13 @@ test('foreign Monster command decisions retain the real commander in the briefin
   assert.equal(getReplayEvents(recorded,'fjordland').at(-1).actor,'orcs');
   const command=recordCampaignEvent(before,after,{type:'magic-choice',value:'continue'});
   assert.equal(getReplayEvents(command,'fjordland').at(-1).actor,'orcs');
+});
+
+test('hit receipts tell every visible seat which public Army weakened or was eliminated',()=>{
+  let s=active();battle(s,{attacker:'unit-1',defender:'unit-2',targetHex:'C',hits:1});s.companion=createCompanion(s);
+  const hit={type:'allocate-hit',unitId:'unit-2'};s=recordCampaignEvent(s,applyAction(s,hit),hit);
+  assert.match(getBriefing(s,'fjordland').events.at(-1).summary,/Orc Reavers was weakened/);
+  battle(s,{attacker:'unit-1',defender:'unit-2',targetHex:'C',hits:1});s=recordCampaignEvent(s,applyAction(s,hit),hit);
+  assert.match(getBriefing(s,'fjordland').events.at(-1).summary,/Orc Reavers was eliminated/);
+  assert.equal(getReplayEvents(s,'fjordland').at(-1).after.units.some(u=>u.id==='unit-2'),false);
 });

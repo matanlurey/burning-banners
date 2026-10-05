@@ -1,4 +1,4 @@
-import { cardById, advancedActor } from './advanced.js';
+import { cardById, monsterById, advancedActor } from './advanced.js';
 export const EVENT_LIMIT = 250;
 export const MESSAGE_LIMIT = 200;
 export const messageTemplates = {
@@ -101,6 +101,7 @@ function summarize(before, after, action, actor) {
     const name = unit ? before.unitDefinitions.find(d => d.id === unit.defId)?.name ?? unit.defId : '';
     const place = (id) => before.hexes.find(h => h.id === id)?.settlement?.name ?? id;
     switch (action.type) {
+        case 'table-ruling': return action.private ? `${who} adjusted private table components.` : `${who}: ${action.summary}`;
         case 'move':
         case 'ship': return `${who}: ${name} ${action.type === 'ship' ? 'sailed' : 'moved'} from ${place(unit.hexId)} to ${place(action.toHex)}.`;
         case 'build': return `${who} recruited ${before.unitDefinitions.find(d => d.id === action.defId)?.name ?? action.defId} at ${place(action.hexId)}.`;
@@ -121,6 +122,15 @@ function summarize(before, after, action, actor) {
         case 'settlement': return `${who} chose to ${action.choice} the settlement.`;
         case 'transfer-gold': return `${who} sent support to ${kingdomName(before, action.toKingdom)}.`;
         case 'magic-pass': return `${who} passed its Magic response.`;
+        case 'allocate-hit': {
+            const survivor = after.units.find(u => u.id === action.unitId);
+            return `${who}: ${name} ${!survivor ? 'was eliminated' : !unit?.weakened && survivor.weakened ? 'was weakened' : 'took a hit'}.`;
+        }
+        case 'accept-hit': {
+            const target = before.advanced?.pending?.kind === 'hit' ? before.advanced.pending.target : '';
+            const monster = before.advanced?.monsters.find(m => m.id === target);
+            return monster ? `${who}: ${monsterById(monster.defId)?.name ?? 'Monster'} was defeated.` : `${who} applied a hit at ${place(target)}.`;
+        }
         case 'activate': return `${who} activated ${name}.`;
         case 'pass': return `${who}: ${name} finished its activation.`;
         case 'resolve-combat': return after.lastCombat ? `${who} resolved the battle: ${after.lastCombat.result}.` : `${who} continued the battle.`;
@@ -153,7 +163,9 @@ export function recordCampaignEvent(before, after, action, automatic = false) {
     for (const line of newLogLines(before.log, after.log).slice(-40)) {
         // Hidden operations and card acquisitions are private even if a future
         // engine revision adds card names to its plain-text log.
-        if (privateAction(action) || /\bcoven\b/i.test(line) && !/\bcoven discovered\b/i.test(line))
+        if (action.type === 'table-ruling' && action.private)
+            addPrivate(actor, line);
+        else if (privateAction(action) || /\bcoven\b/i.test(line) && !/\bcoven discovered\b/i.test(line))
             addPrivate('night', line);
         else if (/\b(draws?|drew|drawn|retriev(?:e[sd]?|ing)|discard(?:s|ed)?|cost card)\b/i.test(line))
             addPrivate(actor, line);

@@ -1,5 +1,7 @@
 # Advanced release playtests
 
+Completion update: the latest build adds Full tabletop, 169 automated effects, 17 human effects and attack probability/navigation aids. See [current verification](verification.md), [coverage](advanced-runtime-coverage.md) and the [table guide](full-tabletop.md). The earlier measurements below remain historical.
+
 Checked October 5, 2026 UTC against the production bundle. This record covers the Advanced expansion baseline. The subsequent [Campaign Desk, async interactions and difficulty evaluation](async-play.md) are recorded separately.
 
 ## Automated verification

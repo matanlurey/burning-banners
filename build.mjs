@@ -5,5 +5,5 @@ const run = spawnSync(process.execPath, ['node_modules/typescript/bin/tsc', '-p'
 if (run.status) process.exit(run.status);
 mkdirSync('dist', {recursive:true});
 for (const file of ['index.html','content-editor.html']) copyFileSync('src/'+file, 'dist/'+file);
-writeFileSync('dist/style.css',readFileSync('src/style.css','utf8')+'\n'+readFileSync('src/campaign-desk.css','utf8'));
+writeFileSync('dist/style.css',readFileSync('src/style.css','utf8')+'\n'+readFileSync('src/campaign-desk.css','utf8')+'\n'+readFileSync('src/tabletop.css','utf8')+'\n'+readFileSync('src/quality-of-life.css','utf8'));
 console.log('Built browser-local Burning Banners war table.');

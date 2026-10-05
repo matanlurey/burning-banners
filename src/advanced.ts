@@ -41,51 +41,23 @@ export const monsterById = (id: string) => monsters.find(m => m.id === id);
 /** Reference faces are separate from rules whose complete decision flow is implemented.
  * Incomplete effects never enter the playable decks or appear as legal Powers. */
 export const runtimeLimitations:Record<string,string>={
-    'spell-04':'Area Strikes need separate target rolls and intervention windows.',
-    'spell-05':'The second Strike must be chosen after the first roll.',
-    'spell-10':'Elimination-triggered recovery needs a separate target choice.',
-    'spell-12':'Free Ship Movement needs its own action allowance.',
-    'spell-24':'Drawing two Blessings needs separate kingdom choices.',
-    'spell-27':'Forced Army movement can leave its Hero behind.',
-    'spell-35':'Possession has a separate Hero-only damage and reward sequence.',
-    'spell-47':'Sea-crossing damage needs a stack-specific hit allocation.',
-    'blessing-fjordland-05':'The summoned Valkyries need a chosen legal placement.',
-    'treasure-29':'The Winter holding limit for unsellable cards needs a verified exception.',
-    'treasure-30':'The Winter holding limit for unsellable cards needs a verified exception.',
-    'treasure-35':'The Winter holding limit for unsellable cards needs a verified exception.',
-    'treasure-36':'The Winter holding limit for unsellable cards needs a verified exception.',
     'treasure-05':'Interception before enemy entry needs a placement window.',
     'treasure-12':'The Hero escape occurs after that Hero is chosen for a hit.',
-    'treasure-21':'The target player chooses the discarded card type.',
-    'treasure-22':'The caster chooses which commanded Monster abilities to copy.',
-    'blessing-empire-05':'Free builds require three separate placement choices.',
-    'blessing-oathborn-02':'Mining needs an immediate response window.',
     'blessing-oathborn-06':'The winner chooses an extra advance and attack.',
-    'blessing-oathborn-10':'The player chooses which Spells to discard after drawing.',
-    'blessing-goblins-02':'Looting needs an immediate response window.',
     'blessing-goblins-05':'Returning the card to hand needs a combat result choice.',
-    'blessing-goblins-06':'Elimination needs a Hero placement response window.',
-    'blessing-goblins-08':'The benefit depends on the later Ambush declaration.',
     'blessing-orcs-01':'Movement must preserve a mandatory legal Attack action.',
-    'blessing-orcs-03':'The target owner chooses an adjacent Orc stack.',
     'blessing-night-02':'Enslaved Heroes require their separate four-counter supply and release lifecycle.',
     'blessing-night-03':'Enslaved Heroes require their separate four-counter supply and release lifecycle.',
     'blessing-night-04':'Enslaved Heroes require their separate four-counter supply and release lifecycle.',
-    'blessing-night-05':'Immediate Study needs a discipline choice outside the normal Study phase.',
     'blessing-night-06':'Coven protection needs all build and discovery event hooks.',
     'blessing-night-08':'Coven discovery needs a Strike replacement window.',
     'blessing-night-09':'The Hero escape occurs after it is selected for elimination.',
     'hero-fjordland-13':'The save interrupts the chosen Hero’s elimination.',
     'hero-empire-13':'Post-advance movement and extra Attack need a new activation window.',
     'hero-oathborn-11':'The defender needs optional advance and counterattack choices.',
-    'hero-oathborn-12':'Draw-then-discard needs the player’s Spell choice.',
     'hero-goblins-16':'Reroll selection must include every d6 event, including outside combat.',
-    'hero-orcs-11':'Ambush Strike successes need their special hit calculation.',
     'hero-orcs-12':'The Power requires two separately chosen enemy targets.',
-    'hero-orcs-14':'Forced movement needs a target-owner decision including Hero separation.',
-    'hero-night-11':'The draw Power needs a source-cast response window.',
     'hero-night-12':'Assassination uses elimination instead of ordinary Strike hits.',
-    'hero-night-13':'Automatic Coven placement needs the Income event hook.'
 };
 export const runtimePlayable=(c:CardDefinition)=>!runtimeLimitations[c.id];
 export const playableCounts=Object.fromEntries(['spell','treasure','blessing','hero'].map(kind=>[kind,cards.filter(c=>c.kind===kind&&runtimePlayable(c)).length]));
@@ -163,6 +135,8 @@ type Pending = {
     allowance: number;
     disciplines: string[];
     marker: 'glyph' | 'churn';
+    immediate?: boolean;
+    immediateResume?: Pending | null;
 } | {
     kind: 'winter';
     playerIndex: number;
@@ -196,6 +170,9 @@ type Pending = {
     }[];
     play: MagicPlay;
     resume: Pending | null;
+    flow?: string;
+    data?: Record<string, any>;
+    title?: string;
 };
 export interface AdvancedState {
     version: 1;
@@ -227,8 +204,11 @@ export interface AdvancedState {
     playedTreasures: Record<string, number>;
     lastPlay: MagicPlay | null;
     eventSerial: number;
+    tableRulings?: string[];
+    eventQueue?: Record<string,any>[];
+    shipsThisTurn?:string[];
 }
-export type AdvancedAction = {type:'request-cantrip';playerId:string} | {type:'drop-army';unitId:string} | {type:'store-satchel';playerId:string} | {type:'remove-curse';playerId:string;cardId:string;kingdomId:string} | {
+export type AdvancedAction = {type:'winter-ruling';playerId:string} | {type:'request-cantrip';playerId:string} | {type:'drop-army';unitId:string} | {type:'store-satchel';playerId:string} | {type:'remove-curse';playerId:string;cardId:string;kingdomId:string} | {
     type: 'play-card';
     playerId: string;
     cardId: string;
@@ -367,7 +347,7 @@ export function initializeAdvanced(s: GameState, config: GameConfig, ctx: Advanc
     const players = config.players?.length ? structuredClone(config.players) : s.kingdoms.map(k => ({ id: `player-${k.id}`, name: k.name, kingdoms: [k.id] }));
     const a: AdvancedState = { version: 1, players, hands: {}, owned: {}, decks: { spells: [], treasures: [] }, discards: { spells: [], blessings: [] }, eliminatedTreasures: [], removedCards:[], heroPools: {}, eliminatedHeroes: [], locked: [], stacks: {}, movement: {}, activationIds: [], effects: [], monsters: [], monsterPools: { land: [], sea: [] }, explored: [], defeatedMonsters: [], studyMarkers: {}, extraChurn: false, pending: null, battle: null, playedTreasures: {}, lastPlay: null, eventSerial: 0 };
     s.advanced = a;
-    for (const c of cards.filter(c => c.verified&&(c.kind==='hero'||runtimePlayable(c)))) {
+    for (const c of cards.filter(c => c.verified&&(c.kind==='hero'||config.tabletop||runtimePlayable(c)))) {
         if (c.kind === 'spell')
             a.decks.spells.push(c.id);
         if (c.kind === 'treasure')
@@ -380,6 +360,7 @@ export function initializeAdvanced(s: GameState, config: GameConfig, ctx: Advanc
     for (const m of monsters)
         for (let i = 0; i < (m.count ?? 1); i++)
             a.monsterPools[m.pool].push(m.id);
+    for(const u of s.units.filter(u=>isHero(s,u)))a.heroPools[u.kingdom]=a.heroPools[u.kingdom].filter(id=>id!==u.defId);
     for (const deck of Object.values(a.decks))
         shuffle(s, deck, ctx);
     for (const pool of Object.values(a.heroPools))
@@ -456,7 +437,7 @@ function recycleHeroes(s: GameState, ctx: AdvancedContext): void { const a = s.a
 } a.eliminatedHeroes = []; for (const pool of Object.values(a.heroPools))
     shuffle(s, pool, ctx); }
 export function heroDefinitions(): UnitDefinition[] { return cards.filter(c => c.kind === 'hero' && c.verified && c.unitDefinition).map(c => ({ ...Object.fromEntries(Object.entries(c.unitDefinition).filter(([key]) => ['cost', 'recoveryCost', 'movement', 'light', 'heavy', 'weakenedLight', 'weakenedHeavy', 'abilities', 'characteristics'].includes(key))) as unknown as UnitDefinition, id: c.id, name: c.name, kingdom: c.kingdom!, kind: 'hero', heroCardId: c.id, count: 1 })); }
-function gainHero(s: GameState, k: string, hex: string, ctx: AdvancedContext,chosen?:string,gainedByMagic=false): Unit | undefined { const a = s.advanced!, id = chosen??a.heroPools[k]?.shift();if(chosen)a.heroPools[k]=a.heroPools[k].filter(id=>id!==chosen);const d = s.unitDefinitions.find(d => d.id === id); if (!id || !d)
+function gainHero(s: GameState, k: string, hex: string, ctx: AdvancedContext,chosen?:string,gainedByMagic=false): Unit | undefined { if(s.kingdoms.find(v=>v.id===k)?.collapsed)return;const a = s.advanced!, id = chosen??a.heroPools[k]?.shift();if(chosen)a.heroPools[k]=a.heroPools[k].filter(id=>id!==chosen);const d = s.unitDefinitions.find(d => d.id === id); if (!id || !d)
     return; const h = ctx.hex(s, hex), army = s.units.find(u => u.hexId === hex && !isHero(s, u)); const u: Unit = { id: `unit-${s.serial++}`, defId: id, kingdom: k, hexId: hex, weakened: false, activated: gainedByMagic&&army ? army.activated : !!army?.activated || !(h.entry === k || (h.settlement && ctx.controller(s, h) === k && !s.razed.includes(hex))) }; s.units.push(u); if (army && army.kingdom === k)
     a.stacks[u.id] = army.id; ctx.log(s, `${d.name} joins ${s.kingdoms.find(x => x.id === k)!.name}${army ? ' with ' + ctx.rawDef(s, army).name : ''}.`); return u; }
 export function effectiveDefinition(s: GameState, u: Unit, base: UnitDefinition): UnitDefinition {
@@ -527,10 +508,10 @@ export function finishAdvancedActivation(s: GameState, ctx: AdvancedContext): vo
     if (u)
         u.activated = true;
 } a.effects = a.effects.filter(e => !e.activation || !ids.includes(e.activation)); a.activationIds = []; a.movement = {}; }
-export function advancedTurnReady(s: GameState): void { const a = s.advanced!; a.locked = a.locked.filter(id => s.units.find(u => u.id === id)?.kingdom !== s.currentKingdom); for (const m of a.monsters)
+export function advancedTurnReady(s: GameState): void { const a = s.advanced!;a.shipsThisTurn=[]; a.locked = a.locked.filter(id => s.units.find(u => u.id === id)?.kingdom !== s.currentKingdom); for (const m of a.monsters)
     if (m.kingdom === s.currentKingdom)
         m.activated = false; a.effects = a.effects.filter(e => e.expires >= s.turnSerial); }
-export function recordElimination(s: GameState, u: Unit, ctx: AdvancedContext): void { const a = s.advanced!; if (isHero(s, u)) {
+export function recordElimination(s: GameState, u: Unit, ctx: AdvancedContext): void { const a = s.advanced!;queueAdvancedEvent(s,{type:'unit-eliminated',unitId:u.id,unit:structuredClone(u),army:!isHero(s,u),kingdom:u.kingdom}); if (isHero(s, u)) {
     if (!a.eliminatedHeroes.includes(u.defId))
         a.eliminatedHeroes.push(u.defId);
     delete a.stacks[u.id];
@@ -544,7 +525,7 @@ export function advancedCanBuild(s: GameState, d: UnitDefinition, h: Hex): boole
     return !s.units.some(u => u.hexId === h.id); return !s.units.some(u => u.hexId === h.id && (u.kingdom !== d.kingdom || (d.kind === 'hero' ? isHero(s, u) : !isHero(s, u)))); }
 function hexFeatures(h:Hex):string[]{return unique([h.terrain,...(h.coastal?['coastal']:[]),...(h.settlement?.wilderness?[h.settlement.wilderness]:[]),...(Object.values(h.edges??{}).some(e=>e.river===2)?['major-river']:[])]);}
 function hexDistance(a: Hex, b: Hex): number { return Math.max(Math.abs(a.q - b.q), Math.abs(a.r - b.r), Math.abs(a.q + a.r - b.q - b.r)); }
-function targetHex(s: GameState, id: string, ctx: AdvancedContext): Hex | undefined { const u = s.units.find(u => u.id === id), m = s.advanced!.monsters.find(m => m.id === id); return s.hexes.find(h => h.id === (u?.hexId ?? m?.hexId ?? id)); }
+function targetHex(s: GameState, id: string, ctx: AdvancedContext): Hex | undefined { const u = s.units.find(u => u.id === id)??(s.advanced?.pending?.kind==='window'&&s.advanced.pending.event?.unitId===id?s.advanced.pending.event.unit:undefined), m = s.advanced!.monsters.find(m => m.id === id); return s.hexes.find(h => h.id === (u?.hexId ?? m?.hexId ?? id)); }
 function combatantKingdom(s: GameState, id: string | undefined): string { return s.units.find(u => u.id === id)?.kingdom ?? s.advanced!.monsters.find(m => m.id === id)?.kingdom ?? s.currentKingdom; }
 function combatantPool(s: GameState, id: string | undefined, ctx: AdvancedContext, stack = true): {
     light: number;
@@ -575,24 +556,25 @@ function eventAllows(s: GameState, c: CardDefinition, player: string): boolean {
     if (!c.cantrip && !current)
         return false;
     if (w === 'reaction')
-        return c.timing.some(t => ['magic-card-just-played', 'magic-card-just-played-before-roll', 'spell-just-cast', 'hero-that-just-cast-spell'].includes(t));
+        return c.timing.some(t => ['magic-card-just-played', 'magic-card-just-played-before-roll', 'spell-just-cast', 'hero-that-just-cast-spell','source-casts-mage-required-spell-or-blessing'].includes(t));
     if (w === 'roll')
         return c.timing.some(t => ['after-dice-roll', 'after-own-combat-roll', 'after-caster-stack-combat-roll', 'after-combat-or-strike-success-roll'].includes(t));
     if (w === 'critical')
         return c.timing.includes('critical-confirmation-pending');
     if (w === 'hits')
-        return c.timing.some(t => ['hits-pending', 'between-pending-hits', 'caster-hit-pending', 'caster-hero-would-be-eliminated'].includes(t)) || c.effect.recoverArmy;
+        return c.timing.some(t => ['hits-pending', 'between-pending-hits'].includes(t)) || c.effect.recoverArmy;
+    if (w === 'strike' && c.effect.type==='lightning-axes')return a.battle?.kind==='ambush';
     if (w === 'strike')
         return c.timing.some(t => ['strike-declared-before-roll', 'attack-or-strike-before-roll', 'caster-stack-attacked-or-struck', 'defending-or-struck-in-unfortified-hex'].includes(t));
     if (w === 'movement')
         return c.timing.some(t => ['immediately-after-hex-entry', 'immediately-on-sea-hexside-crossing'].includes(t)) && !(p.event?.ship && c.effect.type === 'earth-to-mud') && (!p.event?.ship ? c.effect.type !== 'moryanas-fury' : true);
     if (w === 'elimination')
-        return c.timing.some(t => ['unit-eliminated', 'army-eliminated', 'goblin-army-eliminated', 'after-mining-action', 'settlement-looted', 'after-winning-combat-before-advance', 'hiding-in-shadows-instead-of-roll'].includes(t) && t === p.event?.type);
+        return c.timing.some(t => (t === p.event?.type || p.event?.type==='unit-eliminated'&&(t==='army-eliminated'&&p.event.army||t==='goblin-army-eliminated'&&p.event.army&&p.event.kingdom==='goblins')));
     return false;
 }
 function relevantTarget(s: GameState, c: CardDefinition, id: string, caster: string | undefined, player: string, ctx: AdvancedContext): boolean {
     const e = c.effect, a = s.advanced!, p = a.pending, b = a.battle, u = s.units.find(u => u.id === id), m = a.monsters.find(m => m.id === id), h = targetHex(s, id, ctx), cu = s.units.find(u => u.id === caster), ch = caster ? targetHex(s, caster, ctx) : undefined, owner = a.players.find(p => p.id === player)!;
-    if (c.kingdom && u && u.kingdom !== c.kingdom && !(e.type === 'enslave' || c.kind === 'hero' && !c.targets.some(t => t.includes(c.kingdom!) || t.includes('source'))))
+    if (c.kingdom && u && u.kingdom !== c.kingdom && !(['enslave','pestilence'].includes(e.type) || c.kind === 'hero' && !c.targets.some(t => t.includes(c.kingdom!) || t.includes('source'))))
         return false;
     if (c.kind === 'blessing' && m)
         return false;
@@ -652,6 +634,7 @@ function relevantTarget(s: GameState, c: CardDefinition, id: string, caster: str
             return false;
     }
     const type = e.type;
+    if(type==='immortal-sorceress'){const original=p?.kind==='window'?p.play:undefined,card=cardById(original?.cardId??'');if(!original||original.casterId!==caster||original.playerId!==player||!['spell','blessing'].includes(card?.kind??'')||!(card?.mage||cardById(original.tomeId??'')?.mage))return false;}
     if (type === 'illusion' && (!b||id!==(b.kind==='ambush'?(b.step===0?(b.ambush==='attacker'?b.attacker:b.defender):(b.ambush==='attacker'?b.defender:b.attacker)):b.attacker)&&!stackIds(s,b.attacker).includes(id))) return false;
     if(type==='cloud-of-darkness'&&(!b||h?.id!==b.targetHex)) return false;
     if(type==='staff-of-plagues'&&(!b||id===caster||caster&&stackIds(s,caster).includes(id))) return false;
@@ -674,6 +657,9 @@ function relevantTarget(s: GameState, c: CardDefinition, id: string, caster: str
     }
     if (m && e.strike && m.kingdom && ctx.sameSide(s, m.kingdom, owner.kingdoms[0]))
         return false;
+    if(type==='delve-greedily'&&(!(p?.kind==='window')||id!==p.event?.unitId))return false;
+    if(type==='natural-selection'&&(!(p?.kind==='window')||!p.event?.army||p.event?.kingdom!=='goblins'||!a.heroPools.goblins?.length))return false;
+    if(type==='pestilence'&&(!u||u.kingdom==='orcs'||ctx.sameSide(s,u.kingdom,'orcs')||!ctx.adjacent(s,u.hexId).some(h=>s.units.some(v=>v.hexId===h.id&&v.kingdom==='orcs'))))return false;
     if (type === 'necromancy' && p?.kind === 'window' && (id !== p.event?.unitId || !p.event?.unit))
         return false;
     if (type === 'spellbound' && a.hands[player].filter(x => x !== c.id && cardById(x)?.kind === 'spell').length >= 3)
@@ -733,9 +719,9 @@ function relevantTarget(s: GameState, c: CardDefinition, id: string, caster: str
     if(e.suppressionProhibitionApplies&&a.effects.some(e=>e.extra?.noSuppression)&&(e.suppressRevolts||e.suppressRevoltsPerGold))return false;
     if (e.suppressRevolts && !(s.kingdoms.find(k => k.id === c.kingdom)?.revolt ?? 0))
         return false;
-    if (e.gainHeroes && (!a.heroPools[c.kingdom ?? s.currentKingdom]?.length||!s.units.some(v=>v.kingdom===(c.kingdom??s.currentKingdom)&&!isHero(s,v)&&!s.units.some(h=>h.hexId===v.hexId&&isHero(s,h)))))
+    if (e.gainHeroes && e.type!=='natural-selection' && (!a.heroPools[c.kingdom ?? s.currentKingdom]?.length||!s.units.some(v=>v.kingdom===(c.kingdom??s.currentKingdom)&&!isHero(s,v)&&!s.units.some(h=>h.hexId===v.hexId&&isHero(s,h)))))
         return false;
-    if (e.gainTreasures && !a.decks.treasures.length)
+    if (e.gainTreasures && !a.decks.treasures.length&&!a.eliminatedTreasures.length)
         return false;
     if (e.type === 'the-deep-paths' && (!u || u.activated || h?.terrain !== 'mountain'))
         return false;
@@ -766,12 +752,14 @@ function magicTargets(s: GameState, c: CardDefinition, caster: string | undefine
     let ids: string[] = [];
     if (e.placeWanderingMonster || e.type === 'lost-city-of-khazud' || e.type === 'the-four-fingered-fist')
         ids = s.hexes.map(h => h.id);
-    else if (ts.some(t => ['owner', 'casting-player', 'empire', 'orcs', 'all-covens', 'all-weakened-orc-armies', 'oathborn'].includes(t)))
+    else if (ts.some(t => ['owner', 'owning-player', 'casting-player', 'empire', 'orcs', 'all-covens', 'all-weakened-orc-armies', 'oathborn'].includes(t)))
         ids = [player];
     else if (ts.some(t => t.includes('player') || t.includes('just-played')))
         ids = a.players.map(p => p.id);
     else if (ts.some(t => t === 'source-hero' || t === 'source-hero-stack' || t.startsWith('source-hero-stacked') || t === 'caster' || t === 'caster-stack' || t === 'each-unit-in-caster-hex' || t === 'caster-hero' || t === 'caster-stack-with-army'))
         ids = caster ? [caster] : [];
+    else if (['earth-to-mud', 'moryanas-fury'].includes(e.type))
+        ids = p?.kind === 'window' && p.event?.unitId ? [p.event.unitId] : [];
     else if (ts.some(t => t.includes('hex') || t === 'unexplored-lair' || t.includes('settlement') && !t.includes('army')) && !ts.some(t => t.includes('hero') || t.includes('monster') || t.includes('source')))
         ids = s.hexes.map(h => h.id);
     else {
@@ -821,9 +809,10 @@ function cardCosts(s:GameState,player:string,c:CardDefinition,target:string): (s
 }
 function magicActions(s:GameState,player:string,ctx:AdvancedContext):AdvancedAction[] {
     const a=s.advanced!,out:AdvancedAction[]=[];
+    if(!a.players.find(p=>p.id===player)?.kingdoms.some(k=>!s.kingdoms.find(v=>v.id===k)?.collapsed))return out;
     const available=[...a.hands[player],...s.units.filter(u=>playerFor(s,u.kingdom)?.id===player&&isHero(s,u)).map(u=>u.defId)];
     for(const id of available) {
-        const card=cardById(id);if(!card?.verified||!runtimePlayable(card)||card.tome||!eventAllows(s,card,player))continue;
+        const card=cardById(id);if(!card?.verified||!runtimePlayable(card)||card.tome||!!card.kingdom&&!!s.kingdoms.find(k=>k.id===card.kingdom)?.collapsed||!eventAllows(s,card,player))continue;
         const tomes:(string|undefined)[]=card.kind==='spell'?[undefined,...a.hands[player].filter(id=>cardById(id)?.tome&&runtimePlayable(cardById(id)!))]:[undefined];
         for(const tomeId of tomes) {
             const c={...card,mage:card.mage||!!cardById(tomeId??'')?.mage,range:card.range&&tomeId==='treasure-08'?{min:card.range.min,max:card.range.max*2}:card.range};
@@ -878,8 +867,7 @@ function finishWindow(s: GameState, p: Extract<Pending, {
     case 'hits':
         if (p.event?.target && p.event.count > 0)
             a.pending = {kind:'hit',target:p.event.target,count:p.event.count,resume:p.resume??null,members:p.event.members??stackIds(s,p.event.target)};
-        else
-            continueHits(s, ctx);
+        else {a.pending=p.resume??null;if(a.battle)continueHits(s, ctx);}
         break;
     case 'movement':
         if(p.event&&!p.event.canceled) continueMovement(s,p.event,ctx);
@@ -899,7 +887,7 @@ export function beginAdvancedRoll(s: GameState, ambush: 'attacker' | 'defender' 
     b.kind = 'ambush';
     b.ambush = ambush;
     b.step = 0;
-} a.pending = null; rollBattle(s, ctx); }
+} if(ambush){const acting=ambush==='attacker'?b.attacker:b.defender!;for(const e of a.effects.filter(e=>e.extra?.sneakAttack&&stackIds(s,acting).includes(e.target))){e.light=1;const u=s.units.find(u=>u.id===e.target);if(u)s.kingdoms.find(k=>k.id===u.kingdom)!.gold++;e.extra!.sneakAttack=false;}} a.pending = null; rollBattle(s, ctx); }
 function rawRoll(s:GameState,pool:{light:number;heavy:number},penalty:number,ctx:AdvancedContext,target:string):DiceRoll[] {
     const a=s.advanced!,ids=stackIds(s,target),effects=a.effects.filter(e=>ids.includes(e.target));
     const crit=effects.some(e=>e.extra?.criticalThreshold===6)?6:7;
@@ -1016,7 +1004,7 @@ function confirmBattle(s: GameState, ctx: AdvancedContext): void {
     else {
         const acting = b.kind === 'ambush' ? (b.step === 0 ? b.ambush === 'attacker' ? b.attacker : b.defender! : b.ambush === 'attacker' ? b.defender! : b.attacker) : b.attacker;
         const rolls = acting === b.attacker ? b.attackerRolls : b.defenderRolls;
-        const hits = Number(rolls.some(d => d.success)) + rolls.reduce((n, d) => n + ((d as any).bonus ?? 0), 0);
+        const hits = (a.effects.some(e=>e.extra?.axes&&stackIds(s,acting).includes(e.target))?rolls.filter(d=>d.success).length:Number(rolls.some(d => d.success))) + rolls.reduce((n, d) => n + ((d as any).bonus ?? 0), 0);
         if (acting === b.attacker)
             b.defenderHits += hits;
         else
@@ -1034,7 +1022,7 @@ function continueHits(s: GameState, ctx: AdvancedContext): void {
         return;
     const hit = b.hitQueue.shift();
     if (hit) {
-        openWindow(s,'hits',{...hit,members:stackIds(s,hit.target)},null,ctx);
+        openWindow(s,'hits',{...hit,members:cardById(b.sourceCard??'')?.effect.targetHeroOnly?[hit.target]:stackIds(s,hit.target)},null,ctx);
         return;
     }
     if (b.kind === 'ambush' && b.step === 0) {
@@ -1076,8 +1064,14 @@ function completeAdvancedBattle(s: GameState, ctx: AdvancedContext): void {
             else
                 ctx.raze(s, h);
         }
-        if (b.continuation)
-            resolveMagic(s, b.continuation, ctx);
+        const play=(b as any).sourcePlay as MagicPlay|undefined;
+        if(play&&b.sourceCard==='spell-35'){
+            if(s.units.some(u=>u.id===b.defender))ctx.hit(s,play.casterId,2);
+            else chooseHeroPlacement(s,play,play.casterKingdom??s.currentKingdom,1,a.pending,ctx);
+        }
+        if(play&&(b as any).remaining?.length){const [next,...rest]=(b as any).remaining;magicStrike(s,play,next,ctx,rest);}
+        else if(play&&b.sourceCard==='spell-05'&&!(b as any).repeat&&(s.units.some(u=>u.id===b.defender)||a.monsters.some(m=>m.id===b.defender)||b.defender===b.targetHex&&h.settlement&&!s.razed.includes(h.id)))chooseEffect(s,play,play.playerId,'repeat-strike',[{value:'skip',label:'Finish Crushing Vines'},...a.hands[play.playerId].filter(id=>cardById(id)?.kind==='spell').map(id=>({value:id,label:`Discard ${cardById(id)!.name} for a second Strike`}))],a.pending,{target:b.defender},'Crushing Vines · after the first Strike');
+        if (b.continuation)resolveMagic(s, b.continuation, ctx);
         return;
     }
     const monster = monsterById(a.monsters.find(m => m.id === b.defender)?.defId ?? '');
@@ -1125,6 +1119,56 @@ function paySpellCost(s: GameState, player: string, count: number, ctx: Advanced
     if (id)
         discard(s, player, id);
 } }
+export function queueAdvancedEvent(s:GameState,event:Record<string,any>):void {
+    if(s.advanced)(s.advanced.eventQueue??=[]).push(event);
+}
+export function flushAdvancedEvents(s:GameState,ctx:AdvancedContext):void {
+    const a=s.advanced;if(!a||s.phase==='game-over')return;
+    const processing=(p:Pending|null):boolean=>!!p&&(p.kind==='window'&&(p.window==='elimination'||processing(p.resume??null))||'resume'in p&&processing(p.resume??null)||p.kind==='study'&&processing(p.immediateResume??null));
+    for(let guard=0;guard<2000&&a.eventQueue?.length&&!processing(a.pending);guard++){
+        const event=a.eventQueue.shift()!;openWindow(s,'elimination',event,a.pending,ctx);
+    }
+}
+function magicStrike(s:GameState,play:MagicPlay,defender:string,ctx:AdvancedContext,remaining:string[]=[],repeat=false):void {
+    const a=s.advanced!,c=cardById(play.cardId)!,e=c.effect,u=s.units.find(u=>u.id===defender),h=targetHex(s,defender,ctx);
+    if(!h){if(remaining.length)magicStrike(s,play,remaining[0],ctx,remaining.slice(1),repeat);return;}
+    const kid=c.kingdom??play.casterKingdom??s.currentKingdom;
+    const strike:Battle={kind:'strike',attacker:play.casterId??kid,defender,targetHex:h.id,attackerKingdom:kid,defenderKingdom:combatantKingdom(s,defender),step:0,magicLifted:true,attackerRolls:[],defenderRolls:[],attackerSuccesses:0,defenderSuccesses:0,attackerHits:0,defenderHits:0,result:'draw',hitQueue:[],light:e.strike.light,heavy:e.strike.heavy+(play.choice==='boost'?(e.optionalExtraDie?.heavy??0):0)+(e.additionalHeavyIfTargetFeralArmy&&u&&ctx.rawDef(s,u).characteristics.includes('feral')?e.additionalHeavyIfTargetFeralArmy:0),sourceCard:c.id,...(e.type==='the-four-fingered-fist'?{reward:'fist' as const}:{})};
+    Object.assign(strike,{parent:a.battle,resume:a.pending,sourcePlay:play,remaining,repeat});
+    a.battle=strike;openWindow(s,'strike',undefined,null,ctx);
+}
+function chooseEffect(s:GameState,play:MagicPlay,playerId:string,flow:string,choices:{label:string;value:string}[],resume:Pending|null,data:Record<string,any>={},title?:string):void {
+    s.advanced!.pending=choices.length?{kind:'choice',playerId,flow,choices,play,resume,data,title:title??cardById(play.cardId)?.name}:resume;
+}
+function chooseDiscard(s:GameState,play:MagicPlay,playerId:string,count:number,resume:Pending|null,kind:'spell'|'blessing'|'either'='spell'):void {
+    const a=s.advanced!,ids=a.hands[playerId].filter(id=>kind==='either'?['spell','blessing'].includes(cardById(id)?.kind??''):cardById(id)?.kind===kind);
+    if(count<=0||!ids.length){a.pending=resume;return;}
+    chooseEffect(s,play,playerId,'discard',ids.map(value=>({value,label:`Discard ${cardById(value)!.name}`})),resume,{count,kind},`Choose ${count} ${count===1?'card':'cards'} to discard`);
+}
+function chooseBuild(s:GameState,play:MagicPlay,defId:string,count:number,resume:Pending|null,ctx:AdvancedContext,near?:string,ready=false):void {
+    const a=s.advanced!,d=s.unitDefinitions.find(d=>d.id===defId);
+    if(!d||s.kingdoms.find(k=>k.id===d.kingdom)?.collapsed||count<=0||s.units.filter(u=>u.defId===defId).length>=d.count){a.pending=resume;return;}
+    const places=near?[ctx.hex(s,near),...ctx.adjacent(s,near)].filter(h=>advancedCanBuild(s,d,h)&&ctx.canEnd(s,{id:'new-army',defId,kingdom:d.kingdom,hexId:near,weakened:false,activated:false},h)):ctx.buildLocations(s,d);
+    chooseEffect(s,play,play.playerId,'build',places.map(h=>({value:h.id,label:`Place ${d.name} at ${h.settlement?.name??h.id}`})),resume,{defId,count,...(near?{near}:{}),ready},`Place ${d.name} · ${count} remaining`);
+}
+function chooseHeroPlacement(s:GameState,play:MagicPlay,kid:string,count:number,resume:Pending|null,ctx:AdvancedContext):void {
+    const a=s.advanced!,d=s.unitDefinitions.find(d=>d.kingdom===kid&&d.kind==='hero');
+    if(!d||s.kingdoms.find(k=>k.id===kid)?.collapsed||count<=0||!a.heroPools[kid]?.length){a.pending=resume;return;}
+    const places=s.units.filter(u=>u.kingdom===kid&&!isHero(s,u)&&!s.units.some(v=>v.hexId===u.hexId&&isHero(s,v))).map(u=>ctx.hex(s,u.hexId));
+    if(cardById(play.cardId)?.effect.heroMayBePlacedInAnyEligibleHex)places.push(...ctx.buildLocations(s,d));
+    const ids=unique(places.map(h=>h.id));
+    if(ids.length===1){const hero=gainHero(s,kid,ids[0],ctx,cardById(play.cardId)?.effect.type==='kharks-chosen'?play.choice:undefined,true);if(hero&&cardById(play.cardId)?.effect.gainedHeroHeavy)addEffect(s,{...play,targetId:hero.id},{heavy:cardById(play.cardId)!.effect.gainedHeroHeavy});chooseHeroPlacement(s,play,kid,count-1,resume,ctx);return;}
+    chooseEffect(s,play,play.playerId,'hero',ids.map(value=>({value,label:`Hero at ${ctx.hex(s,value).settlement?.name??value}`})),resume,{kid,count});
+}
+function forcedMoveChoices(s:GameState,u:Unit,fear:boolean,ctx:AdvancedContext):{label:string;value:string}[]{
+    const group=stackIds(s,u.id),hero=group.find(id=>isHero(s,ctx.unit(s,id))),out=[{label:'Take one hit',value:'hit'}];
+    for(const h of ctx.adjacent(s,u.hexId)){
+        if(fear&&ctx.adjacent(s,h.id).some(t=>s.units.some(v=>v.hexId===t.id&&!isHero(s,v)&&!ctx.sameSide(s,v.kingdom,u.kingdom))))continue;
+        if(ctx.canEnd(s,u,h))out.push({label:`Move ${hero?'Army and Hero':'stack'} to ${h.settlement?.name??h.id}`,value:`stack:${h.id}`});
+        if(fear&&hero){const copy=structuredClone(s);delete copy.advanced!.stacks[hero];const single=copy.units.find(v=>v.id===u.id)!;if(ctx.canEnd(copy,single,copy.hexes.find(t=>t.id===h.id)!))out.push({label:`Move Army to ${h.settlement?.name??h.id}; leave Hero`,value:`army:${h.id}`});}
+    }
+    return out;
+}
 function resolveMagic(s: GameState, play: MagicPlay, ctx: AdvancedContext): void {
     const a = s.advanced!, c = cardById(play.cardId)!, base = c.effect, e = { ...base, ...(base.choices?.[Number(play.choice ?? 0)] ?? {}) }, target = play.targetId ?? play.casterId ?? play.playerId, u = s.units.find(u => u.id === target), caster = s.units.find(u => u.id === play.casterId), h = targetHex(s, target, ctx), owner = a.players.find(p => p.id === play.playerId)!, kid = c.kingdom ?? caster?.kingdom ?? play.casterKingdom ?? s.currentKingdom, k = s.kingdoms.find(k => k.id === kid)!, pending = a.pending;
     if (e.oncePerCombat)
@@ -1138,21 +1182,12 @@ function resolveMagic(s: GameState, play: MagicPlay, ctx: AdvancedContext): void
         const n = a.hands[play.playerId].filter(id => cardById(id)?.kind === 'spell').length;
         draw(s, play.playerId, 'spells', Math.max(0, e.drawSpellsTo - n), ctx);
     }
-    if (e.drawBlessings)
+    if (e.drawBlessings&&e.type!=='martyrdom')
         for (let i = 0; i < e.drawBlessings; i++)
             draw(s, play.playerId, `blessings-${kid}`, 1, ctx);
     if (e.gainTreasures)
         draw(s, play.playerId, 'treasures', e.gainTreasures, ctx);
-    if (e.gainHeroes) {
-        const army = s.units.find(u => u.kingdom === kid && !isHero(s, u) && !s.units.some(v => v.hexId === u.hexId && isHero(s, v)));
-        const hex = play.targetHex ?? army?.hexId ?? ctx.buildLocations(s, s.unitDefinitions.find(d => d.kingdom === kid && d.kind === 'hero')!).find(h => !s.units.some(u => u.hexId === h.id && isHero(s, u)))?.id;
-        if (hex)
-            for (let i = 0; i < e.gainHeroes; i++) {
-                const hero = gainHero(s,kid,hex,ctx,e.type==='kharks-chosen'?play.choice:undefined,true);
-                if (hero && e.gainedHeroHeavy)
-                    addEffect(s, { ...play, targetId: hero.id }, { heavy: e.gainedHeroHeavy });
-            }
-    }
+    if (e.gainHeroes) chooseHeroPlacement(s,play,kid,e.gainHeroes,pending,ctx);
     if (e.gold)
         k.gold += e.gold;
     if (e.gainGoldEquals === 'orc-controlled-settlements-plus-two')
@@ -1346,8 +1381,7 @@ function resolveMagic(s: GameState, play: MagicPlay, ctx: AdvancedContext): void
         case 'terror-rides-before-him': {
             if (!u || e.rollD6 && ctx.die(s, 6) < 5)
                 break;
-            const hexes = ctx.adjacent(s, u.hexId).filter(h => ctx.canEnd(s, u, h) && !ctx.adjacent(s, h.id).some(t => s.units.some(v => v.hexId === t.id && !ctx.sameSide(s, v.kingdom, u.kingdom))));
-            a.pending = { kind: 'choice', playerId: playerFor(s, u.kingdom)!.id, choices: [{ label: 'Take one hit', value: 'hit' }, ...hexes.map(h => ({ label: `Move to ${h.settlement?.name ?? h.id}`, value: h.id }))], play, resume: pending };
+            chooseEffect(s,play,playerFor(s,u.kingdom)!.id,'forced-move',forcedMoveChoices(s,u,e.type==='fear',ctx),pending,{unitId:u.id},'The target owner chooses');
             break;
         }
         case 'philosophers-stone': break;
@@ -1355,8 +1389,7 @@ function resolveMagic(s: GameState, play: MagicPlay, ctx: AdvancedContext): void
         case 'runestones': {
             const n = s.units.filter(u => u.kingdom === 'oathborn' && /miner/i.test(ctx.rawDef(s, u).name) && ctx.hex(s, u.hexId).mine).length;
             draw(s, play.playerId, 'spells', n, ctx);
-            while (a.hands[play.playerId].filter(id => cardById(id)?.kind === 'spell').length > 3)
-                paySpellCost(s, play.playerId, 1, ctx);
+            chooseDiscard(s,play,play.playerId,Math.max(0,a.hands[play.playerId].filter(id=>cardById(id)?.kind==='spell').length-3),pending);
             break;
         }
         case 'delve-greedily': {
@@ -1367,27 +1400,20 @@ function resolveMagic(s: GameState, play: MagicPlay, ctx: AdvancedContext): void
                 k.gold += 2;
                 draw(s, play.playerId, 'treasures', 1, ctx);
             }
-            else {
-                a.discards.blessings = a.discards.blessings.filter(id => id !== c.id);
-                a.hands[play.playerId].push(c.id);
-            }
+            else chooseEffect(s,play,play.playerId,'return-card',[{value:'keep',label:'Return Delve Greedily to hand'},{value:'discard',label:'Leave it discarded'}],pending);
             break;
         }
         case 'we-have-our-ways':
             k.gold += ctx.die(s, 6);
             break;
         case 'pestilence': {
-            if (u) {
-                if (ctx.die(s, 6) < 5)
-                    ctx.hit(s, u.id, 1);
-                else {
-                    const orc = s.units.find(v => v.kingdom === 'orcs' && ctx.adjacent(s, u.hexId).some(h => h.id === v.hexId));
-                    if (orc)
-                        ctx.hit(s, orc.id, 1);
-                }
-            }
+            if(u)chooseEffect(s,play,play.playerId,'pestilence',s.units.filter(v=>v.kingdom==='orcs'&&!isHero(s,v)&&ctx.adjacent(s,u.hexId).some(h=>h.id===v.hexId)).map(v=>({value:v.id,label:`Risk ${ctx.rawDef(s,v).name} at ${v.hexId}`})),pending,{target:u.id},'Choose the adjacent Orc stack before rolling');
             break;
         }
+        case 'necromancy':chooseEffect(s,play,play.playerId,'recover',s.units.filter(v=>v.weakened&&!isHero(s,v)&&owner.kingdoms.some(k=>ctx.sameSide(s,k,v.kingdom))).map(v=>({value:v.id,label:`Recover ${ctx.rawDef(s,v).name} at ${v.hexId}`})),pending);break;
+        case 'wave-strider':for(const id of stackIds(s,target))addEffect(s,{...play,targetId:id},{extra:{waveStrider:true}});break;
+        case 'sneak-attack':addEffect(s,play,{extra:{sneakAttack:true}});break;
+        case 'lightning-axes':addEffect(s,play,{extra:{axes:true}});break;
         case 'lost-city-of-khazud':
             if (h) {
                 (a as any).khazud=h.id;
@@ -1441,24 +1467,12 @@ function resolveMagic(s: GameState, play: MagicPlay, ctx: AdvancedContext): void
             addEffect(s, play, { extra: { protectedCovens: true }, activation: null });
             break;
         case 'powerful-and-eternal': {
-            const n = a.hands[play.playerId].filter(id => cardById(id)?.kind === 'spell').length;
-            draw(s, play.playerId, 'spells', Math.max(0, 3 - n), ctx);
+            a.pending={kind:'study',playerIndex:a.players.findIndex(p=>p.id===play.playerId),allowance:1,disciplines:[],marker:'churn'};
+            (a.pending as any).immediateResume=pending;(a.pending as any).immediate=true;
             break;
         }
         case 'conscription':
-            if (play.choice === '1')
-                k.revolt = Math.max(0, (k.revolt ?? 0) - 3);
-            else {
-                const d = s.unitDefinitions.find(d => d.kingdom === 'empire' && /akritoi/i.test(d.name));
-                if (d)
-                    for (let i = 0; i < 3; i++) {
-                        if (s.units.filter(u => u.defId === d.id).length >= d.count)
-                            break;
-                        const at = ctx.buildLocations(s, d)[0];
-                        if (at)
-                            s.units.push({ id: `unit-${s.serial++}`, defId: d.id, kingdom: k.id, hexId: at.id, weakened: false, activated: !(at.entry === k.id || at.settlement && ctx.controller(s, at) === k.id) });
-                    }
-            }
+            if(play.choice!=='1')chooseBuild(s,play,'empire-akritoi',3,pending,ctx);
             break;
         case 'curse-of-xaraxxes':
         case 'the-red-wizards-curse':
@@ -1484,15 +1498,16 @@ function resolveMagic(s: GameState, play: MagicPlay, ctx: AdvancedContext): void
             }
             break;
         case 'lore-of-the-ancients':
-            paySpellCost(s, play.playerId, 1, ctx);
+            chooseDiscard(s,play,play.playerId,1,pending);
             break;
+        case 'song-of-the-valkyrie':if(caster&&ctx.die(s,6)>=5)chooseBuild(s,play,'fjord-valkyries',1,pending,ctx,caster.hexId,true);break;
+        case 'martyrdom':chooseEffect(s,play,play.playerId,'blessing',owner.kingdoms.filter(k=>!s.kingdoms.find(v=>v.id===k)?.collapsed&&(a.decks[`blessings-${k}`]?.length||a.discards.blessings.some(id=>cardById(id)?.kingdom===k))).map(value=>({value,label:`Draw a ${s.kingdoms.find(k=>k.id===value)!.name} Blessing`})),pending,{count:2});break;
         case 'living-siege-engine':
             addEffect(s, play, { abilities: ['siege'] });
             break;
         case 'immortal-sorceress': {
-            const previous = a.lastPlay && cardById(a.lastPlay.cardId);
-            if (previous?.mage)
-                draw(s, play.playerId, previous.kind === 'blessing' ? `blessings-${previous.kingdom}` : 'spells', 1, ctx);
+            const original=pending?.kind==='window'?pending.play:undefined,previous=cardById(original?.cardId??'');
+            if(previous&&original&&original.casterId===play.casterId&&(previous.mage||cardById(original.tomeId??'')?.mage))draw(s,play.playerId,previous.kind==='blessing'?`blessings-${previous.kingdom}`:'spells',1,ctx);
             break;
         }
     }
@@ -1509,15 +1524,13 @@ function resolveMagic(s: GameState, play: MagicPlay, ctx: AdvancedContext): void
     if (e.strike && h) {
         if (e.type === 'the-four-fingered-fist' && h.terrain === 'lair' && !a.monsters.some(m => m.hexId === h.id))
             revealMonster(s, h.id, true, 'land', null, ctx);
-        const defender = a.monsters.find(m => m.hexId === h.id)?.id ?? u?.id ?? h.id;
-        const strike: Battle = { kind: 'strike', attacker: play.casterId ?? kid, defender, targetHex: h.id, attackerKingdom: kid, defenderKingdom: combatantKingdom(s, defender), step: 0, magicLifted: true, attackerRolls: [], defenderRolls: [], attackerSuccesses: 0, defenderSuccesses: 0, attackerHits: 0, defenderHits: 0, result: 'draw', hitQueue: [], light: e.strike.light, heavy: e.strike.heavy+(play.choice==='boost'?(e.optionalExtraDie?.heavy??0):0) + (e.additionalHeavyIfTargetFeralArmy && u && ctx.rawDef(s, u).characteristics.includes('feral') ? e.additionalHeavyIfTargetFeralArmy : 0), sourceCard: c.id, ...(e.type === 'the-four-fingered-fist' ? { reward: 'fist' as const } : {}) };
-        (strike as any).parent = b;
-        (strike as any).resume = a.pending;
-        a.battle = strike;
-        openWindow(s, 'strike', undefined, null, ctx);
+        if(e.type==='earthquake'){
+            const area=[h,...ctx.adjacent(s,h.id)].filter(t=>t.settlement?.fortified!==2&&!a.effects.some(e=>(e.target===t.id||s.units.some(v=>v.id===e.target&&v.hexId===t.id))&&(e.fortification??0)>0));
+            const targets=area.map(t=>a.monsters.find(m=>m.hexId===t.id)?.id??s.units.find(v=>v.hexId===t.id&&!isHero(s,v))?.id??s.units.find(v=>v.hexId===t.id)?.id??(t.settlement&&!s.razed.includes(t.id)?t.id:null)).filter((id):id is string=>!!id);
+            if(targets.length)magicStrike(s,play,targets[0],ctx,targets.slice(1));
+        }else magicStrike(s,play,a.monsters.find(m=>m.hexId===h.id)?.id??u?.id??h.id,ctx);
     }
-    if (e.inflictHits && u)
-        ctx.hit(s, u.id, e.inflictHits);
+    if (e.inflictHits && u){const members=stackIds(s,u.id);openWindow(s,'hits',{target:u.id,count:e.inflictHits,members},a.pending,ctx);}
     if (play.tomeId) {
         const tome = cardById(play.tomeId)!;
         const te = tome.effect;
@@ -1528,11 +1541,9 @@ function resolveMagic(s: GameState, play: MagicPlay, ctx: AdvancedContext): void
         if (te.light && play.casterId)
             addEffect(s, { ...play, cardId: tome.id, targetId: play.casterId }, { light: te.light });
         if (te.discardCount) {
-            const other = a.players.find(p => p.id !== play.playerId && p.kingdoms.some(k => !ctx.sameSide(s, k, kid)));
-            const id = other && a.hands[other.id].find(id => ['spell', 'blessing'].includes(cardById(id)?.kind ?? ''));
-            if (other && id)
-                discard(s, other.id, id);
+            chooseEffect(s,play,play.playerId,'book-target',a.players.filter(p=>p.id!==play.playerId&&p.kingdoms.some(k=>!ctx.sameSide(s,k,kid))&&a.hands[p.id].some(id=>['spell','blessing'].includes(cardById(id)?.kind??''))).map(p=>({value:p.id,label:`${p.name} chooses a discard`})),a.pending,{},'Book of the Dead · choose an opponent');
         }
+        if(te.copyAbilitiesFromOneCommandedMonster&&play.casterId)chooseEffect(s,play,play.playerId,'copy-monster',a.monsters.filter(m=>m.kingdom!==null).map(m=>({value:m.id,label:`Copy ${monsterById(m.defId)!.name} (${monsterById(m.defId)!.abilities.join(', ')||'no abilities'})`})),a.pending,{},'Encyclopedia · choose any commanded Monster');
     }
     ctx.log(s, `${owner.name} resolves ${c.kind === 'hero' ? c.name + ' — ' + e.type.replaceAll('-', ' ') : c.name}.`);
 }
@@ -1597,6 +1608,7 @@ export function advancedLegalActions(s: GameState, ctx: AdvancedContext): {
                     actions.push({ type: 'sell-treasure', playerId: player.id, cardId, kingdomId });
         if (total.length <= limit)
             actions.push({ type: 'finish-winter', playerId: player.id });
+        else if(total.every(id=>cardById(id)?.effect.cannotBeSold))actions.push({type:'winter-ruling',playerId:player.id});
         return { actions, exclusive: true };
     }
     if (p?.kind === 'hit') {
@@ -1637,10 +1649,10 @@ export function advancedLegalActions(s: GameState, ctx: AdvancedContext): {
             for (const h of ctx.buildLocations(s, heroDef))
                 actions.push({ type: 'recruit-hero', hexId: h.id });
         for (const u of s.units.filter(u => u.kingdom === k.id)) {
-            if (isHero(s, u) && a.stacks[u.id] && (!s.activeUnitId || stackIds(s, s.activeUnitId).includes(u.id)))
+            if (isHero(s, u) && a.stacks[u.id] && (!u.activated||!s.units.find(v=>v.id===a.stacks[u.id])?.activated) && (!s.activeUnitId || stackIds(s, s.activeUnitId).includes(u.id)))
                 actions.push({type:'drop-hero',unitId:u.id},{type:'drop-army',unitId:u.id});
             if (isHero(s, u) && !a.stacks[u.id])
-                for (const army of s.units.filter(v => v.kingdom === k.id && v.hexId === u.hexId && !isHero(s, v)))
+                for (const army of s.units.filter(v => v.kingdom === k.id && v.hexId === u.hexId && !isHero(s, v)&&(!s.activeUnitId||!u.activated&&!v.activated&&[u.id,v.id].includes(s.activeUnitId))))
                     actions.push({ type: 'join-stack', unitId: u.id, armyId: army.id });
             if (!u.activated && !stackIds(s,u.id).some(id=>s.units.find(v=>v.id===id)?.activated) && !isHero(s, u) && (!s.activeUnitId || stackIds(s, s.activeUnitId).includes(u.id)))
                 for (const h of ctx.adjacent(s, u.hexId)) {
@@ -1672,6 +1684,10 @@ export function advancedLegalActions(s: GameState, ctx: AdvancedContext): {
 export function applyAdvancedAction(s: GameState, action: AdvancedAction, ctx: AdvancedContext): void {
     const a = s.advanced!, p = a.pending;
     switch (action.type) {
+        case 'winter-ruling':if(p?.kind==='winter'){
+            const message=`Table ruling: ${a.players[p.playerIndex].name} retains unsellable Treasure excess this Winter; the printed holding/sale rules supply no disposal exception.`;
+            (a.tableRulings??=[]).push(message);ctx.log(s,message);p.playerIndex++;skipCollapsedPlayers(s,ctx);
+        }break;
         case 'request-cantrip':openWindow(s,'interject',undefined,p,ctx,[action.playerId]);break;
         case 'drop-army':{const hero=ctx.unit(s,action.unitId),army=ctx.unit(s,a.stacks[hero.id]);delete a.stacks[hero.id];if(s.activeUnitId){army.activated=true;const before=s.activeUnitId;s.activeUnitId=hero.id;a.activationIds=[hero.id];s.remainingMP=a.movement[hero.id]??ctx.def(s,hero).movement;a.effects=a.effects.filter(e=>!(e.activation===before&&e.target===army.id));for(const e of a.effects)if(e.activation===before)e.activation=hero.id;}ctx.log(s,`${ctx.rawDef(s,hero).name} leaves ${ctx.rawDef(s,army).name} behind.`);break;}
         case 'store-satchel':if(p?.kind==='satchel'){discard(s,action.playerId,'treasure-02');a.pending=p.resume;ctx.log(s,'Endless Satchel is now owned: retrieve up to two Treasures and keep four in Winter.');}break;
@@ -1733,9 +1749,8 @@ export function applyAdvancedAction(s: GameState, action: AdvancedAction, ctx: A
             break;
         case 'finish-study':
             if (p?.kind === 'study') {
-                p.playerIndex++;
-                p.disciplines = [];
-                skipCollapsedPlayers(s, ctx);
+                if(p.immediate)a.pending=p.immediateResume??null;
+                else {p.playerIndex++;p.disciplines = [];skipCollapsedPlayers(s, ctx);}
             }
             break;
         case 'sell-treasure': {
@@ -1774,8 +1789,8 @@ export function applyAdvancedAction(s: GameState, action: AdvancedAction, ctx: A
             break;
         case 'join-stack':
             a.stacks[action.unitId] = action.armyId;
-            if (ctx.unit(s, action.armyId).activated)
-                ctx.unit(s, action.unitId).activated = true;
+            if (ctx.unit(s, action.armyId).activated||ctx.unit(s, action.unitId).activated){ctx.unit(s, action.unitId).activated=true;ctx.unit(s,action.armyId).activated=true;if(s.activeUnitId&&[action.unitId,action.armyId].includes(s.activeUnitId))ctx.finish(s);}
+            else if(s.activeUnitId){a.activationIds=unique([...a.activationIds,action.unitId,action.armyId]);a.movement[action.unitId]??=ctx.def(s,ctx.unit(s,action.unitId)).movement;s.remainingMP=Math.min(a.movement[action.unitId],a.movement[action.armyId]??ctx.def(s,ctx.unit(s,action.armyId)).movement);}
             break;
         case 'allocate-hit':
         case 'accept-hit':
@@ -1849,6 +1864,35 @@ export function applyAdvancedAction(s: GameState, action: AdvancedAction, ctx: A
         }
         case 'magic-choice':
             if (p?.kind === 'choice') {
+                const data=p.data??{},value=action.value;
+                if(p.flow==='repeat-strike'){a.pending=p.resume;if(value!=='skip'){discard(s,p.playerId,value);magicStrike(s,p.play,data.target,ctx,[],true);}break;}
+                if(p.flow==='return-card'){if(value==='keep'){for(const pile of Object.values(a.discards)){const index=pile.indexOf(p.play.cardId);if(index>=0)pile.splice(index,1);}a.hands[p.playerId].push(p.play.cardId);}a.pending=p.resume;break;}
+                if(p.flow==='recover'){const unit=ctx.unit(s,value);unit.weakened=false;a.pending=p.resume;break;}
+                if(p.flow==='book-target'){chooseEffect(s,p.play,value,'book-discard',a.hands[value].filter(id=>['spell','blessing'].includes(cardById(id)?.kind??'')).map(id=>({value:id,label:`Discard ${cardById(id)!.name} (${cardById(id)!.kind})`})),p.resume,{},'Book of the Dead · choose your card');break;}
+                if(p.flow==='book-discard'){discard(s,p.playerId,value);a.pending=p.resume;break;}
+                if(p.flow==='copy-monster'){const m=a.monsters.find(m=>m.id===value)!;addEffect(s,{...p.play,cardId:'treasure-22',targetId:p.play.casterId},{abilities:monsterById(m.defId)!.abilities});a.pending=p.resume;break;}
+                if(p.flow==='pestilence'){const id=ctx.die(s,6)>=5?value:data.target;const members=stackIds(s,id);openWindow(s,'hits',{target:id,count:1,members},p.resume,ctx);break;}
+                if(p.flow==='discard'){discard(s,p.playerId,value);chooseDiscard(s,p.play,p.playerId,data.count-1,p.resume,data.kind);break;}
+                if(p.flow==='build'){
+                    const d=s.unitDefinitions.find(d=>d.id===data.defId)!,h=ctx.hex(s,value),ready=data.ready||h.entry===d.kingdom||h.settlement&&ctx.controller(s,h)===d.kingdom&&!s.razed.includes(h.id);
+                    const built:Unit={id:`unit-${s.serial++}`,defId:d.id,kingdom:d.kingdom,hexId:value,weakened:false,activated:!ready};s.units.push(built);const hero=s.units.find(u=>u.id!==built.id&&u.hexId===value&&u.kingdom===d.kingdom&&isHero(s,u));if(hero){a.stacks[hero.id]=built.id;if(hero.activated&&!data.ready)built.activated=true;}
+                    chooseBuild(s,p.play,d.id,data.count-1,p.resume,ctx,data.near,data.ready);break;
+                }
+                if(p.flow==='hero'){
+                    const hero=gainHero(s,data.kid,value,ctx,cardById(p.play.cardId)?.effect.type==='kharks-chosen'?p.play.choice:undefined,true);
+                    if(hero&&cardById(p.play.cardId)?.effect.gainedHeroHeavy)addEffect(s,{...p.play,targetId:hero.id},{heavy:cardById(p.play.cardId)!.effect.gainedHeroHeavy});
+                    chooseHeroPlacement(s,p.play,data.kid,data.count-1,p.resume,ctx);break;
+                }
+                if(p.flow==='blessing'){
+                    draw(s,p.playerId,`blessings-${value}`,1,ctx);const count=data.count-1;
+                    if(count>0)chooseEffect(s,p.play,p.playerId,'blessing',a.players.find(v=>v.id===p.playerId)!.kingdoms.filter(k=>!s.kingdoms.find(v=>v.id===k)?.collapsed&&(a.decks[`blessings-${k}`]?.length||a.discards.blessings.some(id=>cardById(id)?.kingdom===k))).map(value=>({value,label:`Draw a ${s.kingdoms.find(k=>k.id===value)!.name} Blessing`})),p.resume,{count});else a.pending=p.resume;break;
+                }
+                if(p.flow==='forced-move'){
+                    const unit=s.units.find(u=>u.id===data.unitId)!;
+                    if(value==='hit'){const members=stackIds(s,unit.id);openWindow(s,'hits',{target:unit.id,count:1,members},p.resume,ctx);}
+                    else {const [mode,hexId]=value.split(':');const ids=mode==='army'?[unit.id]:stackIds(s,unit.id);if(mode==='army')for(const id of Object.keys(a.stacks))if(a.stacks[id]===unit.id)delete a.stacks[id];for(const id of ids)ctx.unit(s,id).hexId=hexId;a.pending=p.resume;}
+                    break;
+                }
                 const u = s.units.find(u => u.id === p.play.targetId);
                 if (u) {
                     if (action.value === 'hit')
@@ -1867,10 +1911,10 @@ export function applyAdvancedAction(s: GameState, action: AdvancedAction, ctx: A
 }
 function beginMonsterBattle(s: GameState, attacker: string, m: Monster, ctx: AdvancedContext): void { const a = s.advanced!; s.pendingCombat = { attackerId: attacker, targetHex: m.hexId, stage: 'ambush', decisionKingdom: s.currentKingdom, defenderUnitId: m.id }; a.battle = { kind: 'battle', attacker, defender: m.id, targetHex: m.hexId, attackerKingdom: s.currentKingdom, defenderKingdom: m.kingdom!, step: 0, magicLifted: false, attackerRolls: [], defenderRolls: [], attackerSuccesses: 0, defenderSuccesses: 0, attackerHits: 0, defenderHits: 0, result: 'draw', hitQueue: [], reward: 'combat' }; advanceBattleMagic(s, 0, ctx); }
 export function beginMovement(s:GameState,unitId:string,path:string[],ship:boolean,ctx:AdvancedContext):void {
-    continueMovement(s,{unitId,path,ship,finish:ship&&s.units.find(u=>u.id===unitId)?.kingdom!=='fjordland'},ctx);
+    const wave=s.advanced!.effects.some(e=>stackIds(s,unitId).includes(e.target)&&e.extra?.waveStrider);continueMovement(s,{unitId,path,ship,finish:ship&&!wave&&s.units.find(u=>u.id===unitId)?.kingdom!=='fjordland'},ctx);
 }
 function continueMovement(s:GameState,event:Record<string,any>,ctx:AdvancedContext):void {
-    const unit=s.units.find(u=>u.id===event.unitId); if(!unit||!s.activeUnitId) return;
+    const unit=s.units.find(u=>u.id===event.unitId)??s.units.find(u=>u.id===s.activeUnitId); if(!unit||!s.activeUnitId) return;event.unitId=unit.id;
     const [to,...path]=event.path as string[];
     if(!to) {if(event.finish) ctx.finish(s); return;}
     const from=unit.hexId, sea=ctx.seaEdge(s,from,to);
@@ -1883,6 +1927,12 @@ function continueMovement(s:GameState,event:Record<string,any>,ctx:AdvancedConte
             if(!stackIds(s,hero.id).some(id=>!isHero(s,ctx.unit(s,id))))
                 ctx.hit(s,hero.id,1);
     openWindow(s,'movement',{...event,path,fromHex:from,enteredHex:to,sea},null,ctx);
+}
+export function consumeTableHit(s:GameState,ctx:AdvancedContext):void {
+    const a=s.advanced!,p=a.pending;if(p?.kind!=='hit')throw new Error('No hit is waiting for allocation.');
+    p.count--;const remaining=(p.members??stackIds(s,p.target)).filter(id=>s.units.some(u=>u.id===id));
+    if(p.count>0&&remaining.length)openWindow(s,'hits',{target:remaining[0],count:p.count,members:remaining},p.resume,ctx);
+    else {a.pending=p.resume;if(a.battle)continueHits(s,ctx);}
 }
 export function advancedMoveEvent(s:GameState,unitId:string,ship:boolean,finish:boolean,ctx:AdvancedContext):void {
     openWindow(s,'movement',{unitId,ship,finish,path:[],enteredHex:s.units.find(u=>u.id===unitId)?.hexId},null,ctx);
@@ -1901,7 +1951,7 @@ if (p?.kind === 'winter'){const player=a.players[p.playerIndex],total=[...a.hand
     return a.monsters.find(m=>m.id===p.monsterId)?.lair
         ? { title: 'Command the revealed Monster', text: 'Choose an opposing kingdom to command this Monster. A kingdom at its three-command limit must let an old Monster Slink Away first.' }
         : { title: 'Make room for the wandering Monster', text: 'Your active kingdom already commands three Monsters. Choose one to Slink Away, then command the newly revealed Monster.' }; if (p?.kind === 'choice')
-    return { title: 'Resolve Magic', text: 'The target’s owner chooses the outcome.' }; return null; }
+    return { title: p.title??'Resolve Magic', text: 'Choose an outcome below. The game waits for the indicated player and saves this decision.' }; return null; }
 /** Check imported JSON before any engine helper follows pointers or iterates zones. */
 export function validateAdvancedShape(value:unknown):string[] {
     if(value===undefined)return [];
@@ -1918,6 +1968,9 @@ export function validateAdvancedShape(value:unknown):string[] {
     for(const key of ['eliminatedTreasures','removedCards','eliminatedHeroes','locked','activationIds','explored','defeatedMonsters'])if(!strings(a[key]))return [`Invalid Advanced ${key}.`];
     if(!record(a.stacks,text)||!record(a.movement,v=>integer(v,-100,100))||!record(a.playedTreasures,v=>integer(v))||!record(a.studyMarkers,v=>v==='glyph'||v==='churn')||typeof a.extraChurn!=='boolean'||!integer(a.eventSerial))return ['Invalid Advanced counters.'];
     if(!object(a.monsterPools)||!strings(a.monsterPools.land)||!strings(a.monsterPools.sea))return ['Invalid Monster pools.'];
+    if(a.tableRulings!==undefined&&(!Array.isArray(a.tableRulings)||a.tableRulings.length>250||a.tableRulings.some((v:any)=>typeof v!=='string'||v.length>2000)))return ['Invalid table rulings.'];
+    if(a.eventQueue!==undefined&&(!Array.isArray(a.eventQueue)||a.eventQueue.length>2000||!a.eventQueue.every((v:any)=>json(v))))return ['Invalid rules event queue.'];
+    if(a.shipsThisTurn!==undefined&&!strings(a.shipsThisTurn))return ['Invalid Ship Movement history.'];
     if(a.khazud!==undefined&&!text(a.khazud))return ['Invalid Khazud location.'];
     if(!Array.isArray(a.monsters)||a.monsters.length>36||!a.monsters.every(m=>object(m)&&text(m.id)&&text(m.defId)&&text(m.hexId)&&(m.kingdom===null||text(m.kingdom))&&typeof m.weakened==='boolean'&&typeof m.activated==='boolean'&&typeof m.lair==='boolean'))return ['Invalid Monster state.'];
     if(!Array.isArray(a.effects)||a.effects.length>300||!a.effects.every(e=>object(e)&&text(e.cardId)&&text(e.target)&&(e.activation===null||text(e.activation))&&integer(e.expires)&&['light','heavy','movement','fortification','convertLightToHeavy','multiplyLight'].every(k=>e[k]===undefined||integer(e[k],-20,20))&&(e.abilities===undefined||strings(e.abilities))&&(e.extra===undefined||json(e.extra))))return ['Invalid Magic effects.'];
@@ -1925,17 +1978,24 @@ export function validateAdvancedShape(value:unknown):string[] {
     const pending=(p:any,depth=0):boolean=> {
         if(p===null)return true;
         if(depth>15||!object(p))return false;
-        if(p.kind==='study')return integer(p.playerIndex,0,a.players.length-1)&&integer(p.allowance,1,3)&&strings(p.disciplines)&&p.disciplines.every((x:string)=>['spells','blessings','treasures'].includes(x))&&new Set(p.disciplines).size===p.disciplines.length&&p.disciplines.length<=p.allowance&&['glyph','churn'].includes(p.marker);
+        if(p.kind==='study')return (p.immediate===undefined||typeof p.immediate==='boolean')&&(p.immediateResume===undefined||pending(p.immediateResume,depth+1))&&integer(p.playerIndex,0,a.players.length-1)&&integer(p.allowance,1,3)&&strings(p.disciplines)&&p.disciplines.every((x:string)=>['spells','blessings','treasures'].includes(x))&&new Set(p.disciplines).size===p.disciplines.length&&p.disciplines.length<=p.allowance&&['glyph','churn'].includes(p.marker);
         if(p.kind==='winter')return integer(p.playerIndex,0,a.players.length-1);
         if(p.kind==='window')return ['battle','reaction','strike','roll','critical','hits','movement','elimination','interject'].includes(p.window)&&strings(p.players)&&p.players.length>0&&integer(p.index,0,p.players.length-1)&&integer(p.step,0,3)&&(p.play===undefined||play(p.play))&&(p.event===undefined||json(p.event))&&pending(p.resume??null,depth+1);
-        if(p.kind==='hit')return text(p.target)&&integer(p.count,1,500)&&pending(p.resume,depth+1);
+        if(p.kind==='hit')return text(p.target)&&integer(p.count,1,500)&&(p.members===undefined||strings(p.members))&&pending(p.resume,depth+1);
         if(p.kind==='command')return text(p.monsterId)&&strings(p.choices)&&p.choices.length>0&&(p.attackerId===undefined||text(p.attackerId))&&pending(p.resume,depth+1);
         if(p.kind==='satchel')return text(p.playerId)&&pending(p.resume,depth+1);
-        if(p.kind==='choice')return text(p.playerId)&&Array.isArray(p.choices)&&p.choices.length>0&&p.choices.length<=500&&p.choices.every((c:any)=>object(c)&&text(c.label)&&text(c.value))&&play(p.play)&&pending(p.resume,depth+1);
+        if(p.kind==='choice'){
+            const flows=['repeat-strike','return-card','recover','book-target','book-discard','copy-monster','pestilence','discard','build','hero','blessing','forced-move'],data=p.data??{};
+            if(p.flow!==undefined&&!flows.includes(p.flow))return false;
+            if(['build','hero','blessing','discard'].includes(p.flow)&&!integer(data.count,1,20))return false;
+            if(p.flow==='build'&&(!text(data.defId)||(data.near!==undefined&&!text(data.near))||typeof data.ready!=='boolean'))return false;
+            if(p.flow==='hero'&&!text(data.kid)||p.flow==='discard'&&!['spell','blessing','either'].includes(data.kind)||['repeat-strike','pestilence'].includes(p.flow)&&!text(data.target)||p.flow==='forced-move'&&!text(data.unitId))return false;
+            return text(p.playerId)&&Array.isArray(p.choices)&&p.choices.length>0&&p.choices.length<=500&&p.choices.every((c:any)=>object(c)&&text(c.label)&&text(c.value))&&(p.title===undefined||text(p.title))&&(p.data===undefined||json(p.data))&&play(p.play)&&pending(p.resume,depth+1);
+        }
         return false;
     };
     const rolls=(pool:any)=>Array.isArray(pool)&&pool.length<=150&&pool.every(d=>object(d)&&[6,8].includes(d.sides)&&integer(d.raw,1,d.sides)&&integer(d.modified,-100,100)&&typeof d.success==='boolean'&&typeof d.critical==='boolean'&&(d.confirmation===undefined||integer(d.confirmation,1,8))&&(d.confirmations===undefined||Array.isArray(d.confirmations)&&d.confirmations.length<=32&&d.confirmations.every((c:any)=>object(c)&&[6,8].includes(c.sides)&&integer(c.raw,1,c.sides)))&&(d.bonus===undefined||integer(d.bonus,0,100)));
-    const battle=(b:any,depth=0):boolean=>b===null||depth<10&&object(b)&&['battle','strike','ambush'].includes(b.kind)&&text(b.attacker)&&text(b.targetHex)&&text(b.attackerKingdom)&&text(b.defenderKingdom)&&integer(b.step,0,3)&&typeof b.magicLifted==='boolean'&&rolls(b.attackerRolls)&&rolls(b.defenderRolls)&&['attackerSuccesses','defenderSuccesses','attackerHits','defenderHits'].every(k=>integer(b[k],0,500))&&['attacker','defender','draw','tie','ambush'].includes(b.result)&&Array.isArray(b.hitQueue)&&b.hitQueue.length<=4&&b.hitQueue.every((h:any)=>object(h)&&text(h.target)&&integer(h.count,1,500))&&(b.parent===undefined||battle(b.parent,depth+1))&&(b.resume===undefined||pending(b.resume));
+    const battle=(b:any,depth=0):boolean=>b===null||depth<10&&object(b)&&['battle','strike','ambush'].includes(b.kind)&&text(b.attacker)&&text(b.targetHex)&&text(b.attackerKingdom)&&text(b.defenderKingdom)&&integer(b.step,0,3)&&typeof b.magicLifted==='boolean'&&rolls(b.attackerRolls)&&rolls(b.defenderRolls)&&['attackerSuccesses','defenderSuccesses','attackerHits','defenderHits'].every(k=>integer(b[k],0,500))&&['attacker','defender','draw','tie','ambush'].includes(b.result)&&Array.isArray(b.hitQueue)&&b.hitQueue.length<=4&&b.hitQueue.every((h:any)=>object(h)&&text(h.target)&&integer(h.count,1,500))&&(b.parent===undefined||battle(b.parent,depth+1))&&(b.resume===undefined||pending(b.resume))&&(b.remaining===undefined||strings(b.remaining))&&(b.sourcePlay===undefined||play(b.sourcePlay))&&(b.repeat===undefined||typeof b.repeat==='boolean')&&(b.continuation===undefined||play(b.continuation));
     if(!pending(a.pending)||!battle(a.battle)||(a.lastPlay!==null&&!play(a.lastPlay)))return ['Invalid Advanced pending decision.'];
     return [];
 }

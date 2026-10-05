@@ -1,0 +1,114 @@
+[
+  {
+    "size": "Desktop",
+    "alignmentError": [
+      0.0004999999999881766,
+      0.49989634463196353
+    ],
+    "counterInFrame": true,
+    "heroBadgeBeside": true,
+    "overflow": 0,
+    "scroll": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "size": "Phone 390 × 844",
+    "alignmentError": [
+      0.009310000000027683,
+      0.01539425771329661
+    ],
+    "counterInFrame": true,
+    "heroBadgeBeside": true,
+    "overflow": 0,
+    "scroll": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "size": "Small phone",
+    "alignmentError": [
+      0.009375000000005684,
+      0.3318054702878612
+    ],
+    "counterInFrame": true,
+    "heroBadgeBeside": true,
+    "overflow": 0,
+    "scroll": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "size": "Compact phone",
+    "alignmentError": [
+      0.0024999999999977263,
+      0.41359638784248887
+    ],
+    "counterInFrame": true,
+    "heroBadgeBeside": true,
+    "overflow": 0,
+    "scroll": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "size": "Tablet",
+    "alignmentError": [
+      0,
+      0.22264426354206537
+    ],
+    "counterInFrame": true,
+    "heroBadgeBeside": true,
+    "overflow": 0,
+    "scroll": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "size": "Landscape",
+    "alignmentError": [
+      0,
+      0.08524081168923203
+    ],
+    "counterInFrame": true,
+    "heroBadgeBeside": true,
+    "overflow": 0,
+    "scroll": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "size": "Small landscape",
+    "alignmentError": [
+      0.006961999999987256,
+      0.5027078735835175
+    ],
+    "counterInFrame": true,
+    "heroBadgeBeside": true,
+    "overflow": 0,
+    "scroll": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+]

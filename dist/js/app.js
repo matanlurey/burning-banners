@@ -1,9 +1,13 @@
 import { cards, cardById, monsters, monsterById, advancedDescription, playerFor, stackIds, adjustedDice, effectiveDefinition, runtimeLimitations, playableCounts } from './advanced.js';
 import { advancedCatalog } from './advanced-data.js';
-import { advancedActor, createGame, applyAction, legalActions, moveOptions, shipOptions, combatForecast, botAction, validateState, exportGame, importGame } from './engine.js';
+import { advancedActor, createGame, applyAction, legalActions, moveOptions, shipOptions, combatForecast, movementPreview, botAction, validateState, exportGame, importGame } from './engine.js';
+import { combatOdds } from './combat-odds.js';
+import { findMap } from './map-tools.js';
 import { createCompanion, recordCampaignEvent, getBriefing, getReplayEvents, markRead, visibleMessages, sendCampaignMessage, setDelegation, updateCompanionDifficulty, savePrivateNote } from './async-play.js';
 import { chooseDifficultyAction, AI_DIFFICULTIES } from './ai.js';
 import { renderCampaignDesk } from './campaign-desk.js';
+import { applyTableOperation, tabletopConfig } from './tabletop.js';
+import { renderTabletop, renderTableBuilder, tableOperationFromForm } from './tabletop-ui.js';
 import { getScenarioOptions } from './scenarios.js';
 const root = document.querySelector('#app');
 const R = 72;
@@ -64,8 +68,16 @@ let shipMode = false;
 let sound = false;
 let profile = 'advanced';
 let sharedHands = true;
+let tableTab = 'pieces';
+let tableKingdom = 'empire';
+let tableViewer = null;
+let tableEdgeTarget = null;
 let selectedCardId = null;
 let selectedMagicIndex = 0;
+let forecastMode = 'combat';
+let hitAllocation = 'army-first';
+let mapQuery = '';
+let mapFilter = 'all';
 const studySelection = { spells: 0, blessings: 0, treasures: 0 };
 let motion = 'system';
 try {
@@ -143,7 +155,8 @@ const getHex = (id) => state.hexes.find(h => h.id === id);
 const kingdom = (id) => state.kingdoms.find(k => k.id === id);
 const kingdomName = (id) => kingdom(id)?.name || ({ oathborn: 'The Oathborn', fjordland: 'Fjordland', empire: 'Eastern Empire', night: 'Army of Night', goblins: 'The Goblins', orcs: 'The Orcs' }[id] || id);
 const actor = () => advancedActor(state);
-const isBot = () => kingdom(actor())?.controller === 'ai';
+const needsHumanRuling = () => state.advanced?.pending?.kind === 'winter' && legalActions(state).some(a => a.type === 'winter-ruling');
+const isBot = () => !state.tabletop?.review && !needsHumanRuling() && kingdom(actor())?.controller === 'ai';
 const mobileLayout = () => window.matchMedia('(max-width:760px)').matches;
 const art = (d) => {
     if (d.art)
@@ -162,7 +175,7 @@ const selectedTargetAction = () => {
     const unit = getUnit();
     if (!unit || !selectedHex || unit.hexId === selectedHex)
         return undefined;
-    const attack = currentActions.find(a => a.type === 'attack' && a.unitId === unit.id && a.targetHex === selectedHex);
+    const attack = currentActions.find(a => (a.type === 'attack' || a.type === 'attack-monster') && a.unitId === unit.id && a.targetHex === selectedHex);
     if (attack)
         return attack;
     return currentActions.find(a => a.type === (shipMode ? 'ship' : 'move') && a.unitId === unit.id && a.toHex === selectedHex);
@@ -175,6 +188,10 @@ const actionLabel = (a) => {
             .some(player => player.kingdoms.some(id => !state.kingdoms.find(k => k.id === id)?.collapsed));
         return anotherPlayer ? 'Confirm Treasures' : 'Continue to Spring';
     }
+    if (a.type === 'winter-ruling')
+        return 'Record Winter ruling · retain unsellable excess';
+    if (a.type === 'table-ruling')
+        return a.summary;
     if (a.type === 'store-satchel')
         return 'Keep & play the Satchel';
     if (a.type === 'remove-curse')
@@ -197,6 +214,8 @@ const actionLabel = (a) => {
     return names[a.type] || a.type;
 };
 const objectiveText = () => {
+    if (state.tabletop?.manualVictory)
+        return state.tabletop.setupSource || 'Enter the printed scenario victory conditions, then adjudicate the result in Table controls.';
     const obj = state.scenario.objective;
     const places = obj.hexIds.map(id => getHex(id)?.settlement?.name || id).join(', ');
     return obj.type === 'survival' ? `Hold out through ${seasons[state.scenario.endSeason]} ${state.scenario.endYear}. ${places ? `Protect ${places}.` : ''}` : `${obj.kingdom ? kingdomName(obj.kingdom) : 'The invaders'} must control ${obj.count} ${obj.count === 1 ? 'objective' : 'objectives'}${places ? `: ${places}` : ''}${obj.deadlineOnly ? ` by ${seasons[state.scenario.endSeason]} ${state.scenario.endYear}` : ''}.`;
@@ -666,19 +685,20 @@ function drawCounter(u) {
     const heroes = state.units.filter(v => state.advanced?.stacks[v.id] === u.id && v.hexId === u.hexId);
     const stack = state.units.filter(v => v.hexId === u.hexId && !(definition(v).kind === 'hero' && state.advanced?.stacks[v.id] && state.units.some(a => a.id === state.advanced.stacks[v.id] && a.hexId === v.hexId)));
     const offset = (stack.findIndex(v => v.id === u.id) - (stack.length - 1) / 2) * 72;
-    const ready = !u.activated && u.kingdom === state.currentKingdom;
+    const enslaved = state.tabletop?.enslaved?.some(x => x.armyId === u.id);
+    const ready = !enslaved && !u.activated && u.kingdom === state.currentKingdom;
     const selected = selectedUnitId === u.id || heroes.some(v => v.id === selectedUnitId);
     const heroNames = heroes.map(v => definition(v).name).join(' + ');
     const short = d.name.replace(/^(The |King’s |King's )/, '').split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase();
-    return `<button type="button" class="map-marker unit-marker ${d.kind === 'hero' ? 'hero-marker' : ''} ${heroes.length ? 'has-hero' : ''} ${stack.length > 1 ? 'stacked' : ''} counter ${u.activated ? 'used' : ''} ${selected ? 'selected' : ''}" data-map-unit="${esc(u.id)}" data-unit="${esc(u.id)}" data-stack-heroes="${esc(heroes.map(v => v.id).join(','))}" data-marker-kind="unit" data-world-x="${pos.x}" data-world-y="${pos.y}" data-stack-offset="${offset}" style="--faction:${color(u.kingdom)}" aria-label="${esc(`${d.name}${heroNames ? ', with Hero ' + heroNames : ''}, ${kingdomName(u.kingdom)}, ${u.weakened ? 'weakened' : 'full strength'}, ${u.activated ? 'activated' : 'ready'}`)}" title="${esc(d.name)}${heroNames ? ' · Hero ' + esc(heroNames) : ''} · ${esc(kingdomName(u.kingdom))}">
-    ${heroNames ? `<span class="hero-stack-badge" title="${esc(heroNames)}"><span aria-hidden="true">✦</span> ${esc(heroNames)}</span>` : ''}<span class="unit-card ${u.weakened ? 'weakened' : ''}"><img src="${esc(art(d))}" alt="" draggable="false"><span class="unit-faction-mark">${esc(short)}</span>${ready ? '<span class="unit-ready" title="Ready"></span>' : ''}<span class="unit-card-stats"><span class="light-die">${s.light}</span><span class="heavy-die">${s.heavy}</span><span class="move-value">${u.id === state.activeUnitId || heroes.some(v => v.id === state.activeUnitId) ? state.remainingMP : s.move}›</span></span></span><span class="unit-map-name">${esc(d.name)}</span>${u.weakened ? '<span class="unit-condition">WEAK</span>' : ''}
+    return `<button type="button" class="map-marker unit-marker ${d.kind === 'hero' ? 'hero-marker' : ''} ${heroes.length ? 'has-hero' : ''} ${stack.length > 1 ? 'stacked' : ''} counter ${u.activated ? 'used' : ''} ${selected ? 'selected' : ''}" data-map-unit="${esc(u.id)}" data-unit="${esc(u.id)}" data-stack-heroes="${esc(heroes.map(v => v.id).join(','))}" data-marker-kind="unit" data-world-x="${pos.x}" data-world-y="${pos.y}" data-stack-offset="${offset}" style="--faction:${color(u.kingdom)}" aria-label="${esc(`${d.name}${heroNames ? ', with Hero ' + heroNames : ''}${enslaved ? ', with Enslaved Hero, controlled by Night' : ''}, ${kingdomName(u.kingdom)}, ${u.weakened ? 'weakened' : 'full strength'}, ${u.activated ? 'activated' : 'ready'}`)}" title="${esc(d.name)}${heroNames ? ' · Hero ' + esc(heroNames) : ''} · ${esc(kingdomName(u.kingdom))}">
+    ${enslaved ? '<span class="enslaved-badge">Enslaved Hero · Night</span>' : ''}${heroNames ? `<span class="hero-stack-badge" title="${esc(heroNames)}"><span aria-hidden="true">✦</span> ${esc(heroNames)}</span>` : ''}<span class="unit-card ${u.weakened ? 'weakened' : ''}"><img src="${esc(art(d))}" alt="" draggable="false"><span class="unit-faction-mark">${esc(short)}</span>${ready ? '<span class="unit-ready" title="Ready"></span>' : ''}<span class="unit-card-stats"><span class="light-die">${s.light}</span><span class="heavy-die">${s.heavy}</span><span class="move-value">${u.id === state.activeUnitId || heroes.some(v => v.id === state.activeUnitId) ? state.remainingMP : s.move}›</span></span></span><span class="unit-map-name">${esc(d.name)}</span>${u.weakened ? '<span class="unit-condition">WEAK</span>' : ''}
   </button>`;
 }
 function renderMap() {
     const unit = getUnit();
     const movement = unit && unit.kingdom === state.currentKingdom ? (shipMode ? shipOptions(state, unit.id) : moveOptions(state, unit.id)) : [];
     const moveSet = new Set(movement.map(m => m.hexId));
-    const attackSet = new Set(currentActions.filter(a => a.type === 'attack' && a.unitId === unit?.id).map(a => a.type === 'attack' ? a.targetHex : ''));
+    const attackSet = new Set(currentActions.filter(a => (a.type === 'attack' || a.type === 'attack-monster') && a.unitId === unit?.id).map(a => a.type === 'attack' || a.type === 'attack-monster' ? a.targetHex : ''));
     const terrainColors = { clear: '#e0d7b8', forest: '#a9b99a', mountain: '#b8b5a5', swamp: '#acb9a5', sea: '#a9c0c6', coastal: '#b7cac5', 'major-river': '#a9c0c6', lair: '#b4a99d' };
     const terrainAsset = { coastal: 'sea', 'major-river': 'sea', lair: 'mountain' };
     const definitions = Object.keys(terrainColors).map(t => `<pattern id="terrain-${t}" width="220" height="220" patternUnits="userSpaceOnUse"><rect width="220" height="220" fill="${terrainColors[t]}"/><image href="./assets/terrain-${terrainAsset[t] || t}.webp" width="220" height="220" opacity=".23"/></pattern>`).join('');
@@ -714,11 +734,17 @@ function renderMap() {
     }).join('');
     const bounds = boardBounds();
     const sortedUnits = state.units.slice().sort((a, b) => Number(a.id === selectedUnitId) - Number(b.id === selectedUnitId));
-    return `<svg class="board board-world" viewBox="${bounds.x} ${bounds.y} ${bounds.w} ${bounds.h}" width="${bounds.w}" height="${bounds.h}" role="img" aria-label="Terrain and legal destinations on the Wildlands map" preserveAspectRatio="none"><defs>${definitions}</defs>${cells}${roads}${line}</svg><svg class="map-leaders" aria-hidden="true"></svg><div class="map-marker-layer">${towns}${drawMonsters()}${sortedUnits.map(drawCounter).join('')}</div>`;
+    return `<svg class="board board-world" viewBox="${bounds.x} ${bounds.y} ${bounds.w} ${bounds.h}" width="${bounds.w}" height="${bounds.h}" role="img" aria-label="Terrain and legal destinations on the campaign map" preserveAspectRatio="none"><defs>${definitions}</defs>${cells}${roads}${line}</svg><svg class="map-leaders" aria-hidden="true"></svg><div class="map-marker-layer">${towns}${drawMonsters()}${sortedUnits.map(drawCounter).join('')}</div>`;
 }
 function selectedDescription() {
     const h = getHex(selectedHex);
     const u = getUnit();
+    if (state.tabletop?.review) {
+        const r = state.tabletop.review;
+        return { title: 'Resolve ' + (cardById(r.cardId)?.name ?? 'the table effect'), text: (state.advanced.players.find(p => p.id === r.playerId)?.name ?? 'Player') + ' is resolving a printed effect. Open Table controls to apply its instructions and finish.' };
+    }
+    if (needsHumanRuling())
+        return { title: 'Winter table ruling required', text: 'The remaining Treasures cannot be sold. A human must resolve the printed holding-limit conflict before play continues.' };
     const advanced = advancedDescription(state);
     if (advanced)
         return advanced;
@@ -729,7 +755,7 @@ function selectedDescription() {
     if (state.phase === 'income-actions')
         return { title: 'Income phase', text: 'Resolve kingdom preparations, then collect income to begin activations.' };
     const a = selectedTargetAction();
-    if (a?.type === 'attack')
+    if (a?.type === 'attack' || a?.type === 'attack-monster')
         return { title: `Attack ${h?.settlement?.name || h?.id}`, text: `${u ? definition(u).name : 'Army'} attacks. Review the dice forecast in Council.` };
     if (a?.type === 'move' || a?.type === 'ship') {
         const option = (a.type === 'ship' ? shipOptions(state, u.id) : moveOptions(state, u.id)).find(o => o.hexId === a.toHex);
@@ -756,8 +782,31 @@ function pendingPanel() {
     return `<div class="target-card combat"><div class="eyebrow">${esc(kingdomName(pending.decisionKingdom))} decision</div><h3 style="margin-top:9px">${esc(target?.settlement?.name || pending.targetHex)}</h3><p class="small-note">${pending.stage === 'ambush' ? 'An army can use Ambush before normal combat. Choose your resolution.' : pending.stage === 'advance' ? 'The victorious attacker may enter the defender’s hex.' : 'Choose what happens to this hostile settlement.'}</p><div class="action-list" style="margin-top:13px">${choices}</div></div>`;
 }
 function forecastPanel(f) {
-    return `<div class="target-card combat"><div class="eyebrow">Battle forecast</div><h3 style="margin-top:8px">${esc(getHex(f.targetHex)?.settlement?.name || f.targetHex)}</h3><div class="forecast-row"><div><strong>${f.attackerLight}<small style="font-size:10px">d6</small> + ${f.attackerHeavy}<small style="font-size:10px">d8</small></strong>Attacker</div><span class="vs">vs</span><div><strong>${f.defenderLight}<small style="font-size:10px">d6</small> + ${f.defenderHeavy}<small style="font-size:10px">d8</small></strong>Defender</div></div><div class="forecast-row"><div>${f.attackerExpected.toFixed(1)} expected hits</div><span></span><div>${f.defenderExpected.toFixed(1)} expected hits</div></div><p class="forecast-copy">${f.explanation.map(esc).join('<br>')}</p>${f.attackerCanAmbush || f.defenderCanAmbush ? '<p class="forecast-copy">Ambush may change this resolution. An estimate is not a guaranteed result.</p>' : ''}</div>`;
+    const viewer = playerFor(state, actor()), hidden = f.attackerId && state.units.find(u => u.id === f.attackerId)?.kingdom === 'night' && !viewer?.kingdoms.includes('night');
+    const visible = hidden ? { ...state, covens: [] } : state;
+    if (hidden)
+        f = combatForecast(visible, f.attackerId, f.targetHex);
+    const modes = ['combat', ...(f.attackerCanAmbush ? ['attacker-ambush'] : []), ...(f.defenderCanAmbush ? ['defender-ambush'] : [])];
+    const mode = modes.includes(forecastMode) ? forecastMode : 'combat', odds = combatOdds(visible, f, mode, hitAllocation);
+    const percent = (p) => p <= 0 ? '0%' : p >= 1 ? '100%' : p < .005 ? '<1%' : p > .995 ? '>99%' : `${(p * 100).toFixed(0)}%`;
+    const wounds = (w) => `<div class="wound-forecast"><strong>${esc(w.name)}</strong><p>${w.expectedWounds.toFixed(2)} expected wounds${w.capacity ? ` / ${w.capacity} to clear the ${w.army && w.hero ? 'stack' : w.army ? 'Army' : w.hero ? 'Hero' : 'defender'}` : ''}</p>${w.army ? `<p>${!w.army.wasWeakened && !w.army.fragile ? `${percent(w.army.weakenedChance)} weakened · ` : ''}${percent(w.army.eliminatedChance)} Army eliminated</p>` : `<p>${percent(w.eliminatedChance)} ${w.hero ? 'Hero eliminated' : 'defender cleared'}</p>`}${w.hero && w.army ? `<p>${percent(w.hero.eliminatedChance)} Hero eliminated</p>` : ''}</div>`;
+    const stacked = stackIds(state, f.attackerId).length > 1 || !!f.defenderUnitId && stackIds(state, f.defenderUnitId).length > 1;
+    return `<div class="target-card combat"><div class="eyebrow">Combat forecast · probabilities</div><h3 style="margin-top:8px">${esc(getHex(f.targetHex)?.settlement?.name || f.targetHex)}</h3>${modes.length > 1 ? `<label class="forecast-label" for="forecast-mode">Compare resolution</label><select class="scenario-select" id="forecast-mode">${modes.map(m => `<option value="${m}" ${mode === m ? 'selected' : ''}>${m === 'combat' ? 'Normal combat' : m === 'attacker-ambush' ? 'Attacker Ambush' : 'Defender Ambush'}</option>`).join('')}</select>` : ''}<div class="forecast-row forecast-dice"><div><strong>${odds.attackerPool.light}d6 + ${odds.attackerPool.heavy}d8</strong>Attacker${mode === 'combat' ? ` · ${odds.attackerSuccesses.toFixed(2)} successes` : ''}</div><span class="vs">vs</span><div><strong>${odds.defenderPool.light}d6 + ${odds.defenderPool.heavy}d8</strong>Defender${mode === 'combat' ? ` · ${odds.defenderSuccesses.toFixed(2)} successes` : ''}</div></div><div class="forecast-odds"><div><span>Attacker deals</span><strong>${odds.attacker.expectedHits.toFixed(2)}<small> expected hits</small></strong><p>${percent(odds.attacker.hitChance)} chance of 1+ hit<br>${percent(odds.attacker.twoHitChance)} chance of 2+ hits</p></div><div><span>Defender deals</span><strong>${odds.defender.expectedHits.toFixed(2)}<small> expected hits</small></strong><p>${percent(odds.defender.hitChance)} chance of 1+ hit<br>${percent(odds.defender.twoHitChance)} chance of 2+ hits</p></div></div>${stacked ? `<label class="forecast-label" for="forecast-allocation">Preview hit allocation for both stacks</label><select class="scenario-select" id="forecast-allocation"><option value="army-first" ${hitAllocation === 'army-first' ? 'selected' : ''}>Army takes hits first</option><option value="hero-first" ${hitAllocation === 'hero-first' ? 'selected' : ''}>Hero takes hits first</option></select>` : ''}<div class="forecast-wounds">${wounds(odds.defenderWounds)}${wounds(odds.attackerWounds)}</div><p class="forecast-copy">${percent(odds.noHitChance)} chance neither side takes a hit.</p><details class="forecast-detail"><summary>Dice modifiers & assumptions</summary><p>${mode === 'combat' ? (f.explanation.map(esc).join('<br>') || 'No terrain or fortification modifiers.') : 'Ambush uses the units’ printed dice and resolved effects; terrain dice are ignored.'}</p>${odds.notes.map(note => `<p>${esc(note)}</p>`).join('')}<p>Wounds cap excess hits at the counters’ remaining strength. A full Army takes two hits; Heroes, weakened Armies, Fragile Armies and Monsters take one.</p></details></div>`;
 }
+function routePanel(u, action) {
+    if (action.type !== 'move' && action.type !== 'ship')
+        return '';
+    const option = (action.type === 'ship' ? shipOptions(state, u.id) : moveOptions(state, u.id)).find(o => o.hexId === action.toHex);
+    if (!option)
+        return '';
+    const route = movementPreview(state, u.id, option, action.type === 'ship');
+    return `<details class="route-preview" open><summary>Route · ${option.cost} ${route.ship ? 'sea steps' : 'movement points'} · ${route.steps.length} ${route.steps.length === 1 ? 'hex' : 'hexes'}</summary><ol>${route.steps.map(step => `<li><span>${esc(step.name)} <small>${esc(step.terrain)}</small></span><b>${step.costs.join(' / ')} ${route.ship ? 'step' : 'MP'}</b></li>`).join('')}</ol>${route.units.map(v => `<p>${esc(v.name)}: ${v.spent} spent${route.ship ? '' : ` · ${v.remaining} MP after arrival`}${v.roadBonus ? ' · includes +1 road allowance' : ''}${v.minimumMove ? ' · uses the one-hex minimum move' : ''}</p>`).join('')}<p class="small-note">${route.ship ? 'Sea transport follows the highlighted crossing route.' : 'Each stack member pays its own terrain costs.'}</p></details>`;
+}
+function mapFindResults() {
+    const found = findMap(state, mapQuery, mapFilter), visible = found.slice(0, 80);
+    return `<p class="small-note" role="status">${found.length} ${found.length === 1 ? 'result' : 'results'}${found.length > 80 ? ' · showing the first 80; refine your search' : ''}</p><div class="map-find-list">${visible.map(item => `<button data-find-hex="${esc(item.hexId)}" ${item.unitId ? `data-find-unit="${esc(item.unitId)}"` : ''}><span class="map-find-kind">${esc(item.kind)}</span><strong>${esc(item.name)}</strong><small>${esc(item.detail)}</small>${icon('arrow')}</button>`).join('') || '<p class="empty-state">No matches. Try a location name, Army, kingdom, or hex ID.</p>'}</div>`;
+}
+function mapFindModal() { return standardModal('Find on the map', `<label class="scenario-select-label" for="map-query">Location, unit, kingdom or hex</label><input id="map-query" class="scenario-select" type="search" placeholder="Search the board…" value="${esc(mapQuery)}" autocomplete="off"><label class="scenario-select-label" for="map-filter">Show</label><select id="map-filter" class="scenario-select">${['all', 'ready', 'objectives', 'settlements'].map(f => `<option value="${f}" ${mapFilter === f ? 'selected' : ''}>${({ all: 'Locations & units', ready: 'Ready units · current kingdom', objectives: 'Campaign objectives', settlements: 'Settlements' })[f]}</option>`).join('')}</select><div class="map-find-results">${mapFindResults()}</div><p class="small-note">Choose a result to focus the map. Shortcut: /</p>`); }
 function councilPanel() {
     const u = getUnit();
     const h = getHex(selectedHex);
@@ -767,9 +816,10 @@ function councilPanel() {
         const a = selectedTargetAction();
         const group = stackIds(state, u.id).map(id => state.units.find(v => v.id === id)).filter(Boolean);
         const stackInfo = group.length > 1 ? `<div class="stack-detail"><strong>${group.map(v => esc(definition(v).name)).join(" + ")}</strong><p>Combined combat below. ${group.map(v => `${esc(definition(v).name)}: ${state.advanced?.movement[v.id] ?? definition(v).movement} movement`).join(" · ")}</p><p>Separate a member in Army actions to activate it alone.</p></div>` : "";
-        const f = a?.type === 'attack' ? combatForecast(state, u.id, a.targetHex) : null;
+        const previewTarget = a?.type === 'attack' || a?.type === 'attack-monster' ? { unitId: u.id, hex: a.targetHex } : state.pendingCombat?.stage === 'ambush' ? { unitId: state.pendingCombat.attackerId, hex: state.pendingCombat.targetHex } : state.advanced?.battle?.kind === 'battle' && state.advanced.pending?.kind === 'window' && state.advanced.pending.window === 'battle' ? { unitId: state.advanced.battle.attacker, hex: state.advanced.battle.targetHex } : null;
+        const f = previewTarget ? combatForecast(state, previewTarget.unitId, previewTarget.hex) : null;
         const specials = currentActions.filter(a => ('unitId' in a && group.some(v => v.id === a.unitId) && ['recover', 'regenerate', 'mine', 'pass', 'disband-siege', 'drop-hero', 'drop-army', 'join-stack', 'explore-lair', 'attack-monster'].includes(a.type)));
-        return `<div class="unit-hero"><img src="${esc(art(d))}" alt="Illustration of ${esc(d.name)}"><div class="unit-title"><h3>${esc(d.name)}</h3><p>${esc(kingdomName(u.kingdom).toUpperCase())} · ${esc(u.weakened ? 'WEAKENED' : 'FULL STRENGTH')} · ${esc(getHex(u.hexId)?.settlement?.name || u.hexId)}</p></div></div>${pendingPanel()}${stackInfo}<div class="unit-stats"><div class="stat-box"><b>${s.light}</b><small>Light · d6</small></div><div class="stat-box"><b>${s.heavy}</b><small>Heavy · d8</small></div><div class="stat-box"><b>${u.id === state.activeUnitId ? state.remainingMP : s.move}</b><small>Movement</small></div></div><div class="trait-list">${[...d.abilities, ...d.characteristics].map(t => `<span>${esc(t)}</span>`).join('')}${u.activated ? '<span>Activated</span>' : '<span>Ready</span>'}</div>${f ? forecastPanel(f) : a && (a.type === 'move' || a.type === 'ship') ? `<div class="target-card"><div class="eyebrow">Destination</div><h3 style="margin-top:8px">${esc(h?.settlement?.name || h?.id)}</h3><p class="small-note">${esc(h?.terrain)}${h?.settlement ? ` · ${h.settlement.fortified ? 'Fortified settlement' : 'Settlement'}` : ''}${state.controls[h?.id || ''] ? ` · ${esc(kingdomName(state.controls[h.id]))} control` : ''}</p></div>` : `<p class="small-note">${u.activated ? 'This army is exhausted until its next kingdom turn.' : u.kingdom === state.currentKingdom ? 'Select a green hex to move or a red hex to attack. A battle finishes this army’s activation.' : 'This army belongs to another kingdom.'}</p>`}<div class="panel-rule"></div><div class="side-title"><h3>Army actions</h3></div><div class="action-list">${specials.map(a => `<button ${actionAttr(a)}>${esc(actionLabel(a))}${a.type === 'recover' ? `<small>${d.recoveryCost} gold</small>` : ''}</button>`).join('')}${currentActions.some(a => a.type === 'activate' && a.unitId === u.id) ? `<button ${actionAttr({ type: 'activate', unitId: u.id })}>Activate this army ${icon('arrow')}</button>` : ''}${shipOptions(state, u.id).length ? `<button data-command="ship-mode">${shipMode ? 'Return to land movement' : 'Show sea transport'} ${icon('ship')}</button>` : ''}${!specials.length && u.activated ? '<p class="small-note">No actions remain for this army.</p>' : ''}</div>${destinationPicker(u)}${hexActionsPanel(h)}${lastBattlePanel()}`;
+        return `<div class="unit-hero ${f ? 'forecast-active' : ''}"><img src="${esc(art(d))}" alt="Illustration of ${esc(d.name)}"><div class="unit-title"><h3>${esc(d.name)}</h3><p>${esc(kingdomName(u.kingdom).toUpperCase())} · ${esc(u.weakened ? 'WEAKENED' : 'FULL STRENGTH')} · ${esc(getHex(u.hexId)?.settlement?.name || u.hexId)}</p></div></div>${pendingPanel()}${f ? forecastPanel(f) : ''}${stackInfo}<div class="unit-stats"><div class="stat-box"><b>${s.light}</b><small>Light · d6</small></div><div class="stat-box"><b>${s.heavy}</b><small>Heavy · d8</small></div><div class="stat-box"><b>${u.id === state.activeUnitId ? state.remainingMP : s.move}</b><small>Movement</small></div></div><div class="trait-list">${[...d.abilities, ...d.characteristics].map(t => `<span>${esc(t)}</span>`).join('')}${u.activated ? '<span>Activated</span>' : '<span>Ready</span>'}</div>${f ? '' : a && (a.type === 'move' || a.type === 'ship') ? `<div class="target-card"><div class="eyebrow">Destination</div><h3 style="margin-top:8px">${esc(h?.settlement?.name || h?.id)}</h3><p class="small-note">${esc(h?.terrain)}${h?.settlement ? ` · ${h.settlement.fortified ? 'Fortified settlement' : 'Settlement'}` : ''}${state.controls[h?.id || ''] ? ` · ${esc(kingdomName(state.controls[h.id]))} control` : ''}</p>${routePanel(u, a)}</div>` : `<p class="small-note">${u.activated ? 'This army is exhausted until its next kingdom turn.' : u.kingdom === state.currentKingdom ? 'Select a green hex to move or a red hex to attack. A battle finishes this army’s activation.' : 'This army belongs to another kingdom.'}</p>`}<div class="panel-rule"></div><div class="side-title"><h3>Army actions</h3></div><div class="action-list">${specials.map(a => `<button ${actionAttr(a)}>${esc(actionLabel(a))}${a.type === 'recover' ? `<small>${d.recoveryCost} gold</small>` : ''}</button>`).join('')}${currentActions.some(a => a.type === 'activate' && a.unitId === u.id) ? `<button ${actionAttr({ type: 'activate', unitId: u.id })}>Activate this army ${icon('arrow')}</button>` : ''}${shipOptions(state, u.id).length ? `<button data-command="ship-mode">${shipMode ? 'Return to land movement' : 'Show sea transport'} ${icon('ship')}</button>` : ''}${!specials.length && u.activated ? '<p class="small-note">No actions remain for this army.</p>' : ''}</div>${destinationPicker(u)}${hexActionsPanel(h)}${lastBattlePanel()}`;
     }
     const ready = state.units.filter(u => u.kingdom === current.id && !u.activated);
     const roster = state.units.filter(u => u.kingdom === current.id);
@@ -780,12 +830,12 @@ function kingdomActionsPanel() {
     return actions.length ? `<div class="side-title" style="margin-top:19px"><h3>Allied support</h3></div><div class="action-list" style="margin-bottom:21px">${actions.map(a => `<button ${actionAttr(a)}>${esc(actionLabel(a))}<small>Pay 2 · Ally gains 1</small></button>`).join('')}</div>` : '';
 }
 function destinationPicker(u) {
-    const actions = currentActions.filter(a => 'unitId' in a && a.unitId === u.id && (a.type === 'attack' || a.type === (shipMode ? 'ship' : 'move')));
+    const actions = currentActions.filter(a => 'unitId' in a && a.unitId === u.id && (a.type === 'attack' || a.type === 'attack-monster' || a.type === (shipMode ? 'ship' : 'move')));
     if (!actions.length)
         return '';
-    return `<div class="panel-rule"></div><label class="scenario-select-label" for="destination-choice">Choose a destination</label><select class="scenario-select" id="destination-choice"><option value="">Select on map or choose here</option>${actions.map(a => { const id = a.type === 'attack' ? a.targetHex : a.type === 'move' || a.type === 'ship' ? a.toHex : ''; const h = getHex(id); return `<option value="${esc(id)}" ${selectedHex === id ? 'selected' : ''}>${a.type === 'attack' ? 'Attack' : a.type === 'ship' ? 'Ship' : 'Move'} · ${esc(h?.settlement?.name || id)} · ${esc(h?.terrain)}</option>`; }).join('')}</select>`;
+    return `<div class="panel-rule"></div><label class="scenario-select-label" for="destination-choice">Choose a destination</label><select class="scenario-select" id="destination-choice"><option value="">Select on map or choose here</option>${actions.map(a => { const id = a.type === 'attack' || a.type === 'attack-monster' ? a.targetHex : a.type === 'move' || a.type === 'ship' ? a.toHex : ''; const h = getHex(id); return `<option value="${esc(id)}" ${selectedHex === id ? 'selected' : ''}>${a.type === 'attack' || a.type === 'attack-monster' ? 'Attack' : a.type === 'ship' ? 'Ship' : 'Move'} · ${esc(h?.settlement?.name || id)} · ${esc(h?.terrain)}</option>`; }).join('')}</select>`;
 }
-function armyRow(u) { const d = definition(u), s = stats(u, false); return `<button class="army-item ${selectedUnitId === u.id ? 'selected' : ''}" data-select-unit="${esc(u.id)}"><img src="${esc(art(d))}" alt=""><span><span class="army-name">${esc(d.name)}</span><span class="army-sub">${s.light} Light · ${s.heavy} Heavy · ${esc(getHex(u.hexId)?.settlement?.name || u.hexId)}</span></span><span class="ready-dot ${u.activated ? 'used' : ''}" title="${u.activated ? 'Activated' : 'Ready'}"></span></button>`; }
+function armyRow(u) { const d = definition(u), s = stats(u, false); return `<button class="army-item ${selectedUnitId === u.id ? 'selected' : ''}" data-select-unit="${esc(u.id)}"><img src="${esc(art(d))}" alt=""><span><span class="army-name">${esc(d.name)}</span>${state.tabletop?.enslaved?.some(x => x.armyId === u.id) ? '<span class="enslaved-badge">Enslaved Hero · Night</span>' : ''}<span class="army-sub">${s.light} Light · ${s.heavy} Heavy · ${esc(getHex(u.hexId)?.settlement?.name || u.hexId)}</span></span><span class="ready-dot ${u.activated ? 'used' : ''}" title="${u.activated ? 'Activated' : 'Ready'}"></span></button>`; }
 function hexActionsPanel(h) {
     if (!h)
         return '';
@@ -819,7 +869,11 @@ function actionBar() {
     const u = getUnit(), values = u ? stats(u) : null;
     const statCopy = values ? `<span class="action-stats">${values.light} Light · ${values.heavy} Heavy · ${u.id === state.activeUnitId ? state.remainingMP : values.move} Move</span> ` : '';
     let actions = '';
-    if (isBot())
+    if (needsHumanRuling())
+        actions = button('decisions', 'Review Winter ruling', 'book', 'primary-button');
+    else if (state.tabletop?.review)
+        actions = button('tabletop', 'Resolve at table', 'book', 'primary-button');
+    else if (isBot())
         actions = button('bot-toggle', botPaused ? 'Resume computer' : 'Pause computer', botPaused ? 'arrow' : 'pause', 'secondary-button');
     else if (state.advanced?.pending) {
         const simple = currentActions.filter(a => !['play-card', 'hero-power', 'study', 'sell-treasure'].includes(a.type));
@@ -834,7 +888,7 @@ function actionBar() {
     else if (state.pendingCombat)
         actions = button('decisions', 'Choose resolution', 'swords', 'primary-button');
     else if (target)
-        actions = `<button class="primary-button" ${actionAttr(target)} ${stateReady() ? '' : 'disabled'}>${icon(target.type === 'attack' ? 'swords' : target.type === 'ship' ? 'ship' : 'move')}<span>${target.type === 'attack' ? 'Attack' : target.type === 'ship' ? 'Ship army' : 'Move army'}</span></button>`;
+        actions = `<button class="primary-button" ${actionAttr(target)} ${stateReady() ? '' : 'disabled'}>${icon(target.type === 'attack' || target.type === 'attack-monster' ? 'swords' : target.type === 'ship' ? 'ship' : 'move')}<span>${target.type === 'attack' || target.type === 'attack-monster' ? 'Attack' : target.type === 'ship' ? 'Ship army' : 'Move army'}</span></button>`;
     else if (state.phase === 'income-actions') {
         const a = currentActions.find(a => a.type === 'collect-income');
         if (a)
@@ -854,18 +908,18 @@ function actionBar() {
         const end = currentActions.find(a => a.type === 'end-turn');
         actions += `<button class="${ready || pass ? 'secondary-button' : 'primary-button'}" ${actionAttr({ type: 'end-turn' })} ${end && stateReady() ? '' : 'disabled'}>${icon('arrow')}<span>End turn</span></button>`;
     }
-    return `<div class="actionbar"><div class="action-context"><div class="phase-icon">${icon(target?.type === 'attack' ? 'swords' : 'banner')}</div><div><h3>${esc(description.title)}</h3><p>${statCopy}<span class="action-instruction">${esc(description.text)}</span></p></div></div><div class="action-buttons">${actions}${button('mobile-panel', 'Details', 'army', 'mobile-panel-toggle')}</div></div>`;
+    return `<div class="actionbar"><div class="action-context"><div class="phase-icon">${icon(target?.type === 'attack' ? 'swords' : 'banner')}</div><div><h3>${esc(description.title)}</h3><p>${statCopy}<span class="action-instruction">${esc(description.text)}</span></p></div></div><div class="action-buttons">${actions}${button('mobile-panel', target?.type === 'attack' || target?.type === 'attack-monster' ? 'Odds' : 'Details', 'army', 'mobile-panel-toggle')}</div></div>`;
 }
 function setupModal() {
     const sc = config.scenario;
     const tag = sc.official ? 'VERIFIED BASIC SCENARIO' : packLabel ? 'IMPORTED CONTENT PACK' : 'BASIC GAME · TEACHING FIXTURE';
-    return `<div class="modal-shade"><section class="modal setup-modal" role="dialog" aria-modal="true" aria-labelledby="setup-title"><div class="setup-art"><div class="setup-art-copy"><div class="eyebrow">The war table</div><h2>Burning<br>Banners</h2><p>Rage of the Witch Queen<br>Armies march. Kingdoms rise. The Wildlands await.</p></div></div><div class="setup-panel"><div class="eyebrow">Set your banners</div><h2 id="setup-title">A kingdom to command</h2><p>A browser-local war table for pass-and-play humans and computer opponents.</p><label class="scenario-select-label" for="scenario-choice">Choose a campaign</label><select id="scenario-choice" class="scenario-select">${scenarioOptions.map(o => `<option value="${esc(o.id)}" ${selectedScenario === o.id && !packLabel ? 'selected' : ''}>${esc(o.title)}</option>`).join('')}${packLabel ? `<option value="imported" selected>${esc(config.scenario.name)} · imported</option>` : ''}</select><div class="setup-scenario"><div class="eyebrow">${tag}</div><h3>${esc(sc.name)}</h3><p>${esc(sc.notes?.[0] || 'A short campaign to learn movement, recruitment, terrain and battle.')}</p><div class="setup-tags"><span>${sc.kingdoms.length} kingdoms</span><span>${sc.endYear === sc.startYear ? `${sc.endSeason - sc.startSeason + 1} seasons` : `${sc.startYear}–${sc.endYear}`}</span><span>${profile === 'advanced' ? 'Advanced preview' : 'Basic rules'}</span></div></div>${sc.kingdoms.map(k => `<div class="player-setting"><div class="player-label"><span class="faction-dot" style="background:${color(k.id)}"></span>${esc(k.name)} <span class="alliance-label">${k.side === 'invader' ? 'Invaders' : 'Resistance'}</span></div><div class="controller-switch" role="group" aria-label="${esc(k.name)} controller"><button data-controller="${esc(k.id)}:human" class="${controllers[k.id] !== 'ai' ? 'active' : ''}" aria-pressed="${controllers[k.id] !== 'ai'}">Human</button><button data-controller="${esc(k.id)}:ai" class="${controllers[k.id] === 'ai' ? 'active' : ''}" aria-pressed="${controllers[k.id] === 'ai'}">Computer</button></div></div>`).join('')}<label class="scenario-select-label" for="rules-profile">Rules</label><select class="scenario-select" id="rules-profile"><option value="advanced" ${profile === 'advanced' ? 'selected' : ''}>Advanced preview · Heroes, Magic, Monsters & Study</option><option value="basic" ${profile === 'basic' ? 'selected' : ''}>Basic · Armies, movement & combat</option></select>${profile === 'advanced' ? `<p class="preview-note">Playable preview: ${playableCounts.spell} Spells, ${playableCounts.treasure} Treasures, ${playableCounts.blessing} Blessings and all 38 Hero counters. ${186 - Object.values(playableCounts).reduce((n, v) => n + v, 0)} card effects remain reference-only. Browse the Codex for coverage.</p><label class="preference-check"><input id="shared-hands" type="checkbox" ${sharedHands ? 'checked' : ''}>Share hands across allied kingdoms with the same controller</label>` : ''}<label class="scenario-select-label" for="ai-level">Computer difficulty</label><select id="ai-level" class="scenario-select">${AI_DIFFICULTIES.map(d => `<option value="${d.id}" ${setupDifficulty === d.id ? 'selected' : ''}>${d.name}</option>`).join('')}</select><details class="advanced-setting"><summary>More options</summary><label>Deterministic seed <input id="game-seed" type="number" min="1" max="4294967295" value="${esc(seed)}"></label><p class="small-note" style="margin-top:9px">Same setup and actions produce the same rolls. No reroll or undo of random outcomes.</p></details><div class="setup-buttons"><button class="primary-button" data-command="start">Begin campaign ${icon('arrow')}</button>${saved ? `<button class="secondary-button gold-button" data-command="continue">Continue saved campaign · ${esc(tableDate(saved))}</button>` : ''}<div style="display:flex;gap:8px"><button class="secondary-button" data-command="import">Load saved game</button><button class="secondary-button" data-command="import-pack">Import content pack</button></div></div><div class="setup-footnote">${sc.official ? 'Basic Game rules implementation. ' : 'The built-in openings are original teaching and sandbox setups, not complete official campaign transcriptions. '}Original generated artwork. Complete card and Monster catalogs are available. Official campaign setups need a verified content pack. <button data-command="credits" style="font-size:8px;border:0;padding:0;text-decoration:underline;color:#b7a679">Read the coverage notes</button>.</div></div></section></div>`;
+    return `<div class="modal-shade"><section class="modal setup-modal" role="dialog" aria-modal="true" aria-labelledby="setup-title"><div class="setup-art"><div class="setup-art-copy"><div class="eyebrow">The war table</div><h2>Burning<br>Banners</h2><p>Rage of the Witch Queen<br>Armies march. Kingdoms rise. The Wildlands await.</p></div></div><div class="setup-panel"><div class="eyebrow">Set your banners</div><h2 id="setup-title">A kingdom to command</h2><p>A browser-local war table for pass-and-play humans and computer opponents.</p><label class="scenario-select-label" for="scenario-choice">Choose a campaign</label><select id="scenario-choice" class="scenario-select">${scenarioOptions.map(o => `<option value="${esc(o.id)}" ${selectedScenario === o.id && !packLabel ? 'selected' : ''}>${esc(o.title)}</option>`).join('')}${packLabel ? `<option value="imported" selected>${esc(config.scenario.name)} · imported</option>` : ''}</select><div class="setup-scenario"><div class="eyebrow">${tag}</div><h3>${esc(sc.name)}</h3><p>${esc(sc.notes?.[0] || 'A short campaign to learn movement, recruitment, terrain and battle.')}</p><div class="setup-tags"><span>${sc.kingdoms.length} kingdoms</span><span>${sc.endYear === sc.startYear ? `${sc.endSeason - sc.startSeason + 1} seasons` : `${sc.startYear}–${sc.endYear}`}</span><span>${profile === 'advanced' ? 'Advanced preview' : 'Basic rules'}</span></div></div>${sc.kingdoms.map(k => `<div class="player-setting"><div class="player-label"><span class="faction-dot" style="background:${color(k.id)}"></span>${esc(k.name)} <span class="alliance-label">${k.side === 'invader' ? 'Invaders' : 'Resistance'}</span></div><div class="controller-switch" role="group" aria-label="${esc(k.name)} controller"><button data-controller="${esc(k.id)}:human" class="${controllers[k.id] !== 'ai' ? 'active' : ''}" aria-pressed="${controllers[k.id] !== 'ai'}">Human</button><button data-controller="${esc(k.id)}:ai" class="${controllers[k.id] === 'ai' ? 'active' : ''}" aria-pressed="${controllers[k.id] === 'ai'}">Computer</button></div></div>`).join('')}<label class="scenario-select-label" for="rules-profile">Rules</label><select class="scenario-select" id="rules-profile"><option value="tabletop" ${config.tabletop ? 'selected' : ''}>Full tabletop · all cards & table adjudication</option><option value="advanced" ${profile === 'advanced' && !config.tabletop ? 'selected' : ''}>Advanced preview · Heroes, Magic, Monsters & Study</option><option value="basic" ${profile === 'basic' ? 'selected' : ''}>Basic · Armies, movement & combat</option></select>${profile === 'advanced' ? `<p class="preview-note">${config.tabletop ? 'Full tabletop includes all 186 cards. Automated effects:' : 'Playable preview:'} ${playableCounts.spell} Spells, ${playableCounts.treasure} Treasures, ${playableCounts.blessing} Blessings and all 38 Hero counters. ${186 - Object.values(playableCounts).reduce((n, v) => n + v, 0)} card effects ${config.tabletop ? 'use human table resolution' : 'remain reference-only'}. Browse the Codex for coverage.</p><label class="preference-check"><input id="shared-hands" type="checkbox" ${sharedHands ? 'checked' : ''}>Share hands across allied kingdoms with the same controller</label>` : ''}<label class="scenario-select-label" for="ai-level">Computer difficulty</label><select id="ai-level" class="scenario-select">${AI_DIFFICULTIES.map(d => `<option value="${d.id}" ${setupDifficulty === d.id ? 'selected' : ''}>${d.name}</option>`).join('')}</select><details class="advanced-setting"><summary>More options</summary><label>Deterministic seed <input id="game-seed" type="number" min="1" max="4294967295" value="${esc(seed)}"></label><p class="small-note" style="margin-top:9px">Same setup and actions produce the same rolls. No reroll or undo of random outcomes.</p></details><div class="setup-buttons"><button class="secondary-button" data-command="table-builder">Create full tabletop · all components</button><button class="primary-button" data-command="start">Begin campaign ${icon('arrow')}</button>${saved ? `<button class="secondary-button gold-button" data-command="continue">Continue saved campaign · ${esc(tableDate(saved))}</button>` : ''}<div style="display:flex;gap:8px"><button class="secondary-button" data-command="import">Load saved game</button><button class="secondary-button" data-command="import-pack">Import content pack</button></div></div><div class="setup-footnote">${sc.official ? 'Basic Game rules implementation. ' : 'The built-in openings are original teaching and sandbox setups, not complete official campaign transcriptions. '}Original generated artwork. Complete card and Monster catalogs are available. Official campaign setups need a verified content pack. <button data-command="credits" style="font-size:8px;border:0;padding:0;text-decoration:underline;color:#b7a679">Read the coverage notes</button>.</div></div></section></div>`;
 }
 function rulesModal() {
-    return standardModal(state.advanced ? 'Rules of the war table' : 'The Basic Game', `<div class="reference-actions">${button('codex', 'Browse the Codex', 'book', 'secondary-button')}${button('preferences', 'Table preferences', 'settings', 'secondary-button')}</div><div class="status-banner">This table enforces the implemented Basic Game rules. Legal highlights and action buttons always use the same engine that resolves your turn. Consult the official rulebook for the full published game.</div>${state.advanced ? `<h3>Advanced play</h3><p>Heroes join Army stacks, contribute dice and Powers, and can absorb hits. Recruit a random Hero in Muster. Open Hand to choose Magic cards, casters, targets and optional Tomes. Battle Magic follows attacker, defender Cantrips, then attacker Cantrips. Responses and individual hits pause for the correct player.</p><p>After each kingdom turn, every player studies. A Glyph allows up to three different disciplines; a Churn allows one. Treasures remain owned after play and can be retrieved through Study. In Winter, lairs reopen and excess Treasures are sold.</p><p>All 186 cards are cataloged. This playable preview uses the supported card subset; reference-only effects are marked in the Codex and excluded from decks. See Sources for the current coverage.</p>` : ''}<h3>Command your kingdom</h3><p>Each kingdom takes its turn in scenario order. Prepare the kingdom during the income phase, collect income, then recruit and activate armies. A kingdom may end its turn when the engine allows it.</p><h3>Activate an army</h3><p>Select a ready counter, then choose a highlighted destination. Movement spends the army’s movement allowance; terrain, roads, characteristics and enemy presence determine its legal path. The table displays the complete route before you commit. An army that completes its activation is dimmed.</p><h3>Fight a battle</h3><p>Select an enemy or hostile settlement in legal attack range, review the forecast, and press Attack. Light combat uses six-sided dice; Heavy combat uses eight-sided dice. Terrain, fortification and army abilities affect the resolution. The displayed expected hits are estimates, not guaranteed outcomes.</p><p>The battle record shows every roll, critical confirmation and hit. Battles can weaken or eliminate armies. Ambush, advance and settlement choices appear when the rules require a decision. An attack finishes the activation after these choices.</p><h3>Recruit and recover</h3><p>Muster lists your kingdom’s army types, gold cost and remaining supply. Recruit only at the legal entry settlements shown. A weakened army can recover when its location and available gold permit it. Miners and other characteristics unlock specific contextual actions.</p><h3>Pass and play</h3><p>Set any kingdom to Human or Computer before starting. A handoff curtain appears between different human decision makers. Computer play uses legal actions and can be paused. This is a local shared table.</p><h3>Map controls</h3><p>Drag the board to pan. Scroll or use <span class="rule-key">+</span> / <span class="rule-key">−</span> to zoom. Arrow keys pan while the map is focused; <span class="rule-key">0</span> fits the board. Use Council’s army list to select counters with a keyboard. <span class="rule-key">Esc</span> closes a panel or clears a selection.</p><h3>Your campaign</h3><p>${esc(objectiveText())}</p><p class="muted">${esc(state.scenario.notes?.join(' ') || '')}</p><p><a href="${rulesURL}" target="_blank" rel="noopener">Official publisher page and rulebook downloads ↗</a></p>`);
+    return standardModal(state.advanced ? 'Rules of the war table' : 'The Basic Game', `<div class="reference-actions">${button('codex', 'Browse the Codex', 'book', 'secondary-button')}${button('preferences', 'Table preferences', 'settings', 'secondary-button')}</div><div class="status-banner">This table enforces the implemented Basic Game rules. Legal highlights and action buttons always use the same engine that resolves your turn. Consult the official rulebook for the full published game.</div>${state.advanced ? `<h3>Advanced play</h3><p>Heroes join Army stacks, contribute dice and Powers, and can absorb hits. Recruit a random Hero in Muster. Open Hand to choose Magic cards, casters, targets and optional Tomes. Battle Magic follows attacker, defender Cantrips, then attacker Cantrips. Responses and individual hits pause for the correct player.</p><p>After each kingdom turn, every player studies. A Glyph allows up to three different disciplines; a Churn allows one. Treasures remain owned after play and can be retrieved through Study. In Winter, lairs reopen and excess Treasures are sold.</p><p>All 186 cards are cataloged and 169 effects are automated. Advanced preview uses the automated subset. Full tabletop includes every Magic card, all 38 named Heroes and 36 Monsters, with controls for recorded human rulings on the remaining 17 effects. Open Table controls to resolve a printed effect, pause for each player, and complete it before normal play resumes.</p>` : ''}<h3>Command your kingdom</h3><p>Each kingdom takes its turn in scenario order. Prepare the kingdom during the income phase, collect income, then recruit and activate armies. A kingdom may end its turn when the engine allows it.</p><h3>Activate an army</h3><p>Select a ready counter, then choose a highlighted destination. Movement spends the army’s movement allowance; terrain, roads, characteristics and enemy presence determine its legal path. The table displays the complete route before you commit. An army that completes its activation is dimmed.</p><h3>Fight a battle</h3><p>Select an enemy or hostile settlement in legal attack range, review the forecast, and press Attack. Light combat uses six-sided dice; Heavy combat uses eight-sided dice. Terrain, fortification and army abilities affect the resolution. The forecast shows expected net hits after cancellation, the chance of scoring hits, and wound/elimination probabilities. Compare Ambush and Army-first or Hero-first allocation where available. Comparing changes no game state; future Magic and actual hit allocation still follow the rules.</p><p>The battle record shows every roll, critical confirmation and hit. Battles can weaken or eliminate armies. Ambush, advance and settlement choices appear when the rules require a decision. An attack finishes the activation after these choices.</p><h3>Recruit and recover</h3><p>Muster lists your kingdom’s army types, gold cost and remaining supply. Recruit only at the legal entry settlements shown. A weakened army can recover when its location and available gold permit it. Miners and other characteristics unlock specific contextual actions.</p><h3>Pass and play</h3><p>Set any kingdom to Human or Computer before starting. A handoff curtain appears between different human decision makers. Computer play uses legal actions and can be paused. This is a local shared table.</p><h3>Map controls</h3><p>Use Find to search locations, units, objectives and hex IDs; <span class="rule-key">/</span> opens it. Movement previews show each step’s cost and each stack member’s remaining allowance. Drag the board to pan. Scroll or use <span class="rule-key">+</span> / <span class="rule-key">−</span> to zoom. Arrow keys pan while the map is focused; <span class="rule-key">0</span> fits the board. Use Council’s army list to select counters with a keyboard. <span class="rule-key">Esc</span> closes a panel or clears a selection.</p><h3>Your campaign</h3><p>${esc(objectiveText())}</p><p class="muted">${esc(state.scenario.notes?.join(' ') || '')}</p><p><a href="${rulesURL}" target="_blank" rel="noopener">Official publisher page and rulebook downloads ↗</a></p>`);
 }
 function creditsModal() {
-    return standardModal('Sources & implementation coverage', `<p><strong>Burning Banners: Rage of the Witch Queen</strong> is designed and illustrated by Christopher Moeller and published by Compass Games. This is an unofficial browser implementation.</p><table class="coverage-table"><thead><tr><th>Content</th><th>Available in this table</th></tr></thead><tbody><tr><td>Core turn sequence</td><td>Implemented Basic Game</td></tr><tr><td>Movement, combat, recruitment</td><td>Rules-enforced local engine</td></tr><tr><td>Map and army statistics</td><td>Source-calibrated content where verified</td></tr><tr><td>Built-in scenario</td><td>${esc(state.scenario.official ? 'Verified official Basic scenario' : 'Original fixture; opening/objectives created')}</td></tr><tr><td>Advanced heroes, spells, treasures</td><td>186-card catalog; playable preview with ${playableCounts.spell} Spells, ${playableCounts.treasure} Treasures, ${playableCounts.blessing} Blessings, all 38 Hero counters and ${playableCounts.hero} implemented Powers</td></tr><tr><td>Online multiplayer</td><td>Not included; local human/computer play</td></tr><tr><td>Illustrations</td><td>Original generated terrain and army art</td></tr></tbody></table><h3>Remaining coverage</h3><p>Reference-only effects include Enslave, area Strikes, elimination rescues, some Tome choices, extra attacks and Coven responses. They need complete decision flows. The 28 cataloged campaign names have no executable official setups. The four board inventories still need full terrain and join calibration.</p><h3>Rules sources</h3><p>Compass Games’ official Undying Rules v1.1 (September 2024) and published game components inform the rules and data. Scenario source: ${esc(state.scenario.source)}.</p><p>The generated art evokes the printed game’s ink and watercolor character. It is not Christopher Moeller’s original board or counter artwork. Hexes use explicit coordinates; image pixels are not used to infer game rules.</p><h3>Bring your own verified content</h3><p>Use the <a href="./content-editor.html" target="_blank">content calibration editor ↗</a> to inspect or prepare a reference pack, then import it from setup. Imported content supplies verified map and campaign data for either rules profile.</p><h3>Local saves</h3><p>Each action saves to this browser. Export a JSON copy to keep a portable backup; imported saves are validated before loading. Seeded random outcomes are part of the save.</p><p><a href="${rulesURL}" target="_blank" rel="noopener">Compass Games · official game and reference downloads ↗</a></p>`);
+    return standardModal('Sources & implementation coverage', `<p><strong>Burning Banners: Rage of the Witch Queen</strong> is designed and illustrated by Christopher Moeller and published by Compass Games. This is an unofficial browser implementation.</p><table class="coverage-table"><thead><tr><th>Content</th><th>Available in this table</th></tr></thead><tbody><tr><td>Core turn sequence</td><td>Implemented Basic Game</td></tr><tr><td>Movement, combat, recruitment</td><td>Rules-enforced local engine</td></tr><tr><td>Map and army statistics</td><td>Source-calibrated content where verified</td></tr><tr><td>Built-in scenario</td><td>${esc(state.scenario.official ? 'Verified official Basic scenario' : 'Original fixture; opening/objectives created')}</td></tr><tr><td>Advanced heroes, spells, treasures</td><td>186-card catalog; playable preview with ${playableCounts.spell} Spells, ${playableCounts.treasure} Treasures, ${playableCounts.blessing} Blessings, all 38 Hero counters and ${playableCounts.hero} implemented Powers</td></tr><tr><td>Online multiplayer</td><td>Not included; local human/computer play</td></tr><tr><td>Illustrations</td><td>Original generated terrain and army art</td></tr></tbody></table><h3>Remaining coverage</h3><p>169 of 186 card effects are automated. The remaining 17 effects include Enslave, elimination rescues, extra attacks, broad rerolls and Coven responses. In Full tabletop, every card and counter is available and these effects use recorded human rulings. Advanced preview excludes unsupported effects from playable decks and Power actions. The 28 cataloged campaign names have no executable official setups. Full tabletop offers all four board templates with named locations, mines and lairs. Enter terrain, crossings, setup and victory instructions from your printed game; these are calibration templates with unknown terrain set to clear.</p><h3>Rules sources</h3><p>Compass Games’ official Undying Rules v1.1 (September 2024) and published game components inform the rules and data. Scenario source: ${esc(state.scenario.source)}.</p><p>The generated art evokes the printed game’s ink and watercolor character. It is not Christopher Moeller’s original board or counter artwork. Hexes use explicit coordinates; image pixels are not used to infer game rules.</p><h3>Bring your own verified content</h3><p>Use the <a href="./content-editor.html" target="_blank">content calibration editor ↗</a> to inspect or prepare a reference pack, then import it from setup. Imported content supplies verified map and campaign data for either rules profile.</p><h3>Local saves</h3><p>Each action saves to this browser. Export a JSON copy to keep a portable backup; imported saves are validated before loading. Seeded random outcomes are part of the save.</p><p><a href="${rulesURL}" target="_blank" rel="noopener">Compass Games · official game and reference downloads ↗</a></p>`);
 }
 function galleryModal() {
     const groups = Array.from(new Set(state.unitDefinitions.map(d => d.kingdom)));
@@ -892,7 +946,7 @@ function render() {
     const k = kingdom(actor());
     root.dataset.motion = motionEnabled() ? 'on' : 'off';
     root.dataset.motionPreference = motion;
-    root.innerHTML = `<main class="war-app"><header class="topbar"><div class="brand"><div class="brand-seal">${icon('banner')}</div><div><h1>Burning Banners</h1><small>RAGE OF THE WITCH QUEEN</small></div></div><div class="header-scenario"><strong>${esc(state.scenario.name)}</strong><span class="separator"></span><span>${state.advanced ? 'Advanced preview' : 'Basic Game'}</span></div><div class="header-actions"><span class="save-status ${saveError ? 'error' : ''}" role="status">${esc(saveStatus)}</span>${button('desk', 'Campaign desk', 'history', 'desk-trigger')}${button('rules', 'Rules', 'book')}${button('export', 'Save', 'download')}${button('setup', 'Campaign', 'settings')}</div></header><section class="workspace"><nav class="toolrail" aria-label="Table tools">${button('council', 'Council', 'map', `rail-button ${sideTab === 'council' ? 'active' : ''}`)}${button('muster', 'Muster', 'army', `rail-button ${sideTab === 'muster' ? 'active' : ''}`)}${state.advanced ? button('hand', 'Hand', 'book', `rail-button ${sideTab === 'hand' ? 'active' : ''}`) : ''}${button('chronicle', 'Chronicle', 'history', `rail-button ${sideTab === 'chronicle' ? 'active' : ''}`)}<div class="rail-spacer"></div>${button('codex', 'Codex', 'book', 'rail-button rail-secondary')}${button('preferences', 'Preferences', 'settings', 'rail-button rail-secondary')}${button('gallery', 'Armies', 'banner', 'rail-button rail-secondary')}${button('rules', 'Rules', 'book', 'rail-button rail-secondary')}${button('sound', sound ? 'Sound on' : 'Sound off', sound ? 'sound' : 'mute', `rail-button rail-secondary ${sound ? 'active' : ''}`)}${button('credits', 'Sources', 'info', 'rail-button rail-secondary')}</nav><div class="board-wrap" tabindex="0" role="application" aria-label="War map. Drag to pan, scroll or pinch to zoom. Arrow keys pan, N finds the next ready army."><div class="board-heading"><span>${esc(state.scenario.official ? 'THE WILDLANDS' : 'THE WILDLANDS · ORIGINAL SETUP')}</span><h2>${esc(state.scenario.name)}</h2></div><div class="board-legend"><span><i class="legend-dot"></i>Legal movement</span><span><i class="legend-dot enemy"></i>Legal attack</span></div>${renderMap()}<div class="board-compass"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 2 29 20 46 24 29 29 24 46 19 29 2 24 19 20Z"/><circle cx="24" cy="24" r="8" fill="#d6cda8"/><path d="M24 6 27 22 24 24 21 22Z"/></svg>NORTH</div><div class="map-nav">${button('next-ready', 'Next army', 'army')}${button('focus-selected', 'Focus', 'fit', '', !getUnit())}</div><div class="map-controls">${button('zoom-out', 'Zoom out', 'minus')}<span class="zoom-level">100%</span>${button('zoom-in', 'Zoom in', 'plus')}${button('fit', 'Overview', 'fit')}</div></div><aside data-panel="${sideTab}" class="sidebar ${mobileOpen ? 'mobile-open' : ''}" aria-label="Kingdom and army details"><div class="turn-card"><div class="eyebrow"><span>${esc(tableDate(state))}</span><span>${isBot() ? '<span class="bot-indicator">COMPUTER</span>' : 'YOUR COMMAND'}</span></div><h2><span class="faction-dot" style="background:${color(k.id)}"></span>${esc(k.name)}</h2><div class="turn-meta"><span><span class="gold-icon">•</span><strong>${k.gold}</strong> gold</span><span>Income +${k.income}</span><span class="phase">${state.advanced?.pending ? advancedDescription(state)?.title : state.pendingCombat ? 'Battle decision' : state.phase === 'income-actions' ? 'Income phase' : state.phase === 'game-over' ? 'Campaign ends' : 'Activations'}</span></div></div>${button('mobile-panel', `Close ${sideTab[0].toUpperCase() + sideTab.slice(1)}`, 'close', 'close-panel')}<div class="side-tabs" role="tablist" aria-label="Kingdom panels">${button('council', 'Council', 'map', sideTab === 'council' ? 'active' : '')}${button('muster', 'Muster', 'army', sideTab === 'muster' ? 'active' : '')}${state.advanced ? button('hand', 'Hand', 'book', sideTab === 'hand' ? 'active' : '') : ''}${button('chronicle', 'Chronicle', 'history', sideTab === 'chronicle' ? 'active' : '')}</div><div class="side-scroll">${sideTab === 'council' ? councilPanel() : sideTab === 'muster' ? musterPanel() : sideTab === 'hand' ? handPanel() : chroniclePanel()}</div></aside></section>${actionBar()}</main>${modal === 'setup' ? setupModal() : modal === 'rules' ? rulesModal() : modal === 'credits' ? creditsModal() : modal === 'gallery' ? galleryModal() : modal === 'victory' ? victoryModal() : modal === 'end-confirm' ? endTurnModal() : modal === 'codex' ? codexModal() : modal === 'preferences' ? preferencesModal() : modal === 'save' ? saveModal() : modal === 'desk' ? deskModal() : modal === 'regenerate-confirm' ? regenerationModal() : ''}${curtain ? curtainHTML() : ''}`;
+    root.innerHTML = `<main class="war-app"><header class="topbar"><div class="brand"><div class="brand-seal">${icon('banner')}</div><div><h1>Burning Banners</h1><small>RAGE OF THE WITCH QUEEN</small></div></div><div class="header-scenario"><strong>${esc(state.scenario.name)}</strong><span class="separator"></span><span>${state.tabletop ? 'Full tabletop' : state.advanced ? 'Advanced preview' : 'Basic Game'}</span></div><div class="header-actions"><span class="save-status ${saveError ? 'error' : ''}" role="status">${esc(saveStatus)}</span>${button('desk', 'Campaign desk', 'history', 'desk-trigger')}${button('rules', 'Rules', 'book')}${button('export', 'Save', 'download')}${button('setup', 'Campaign', 'settings')}</div></header><section class="workspace"><nav class="toolrail" aria-label="Table tools">${button('council', 'Council', 'map', `rail-button ${sideTab === 'council' ? 'active' : ''}`)}${button('muster', 'Muster', 'army', `rail-button ${sideTab === 'muster' ? 'active' : ''}`)}${state.advanced ? button('hand', 'Hand', 'book', `rail-button ${sideTab === 'hand' ? 'active' : ''}`) : ''}${button('chronicle', 'Chronicle', 'history', `rail-button ${sideTab === 'chronicle' ? 'active' : ''}`)}<div class="rail-spacer"></div>${state.tabletop ? button('tabletop', 'Table controls', 'settings', 'rail-button rail-secondary') : ''}${button('codex', 'Codex', 'book', 'rail-button rail-secondary')}${button('preferences', 'Preferences', 'settings', 'rail-button rail-secondary')}${button('gallery', 'Armies', 'banner', 'rail-button rail-secondary')}${button('rules', 'Rules', 'book', 'rail-button rail-secondary')}${button('sound', sound ? 'Sound on' : 'Sound off', sound ? 'sound' : 'mute', `rail-button rail-secondary ${sound ? 'active' : ''}`)}${button('credits', 'Sources', 'info', 'rail-button rail-secondary')}</nav><div class="board-wrap" tabindex="0" role="application" aria-label="War map. Drag to pan, scroll or pinch to zoom. Arrow keys pan, N finds the next ready army."><div class="board-heading"><span>${esc(state.tabletop ? 'FULL TABLETOP · PLAYER-ENTERED CAMPAIGN' : state.scenario.official ? 'THE WILDLANDS' : 'THE WILDLANDS · ORIGINAL SETUP')}</span><h2>${esc(state.scenario.name)}</h2></div><div class="board-legend"><span><i class="legend-dot"></i>Legal movement</span><span><i class="legend-dot enemy"></i>Legal attack</span></div>${renderMap()}<div class="board-compass"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 2 29 20 46 24 29 29 24 46 19 29 2 24 19 20Z"/><circle cx="24" cy="24" r="8" fill="#d6cda8"/><path d="M24 6 27 22 24 24 21 22Z"/></svg>NORTH</div><div class="map-nav">${button('next-ready', 'Next army', 'army')}${button('map-find', 'Find', 'map')}${button('focus-selected', 'Focus', 'fit', '', !getUnit())}</div><div class="map-controls">${button('zoom-out', 'Zoom out', 'minus')}<span class="zoom-level">100%</span>${button('zoom-in', 'Zoom in', 'plus')}${button('fit', 'Overview', 'fit')}</div></div><aside data-tabletop="${!!state.tabletop}" data-panel="${sideTab}" class="sidebar ${mobileOpen ? 'mobile-open' : ''} ${(selectedTargetAction()?.type === 'attack' || selectedTargetAction()?.type === 'attack-monster' || state.pendingCombat?.stage === 'ambush' || state.advanced?.battle?.kind === 'battle') ? 'has-forecast' : ''}" aria-label="Kingdom and army details"><div class="turn-card"><div class="eyebrow"><span>${esc(tableDate(state))}</span><span>${isBot() ? '<span class="bot-indicator">COMPUTER</span>' : needsHumanRuling() ? 'TABLE RULING' : 'YOUR COMMAND'}</span></div><h2><span class="faction-dot" style="background:${color(k.id)}"></span>${esc(k.name)}</h2><div class="turn-meta"><span><span class="gold-icon">•</span><strong>${k.gold}</strong> gold</span><span>Income +${k.income}</span><span class="phase">${state.advanced?.pending ? advancedDescription(state)?.title : state.pendingCombat ? 'Battle decision' : state.phase === 'income-actions' ? 'Income phase' : state.phase === 'game-over' ? 'Campaign ends' : 'Activations'}</span></div></div>${button('mobile-panel', `Close ${sideTab[0].toUpperCase() + sideTab.slice(1)}`, 'close', 'close-panel')}<div class="side-tabs" role="tablist" aria-label="Kingdom panels">${button('council', 'Council', 'map', sideTab === 'council' ? 'active' : '')}${button('muster', 'Muster', 'army', sideTab === 'muster' ? 'active' : '')}${state.advanced ? button('hand', 'Hand', 'book', sideTab === 'hand' ? 'active' : '') : ''}${button('chronicle', 'Chronicle', 'history', sideTab === 'chronicle' ? 'active' : '')}${state.tabletop ? '<button data-command="tabletop" aria-label="Table controls" title="Full tabletop controls">Table</button>' : ''}</div><div class="side-scroll">${sideTab === 'council' ? councilPanel() : sideTab === 'muster' ? musterPanel() : sideTab === 'hand' ? handPanel() : chroniclePanel()}</div></aside></section>${actionBar()}</main>${modal === 'setup' ? setupModal() : modal === 'rules' ? rulesModal() : modal === 'credits' ? creditsModal() : modal === 'gallery' ? galleryModal() : modal === 'victory' ? victoryModal() : modal === 'end-confirm' ? endTurnModal() : modal === 'codex' ? codexModal() : modal === 'preferences' ? preferencesModal() : modal === 'save' ? saveModal() : modal === 'desk' ? deskModal() : modal === 'regenerate-confirm' ? regenerationModal() : modal === 'tabletop' ? tabletopModal() : modal === 'table-builder' ? standardModal('Create a full tabletop', renderTableBuilder()) : modal === 'map-find' ? mapFindModal() : ''}${curtain ? curtainHTML() : ''}`;
     if (state.companion) {
         const b = getBriefing(state, deskViewer()), trigger = root.querySelector('.desk-trigger');
         trigger?.classList.toggle('has-unread', !!(b.unreadCount || b.unreadMessages));
@@ -945,7 +999,7 @@ function selectUnit(id, focus = false) {
 function selectHex(id) {
     const occupier = state.units.find(u => u.hexId === id);
     const unit = getUnit();
-    const attack = unit && currentActions.some(a => a.type === 'attack' && a.unitId === unit.id && a.targetHex === id);
+    const attack = unit && currentActions.some(a => (a.type === 'attack' || a.type === 'attack-monster') && a.unitId === unit.id && a.targetHex === id);
     if (occupier && !attack) {
         selectUnit(occupier.id);
         return;
@@ -1127,7 +1181,8 @@ function startGame() {
             (grouped[key] ??= []).push(k.id);
         }
         const players = Object.entries(grouped).map(([key, kingdoms], i) => ({ id: `player-${i + 1}`, name: kingdoms.length === 1 ? kingdomName(kingdoms[0]) : `${controllers[kingdoms[0]] === 'ai' ? 'Computer' : 'Human'} ${key.startsWith('invader') ? 'Invaders' : 'Resistance'}`, kingdoms }));
-        state = createGame({ ...config, controllers, seed: parsedSeed, profile, players });
+        state = createGame({ ...config, controllers, seed: parsedSeed, profile, players, tabletop: !!config.tabletop });
+        resetTableView();
         state.companion = createCompanion(state, Object.fromEntries(state.kingdoms.map(k => [k.id, setupDifficulty])));
         gameHasBegun = true;
         selectedUnitId = null;
@@ -1164,36 +1219,43 @@ function exportSave() {
 function saveModal() { return standardModal('Keep this campaign', `<p>Your position is saved on this device. Download a backup to continue in another browser or keep a copy.</p><p class="small-note">The backup includes the current decision, hands, decks, dice state, and Chronicle.</p><a class="primary-button full save-download" href="${esc(exportURL || '')}" download="burning-banners-${state.year}-${seasons[state.season].toLowerCase()}.json">Download campaign backup</a><button class="secondary-button full" style="margin-top:12px" data-command="copy-save">Copy backup text</button>`); }
 async function copyBackup() {
     const text = exportGame(state);
+    let field = root.querySelector('#backup-copy');
+    if (!field) {
+        field = document.createElement('textarea');
+        field.id = 'backup-copy';
+        field.className = 'backup-copy';
+        field.readOnly = true;
+        field.setAttribute('aria-label', 'Campaign backup text');
+        root.querySelector('.modal-body')?.append(field);
+    }
+    field.value = text;
+    field.focus();
+    field.select();
     try {
         if (navigator.clipboard?.writeText) {
             await navigator.clipboard.writeText(text);
             notify('Backup text copied. Paste into a .json file to keep it.');
             return;
         }
-        let field = root.querySelector('#backup-copy');
-        if (!field) {
-            field = document.createElement('textarea');
-            field.id = 'backup-copy';
-            field.className = 'backup-copy';
-            field.readOnly = true;
-            field.setAttribute('aria-label', 'Campaign backup text');
-            root.querySelector('.modal-body')?.append(field);
-        }
-        field.value = text;
-        field.focus();
-        field.select();
-        notify(document.execCommand('copy') ? 'Backup text copied. Paste into a .json file to keep it.' : 'Backup text selected. Copy it and save as a .json file.');
     }
-    catch {
-        notify('Clipboard unavailable. Use Download campaign backup.');
+    catch { /* The complete backup remains visible when clipboard permission is blocked. */ }
+    let copied = false;
+    try {
+        copied = document.execCommand('copy');
     }
+    catch { }
+    notify(copied ? 'Backup text copied. Paste into a .json file to keep it.' : 'Backup text selected. Copy it and save as a .json file.');
 }
 function importFile(pack = false) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json,application/json';
+    input.hidden = true;
+    document.body.append(input);
+    input.addEventListener('cancel', () => input.remove(), { once: true });
     input.addEventListener('change', async () => {
         const file = input.files?.[0];
+        input.remove();
         if (!file)
             return;
         if (file.size > 20_000_000) {
@@ -1208,6 +1270,7 @@ function importFile(pack = false) {
                 if (errors.length)
                     throw new Error(errors[0]);
                 state = imported;
+                resetTableView();
                 ensureCompanion();
                 saved = state;
                 gameHasBegun = true;
@@ -1254,6 +1317,26 @@ root.addEventListener('click', event => {
     const element = event.target.closest('button');
     if (!element || element.hasAttribute('disabled'))
         return;
+    if (element.getAttribute('type') === 'submit' && element.closest('form'))
+        return;
+    if (element.dataset.findHex) {
+        const id = element.dataset.findHex, unitId = element.dataset.findUnit;
+        modal = null;
+        if (unitId) {
+            selectUnit(unitId, true);
+        }
+        else {
+            selectedHex = id;
+            selectedUnitId = null;
+            mobileOpen = false;
+            const h = getHex(id);
+            const p = center(h), v = viewport();
+            camera = { x: p.x - v.width / 2, y: p.y - v.height / 2, w: v.width, h: v.height };
+            clampCamera();
+            render();
+        }
+        return;
+    }
     if (element.dataset.mapUnit || element.dataset.mapHex) {
         if (event.detail && performance.now() < suppressMapClickUntil)
             return;
@@ -1261,6 +1344,19 @@ root.addEventListener('click', event => {
             selectMapUnit(element.dataset.mapUnit);
         else
             selectHex(element.dataset.mapHex);
+        return;
+    }
+    if (element.dataset.tableTab) {
+        tableTab = element.dataset.tableTab;
+        render();
+        return;
+    }
+    if (element.dataset.tablePower) {
+        tablePerform({ kind: 'hero-power', playerId: tablePlayer(), cardId: element.dataset.tablePower }, 'Resolve the printed Hero Power at the table.');
+        return;
+    }
+    if (element.dataset.tableCard) {
+        tablePerform({ kind: 'play', playerId: tablePlayer(), cardId: element.dataset.tableCard }, 'Resolve the printed card at the table.');
         return;
     }
     if (element.dataset.action) {
@@ -1345,12 +1441,50 @@ root.addEventListener('click', event => {
         return;
     }
     const command = element.dataset.command;
+    if (command === 'map-find') {
+        modal = 'map-find';
+        modalParent = null;
+        render();
+        root.querySelector('#map-query')?.focus();
+        return;
+    }
     if (command === 'regenerate-confirm') {
         const request = regenerateRequest;
         regenerateRequest = null;
         modal = null;
         if (request)
             perform(request, false, true);
+        return;
+    }
+    if (command === 'tabletop') {
+        tableViewer = null;
+        modal = 'tabletop';
+        modalParent = null;
+        render();
+        return;
+    }
+    if (command === 'table-builder') {
+        modalParent = modal === 'setup' ? 'setup' : null;
+        modal = 'table-builder';
+        render();
+        return;
+    }
+    if (command === 'table-consume-hit') {
+        tablePerform({ kind: 'consume-hit' }, 'The printed rescue / Enslaved Hero counter absorbed the next hit.');
+        return;
+    }
+    if (command === 'close-modal' && modal === 'tabletop') {
+        const previous = tablePlayer();
+        modal = null;
+        tableViewer = null;
+        if (previous !== playerFor(state, actor())?.id && kingdom(actor())?.controller === 'human')
+            curtain = actor();
+        render();
+        scheduleBot();
+        return;
+    }
+    if (command === 'table-complete') {
+        tablePerform({ kind: 'complete' }, 'All printed costs, targets and choices resolved.');
         return;
     }
     if (command === 'desk') {
@@ -1487,6 +1621,7 @@ root.addEventListener('click', event => {
     }
     if (command === 'continue' && saved) {
         state = saved;
+        resetTableView();
         ensureCompanion();
         modal = null;
         camera = null;
@@ -1508,8 +1643,14 @@ root.addEventListener('click', event => {
     }
     else if (command === 'reveal') {
         curtain = null;
-        followHumanViewer();
-        returnBriefing();
+        if (modal === 'tabletop') {
+            ensureCompanion();
+            state.companion.viewKingdom = state.advanced.players.find(p => p.id === tablePlayer()).kingdoms[0];
+        }
+        else {
+            followHumanViewer();
+            returnBriefing();
+        }
         void persist();
     }
     else if (command === 'council' || command === 'muster' || command === 'chronicle' || command === 'hand') {
@@ -1547,6 +1688,47 @@ root.addEventListener('click', event => {
 });
 root.addEventListener('change', event => {
     const setting = event.target;
+    if (setting.id === 'forecast-mode') {
+        forecastMode = setting.value;
+        render();
+        return;
+    }
+    if (setting.id === 'forecast-allocation') {
+        hitAllocation = setting.value;
+        render();
+        return;
+    }
+    if (setting.id === 'map-filter') {
+        mapFilter = setting.value;
+        render();
+        return;
+    }
+    if (setting.id === 'table-seat') {
+        const previous = tablePlayer();
+        tableViewer = setting.value;
+        if (previous !== tableViewer) {
+            const p = state.advanced.players.find(p => p.id === tableViewer);
+            curtain = p.kingdoms[0];
+        }
+        render();
+        return;
+    }
+    if (setting.id === 'table-hex') {
+        selectedHex = setting.value;
+        tableEdgeTarget = null;
+        render();
+        return;
+    }
+    if (setting.name === 'to' && setting.closest('form')?.dataset.tableForm === 'edge') {
+        tableEdgeTarget = setting.value;
+        render();
+        return;
+    }
+    if (setting.id === 'table-kingdom') {
+        tableKingdom = setting.value;
+        render();
+        return;
+    }
     if (setting.id === 'ai-level') {
         setupDifficulty = setting.value;
         return;
@@ -1575,7 +1757,8 @@ root.addEventListener('change', event => {
         return;
     }
     if (setting.id === 'rules-profile') {
-        profile = setting.value;
+        config.tabletop = setting.value === 'tabletop';
+        profile = setting.value === 'basic' ? 'basic' : 'advanced';
         render();
         return;
     }
@@ -1635,6 +1818,14 @@ root.addEventListener('change', event => {
     render();
 });
 document.addEventListener('keydown', event => {
+    if (event.key === '/' && !modal && !curtain && !event.target.closest('input,textarea,select,[contenteditable]')) {
+        event.preventDefault();
+        modal = 'map-find';
+        modalParent = null;
+        render();
+        root.querySelector('#map-query')?.focus();
+        return;
+    }
     if (event.key === 'Tab' && (modal || curtain)) {
         const dialog = root.querySelector('.curtain') || root.querySelector('.modal');
         const elements = Array.from(dialog?.querySelectorAll('button:not([disabled]), a[href], input, select, summary, textarea') || []).filter(el => !el.closest('details:not([open])') || el.tagName === 'SUMMARY');
@@ -1652,6 +1843,12 @@ document.addEventListener('keydown', event => {
         return;
     if (curtain)
         return;
+    if (modal === 'tabletop') {
+        const previous = tablePlayer();
+        tableViewer = null;
+        if (previous !== playerFor(state, actor())?.id && kingdom(actor())?.controller === 'human')
+            curtain = actor();
+    }
     if (modal && modal !== 'setup') {
         modal = modalParent;
         modalParent = null;
@@ -1756,7 +1953,7 @@ function magicForm(choices) {
         return ''; return `<div class="magic-field"><label for="magic-${field}">${labels[field]}</label>${values.length > 1 ? `<select id="magic-${field}" data-magic-field="${field}" class="scenario-select">${values.map(value => `<option value="${esc(value)}" ${value === magicFieldValue(selected, field) ? 'selected' : ''}>${esc(magicFieldLabel(selected, field, value))}</option>`).join('')}</select>` : `<p>${esc(magicFieldLabel(selected, field, values[0]))}</p>`}</div>`; }).join('')}${selected && (selected.targetHex || selected.targetId) && !state.advanced?.players.some(p => p.id === selected.targetId) ? '<button class="secondary-button full" data-command="magic-focus">Show target on map</button>' : ''}</div>`;
 }
 function advancedPanel() {
-    const d = advancedDescription(state);
+    const d = needsHumanRuling() ? { title: 'Winter · human table ruling', text: 'The unsellable-only excess has no verified disposal exception. Review the explicit ruling below.' } : advancedDescription(state);
     if (!d)
         return '';
     const actions = currentActions.filter(a => !['play-card', 'hero-power', 'request-cantrip'].includes(a.type));
@@ -1771,6 +1968,8 @@ function handPanel() {
         return '<p class="empty-state">Choose Advanced rules to play Magic cards.</p>';
     if (curtain || isBot())
         return '<p class="empty-state">The acting player’s hand is private. Reveal the table when it is your decision.</p>';
+    if (needsHumanRuling() && kingdom(actor())?.controller === 'ai')
+        return `${advancedPanel()}<p class="small-note">Computer play is paused for a human ruling. The printed holding and sale rules provide no disposal exception for this unsellable-only excess. Retaining it is an explicit table ruling, not an official rule. Private unplayed cards remain concealed.</p>`;
     if (a.pending?.kind === 'winter') {
         const collection = [...a.hands[p.id].filter(id => cardById(id)?.kind === 'treasure'), ...a.owned[p.id]];
         return `${advancedPanel()}<div class="side-title"><h3>Your Winter collection</h3><span>${collection.length} Treasures</span></div>${collection.map(id => `<div class="owned-treasure"><strong>${esc(cardById(id)?.name)}</strong><small>${esc(cardById(id)?.summary)}</small></div>`).join('') || '<p class="small-note">No Treasures to keep this Winter.</p>'}`;
@@ -1793,9 +1992,86 @@ function animateMovement() { if (!movementFrom || !motionEnabled())
     const p = center(from), q = center(to), card = marker.querySelector('.unit-card');
     card?.animate([{ transform: `translate(${(p.x - q.x) * scale}px,${(p.y - q.y) * scale}px)`, opacity: .8 }, { transform: 'translate(0,0)', opacity: 1 }], { duration: 220, easing: 'ease-out' });
 } }); }
-root.addEventListener('input', event => { const target = event.target; if (target.id === 'codex-search')
+root.addEventListener('input', event => { const target = event.target; if (target.id === 'map-query') {
+    mapQuery = target.value;
+    const results = root.querySelector('.map-find-results');
+    if (results)
+        results.innerHTML = mapFindResults();
+    return;
+} if (target.id === 'codex-search')
     for (const entry of root.querySelectorAll('.codex-entry'))
         entry.hidden = !entry.dataset.search?.includes(target.value.toLowerCase()); });
 function drawMonsters() { return state.advanced?.monsters.map(m => { const d = monsterById(m.defId), h = getHex(m.hexId); if (!d || !h)
     return ''; const p = center(h), ready = !m.activated && m.kingdom === state.currentKingdom; return `<button class="map-marker unit-marker monster-marker ${m.activated ? 'used' : ''}" data-map-hex="${esc(m.hexId)}" data-marker-kind="unit" data-world-x="${p.x}" data-world-y="${p.y}" data-stack-offset="0" style="--faction:${color(m.kingdom || 'night')}" aria-label="${esc(d.name)}, ${d.pool} Monster, ${d.light} Light, ${d.heavy} Heavy, ${m.activated ? 'finished' : 'ready'}" title="${esc(d.name)} · Strike range ${d.strikeRange} · ${m.kingdom ? kingdomName(m.kingdom) : 'Uncommanded'}"><span class="unit-card">♜${ready ? '<span class="unit-ready"></span>' : ''}<span class="unit-card-stats"><span class="light-die">${d.light}</span><span class="heavy-die">${d.heavy}</span></span></span><span class="unit-map-name">${esc(d.name)}</span></button>`; }).join('') ?? ''; }
 function monsterActionsPanel() { const ms = state.advanced?.monsters.filter(m => m.kingdom === state.currentKingdom) ?? []; return ms.length ? `<div class="side-title"><h3>Commanded Monsters</h3><span>${ms.length}/3</span></div>${ms.map(m => { const d = monsterById(m.defId); const acts = currentActions.filter(a => 'monsterId' in a && a.monsterId === m.id); return `<details class="hero-recruit"><summary>${esc(d.name)} · ${m.activated ? 'finished' : 'ready'}</summary><p>${d.light} Light · ${d.heavy} Heavy · ${getHex(m.hexId)?.id}</p><div class="action-list">${acts.map(a => `<button ${actionAttr(a)}>${a.type === 'monster-strike' ? `Strike ${esc(state.units.find(u => u.id === a.targetId) ? definition(state.units.find(u => u.id === a.targetId)).name : getHex(a.targetId)?.settlement?.name || a.targetId)}` : esc(actionLabel(a))}</button>`).join('')}</div></details>`; }).join('')}` : ''; }
+function tablePlayer() { const id = tableViewer ?? state.tabletop?.review?.playerId; return state.advanced?.players.some(p => p.id === id) ? id : playerFor(state, actor()).id; }
+function resetTableView() { tableViewer = null; tableKingdom = state.currentKingdom; tableEdgeTarget = null; tableTab = 'pieces'; shipMode = false; forecastMode = 'combat'; }
+function tabletopModal() {
+    if (curtain)
+        return standardModal('Pass the device', '<p>Reveal the current player before opening private table controls.</p>');
+    return standardModal('Full tabletop controls', renderTabletop(state, tableTab, tablePlayer(), selectedHex, tableKingdom, tableEdgeTarget));
+}
+function tablePerform(operation, reason) {
+    if (curtain) {
+        notify('Pass the device and reveal the current player first.');
+        return;
+    }
+    try {
+        const before = state, result = applyTableOperation(state, operation, reason, tablePlayer());
+        state = recordCampaignEvent(before, result.state, { type: 'table-ruling', playerId: result.playerId, summary: result.summary, private: result.private });
+        const previous = tablePlayer();
+        tableViewer = operation.kind === 'complete' ? (state.tabletop?.review?.playerId ?? playerFor(state, actor()).id) : result.playerId;
+        if (tableViewer !== previous)
+            curtain = state.advanced.players.find(p => p.id === tableViewer).kingdoms[0];
+        selectedUnitId = state.units.some(u => u.id === selectedUnitId) ? selectedUnitId : null;
+        if (state.phase === 'game-over') {
+            modal = 'victory';
+            botPaused = true;
+        }
+        render();
+        void persist();
+        notify(result.summary);
+        scheduleBot();
+    }
+    catch (error) {
+        notify(error instanceof Error ? error.message : 'Unable to apply the table ruling.');
+    }
+}
+root.addEventListener('submit', event => {
+    const form = event.target;
+    if (form.id === 'table-builder') {
+        event.preventDefault();
+        try {
+            const data = new FormData(form), boards = advancedCatalog.maps.boards.filter(b => data.get(`board-${b.id}`) === 'on').map(b => b.id);
+            const start = Number(data.get('startYear')), end = Number(data.get('endYear'));
+            if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start || end > 10000)
+                throw new Error('Choose an end year at or after the start year.');
+            config = tabletopConfig(boards, String(data.get('name') ?? ''), start, end);
+            const source = String(data.get('source') ?? '').trim();
+            if (source)
+                config.scenario.source = source;
+            controllers = Object.fromEntries(config.scenario.kingdoms.map(k => [k.id, 'human']));
+            profile = 'advanced';
+            sharedHands = false;
+            packLabel = 'Full tabletop';
+            selectedScenario = 'imported';
+            modal = 'setup';
+            modalParent = null;
+            render();
+            notify('Table created. Begin campaign, then enter the opening with Table controls.');
+        }
+        catch (error) {
+            notify(error instanceof Error ? error.message : 'Unable to create this table.');
+        }
+        return;
+    }
+    if (form.dataset.tableForm) {
+        event.preventDefault();
+        try {
+            tablePerform(tableOperationFromForm(form, state, tablePlayer(), selectedHex), String(new FormData(form).get('reason') ?? ''));
+        }
+        catch (error) {
+            notify(String(error));
+        }
+    }
+});

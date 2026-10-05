@@ -1,0 +1,828 @@
+{
+  "generatedAt": "2026-10-05T05:25:18.673Z",
+  "description": "Paired deterministic seeds, both side assignments, two original digital scenarios. Whole alliances use the same difficulty. These are self-play measurements, not proof of expert human strength or official campaign balance.",
+  "elapsedMs": 71066,
+  "maxSteps": 6000,
+  "tuningSeeds": [
+    1,
+    29
+  ],
+  "initiallyReservedAdditionalSeeds": [],
+  "seedNote": "Additional seeds were initially reserved from tuning, then reused for final verification; they are not an untouched final holdout.",
+  "summary": {
+    "easy": {
+      "played": 8,
+      "wins": 3,
+      "winRate": 0.375
+    },
+    "normal": {
+      "played": 8,
+      "wins": 3,
+      "winRate": 0.375
+    },
+    "hard": {
+      "played": 8,
+      "wins": 6,
+      "winRate": 0.75
+    }
+  },
+  "matchups": {
+    "easy-vs-normal": {
+      "played": 4,
+      "wins": {
+        "easy": 2,
+        "normal": 2
+      },
+      "invalid": 0
+    },
+    "easy-vs-hard": {
+      "played": 4,
+      "wins": {
+        "easy": 1,
+        "hard": 3
+      },
+      "invalid": 0
+    },
+    "normal-vs-hard": {
+      "played": 4,
+      "wins": {
+        "normal": 1,
+        "hard": 3
+      },
+      "invalid": 0
+    }
+  },
+  "sideResults": {
+    "invader": {
+      "easy": {
+        "played": 4,
+        "wins": 0
+      },
+      "normal": {
+        "played": 4,
+        "wins": 0
+      },
+      "hard": {
+        "played": 4,
+        "wins": 2
+      }
+    },
+    "resistance": {
+      "easy": {
+        "played": 4,
+        "wins": 3
+      },
+      "normal": {
+        "played": 4,
+        "wins": 3
+      },
+      "hard": {
+        "played": 4,
+        "wins": 4
+      }
+    }
+  },
+  "completed": 12,
+  "errors": 0,
+  "timeouts": 0,
+  "games": [
+    {
+      "profile": "advanced",
+      "scenario": "drefeld-teaching",
+      "seed": 1986,
+      "swapped": false,
+      "sideDifficulty": {
+        "invader": "easy",
+        "resistance": "normal"
+      },
+      "winner": "resistance",
+      "winnerDifficulty": "normal",
+      "terminal": true,
+      "steps": 134,
+      "elapsedMs": 2248,
+      "largestLegalDecisionMs": 62,
+      "error": null,
+      "actionCounts": {
+        "collect-income": 6,
+        "recruit-hero": 3,
+        "hero-power": 3,
+        "magic-pass": 24,
+        "mine": 3,
+        "move": 13,
+        "attack": 11,
+        "allocate-hit": 8,
+        "settlement": 3,
+        "build": 9,
+        "end-turn": 6,
+        "study": 16,
+        "finish-study": 12,
+        "accept-hit": 4,
+        "pass": 8,
+        "play-card": 1,
+        "explore-lair": 1,
+        "command-monster": 1,
+        "recover": 2
+      },
+      "kingdomActions": {
+        "oathborn": 76,
+        "fjordland": 58
+      },
+      "remainingKingdoms": [
+        "oathborn",
+        "fjordland"
+      ],
+      "finalPhase": "game-over",
+      "finalActor": "fjordland",
+      "finalPending": null,
+      "finalYear": 1,
+      "finalSeason": 2,
+      "finalActiveUnit": null,
+      "finalRemainingMP": 0,
+      "victoryReason": "0/2 objective settlements controlled at the campaign deadline."
+    },
+    {
+      "profile": "advanced",
+      "scenario": "drefeld-teaching",
+      "seed": 1986,
+      "swapped": true,
+      "sideDifficulty": {
+        "invader": "normal",
+        "resistance": "easy"
+      },
+      "winner": "resistance",
+      "winnerDifficulty": "easy",
+      "terminal": true,
+      "steps": 104,
+      "elapsedMs": 2350,
+      "largestLegalDecisionMs": 125,
+      "error": null,
+      "actionCounts": {
+        "collect-income": 6,
+        "move": 8,
+        "pass": 6,
+        "build": 6,
+        "end-turn": 6,
+        "study": 16,
+        "finish-study": 12,
+        "recruit-hero": 2,
+        "hero-power": 2,
+        "attack": 10,
+        "play-card": 1,
+        "magic-pass": 21,
+        "allocate-hit": 4,
+        "explore-lair": 1,
+        "command-monster": 1,
+        "accept-hit": 1,
+        "advance": 1
+      },
+      "kingdomActions": {
+        "oathborn": 34,
+        "fjordland": 70
+      },
+      "remainingKingdoms": [
+        "oathborn",
+        "fjordland"
+      ],
+      "finalPhase": "game-over",
+      "finalActor": "fjordland",
+      "finalPending": null,
+      "finalYear": 1,
+      "finalSeason": 2,
+      "finalActiveUnit": null,
+      "finalRemainingMP": 0,
+      "victoryReason": "0/2 objective settlements controlled at the campaign deadline."
+    },
+    {
+      "profile": "advanced",
+      "scenario": "drefeld-teaching",
+      "seed": 1986,
+      "swapped": false,
+      "sideDifficulty": {
+        "invader": "easy",
+        "resistance": "hard"
+      },
+      "winner": "resistance",
+      "winnerDifficulty": "hard",
+      "terminal": true,
+      "steps": 71,
+      "elapsedMs": 847,
+      "largestLegalDecisionMs": 58,
+      "error": null,
+      "actionCounts": {
+        "collect-income": 6,
+        "build": 3,
+        "mine": 1,
+        "move": 9,
+        "end-turn": 6,
+        "study": 15,
+        "finish-study": 12,
+        "ship": 1,
+        "pass": 5,
+        "play-card": 4,
+        "magic-choice": 2,
+        "accept-hit": 1,
+        "attack": 1,
+        "magic-pass": 3,
+        "hero-power": 1,
+        "allocate-hit": 1
+      },
+      "kingdomActions": {
+        "oathborn": 37,
+        "fjordland": 34
+      },
+      "remainingKingdoms": [
+        "oathborn",
+        "fjordland"
+      ],
+      "finalPhase": "game-over",
+      "finalActor": "fjordland",
+      "finalPending": null,
+      "finalYear": 1,
+      "finalSeason": 2,
+      "finalActiveUnit": null,
+      "finalRemainingMP": 0,
+      "victoryReason": "0/2 objective settlements controlled at the campaign deadline."
+    },
+    {
+      "profile": "advanced",
+      "scenario": "drefeld-teaching",
+      "seed": 1986,
+      "swapped": true,
+      "sideDifficulty": {
+        "invader": "hard",
+        "resistance": "easy"
+      },
+      "winner": "resistance",
+      "winnerDifficulty": "easy",
+      "terminal": true,
+      "steps": 97,
+      "elapsedMs": 1055,
+      "largestLegalDecisionMs": 44,
+      "error": null,
+      "actionCounts": {
+        "collect-income": 6,
+        "move": 11,
+        "pass": 3,
+        "build": 6,
+        "end-turn": 6,
+        "study": 15,
+        "finish-study": 12,
+        "play-card": 6,
+        "magic-choice": 1,
+        "attack": 10,
+        "magic-pass": 11,
+        "allocate-hit": 6,
+        "resolve-combat": 1,
+        "hero-power": 1,
+        "regenerate": 1,
+        "settlement": 1
+      },
+      "kingdomActions": {
+        "oathborn": 30,
+        "fjordland": 67
+      },
+      "remainingKingdoms": [
+        "oathborn",
+        "fjordland"
+      ],
+      "finalPhase": "game-over",
+      "finalActor": "fjordland",
+      "finalPending": null,
+      "finalYear": 1,
+      "finalSeason": 2,
+      "finalActiveUnit": null,
+      "finalRemainingMP": 0,
+      "victoryReason": "1/2 objective settlements controlled at the campaign deadline."
+    },
+    {
+      "profile": "advanced",
+      "scenario": "drefeld-teaching",
+      "seed": 1986,
+      "swapped": false,
+      "sideDifficulty": {
+        "invader": "normal",
+        "resistance": "hard"
+      },
+      "winner": "resistance",
+      "winnerDifficulty": "hard",
+      "terminal": true,
+      "steps": 130,
+      "elapsedMs": 1565,
+      "largestLegalDecisionMs": 58,
+      "error": null,
+      "actionCounts": {
+        "collect-income": 6,
+        "build": 7,
+        "mine": 1,
+        "move": 12,
+        "end-turn": 6,
+        "study": 20,
+        "finish-study": 12,
+        "recruit-hero": 3,
+        "hero-power": 4,
+        "pass": 5,
+        "play-card": 7,
+        "magic-choice": 2,
+        "accept-hit": 3,
+        "explore-lair": 2,
+        "command-monster": 2,
+        "magic-pass": 25,
+        "attack": 7,
+        "allocate-hit": 5,
+        "recover": 1
+      },
+      "kingdomActions": {
+        "oathborn": 46,
+        "fjordland": 84
+      },
+      "remainingKingdoms": [
+        "oathborn",
+        "fjordland"
+      ],
+      "finalPhase": "game-over",
+      "finalActor": "fjordland",
+      "finalPending": null,
+      "finalYear": 1,
+      "finalSeason": 2,
+      "finalActiveUnit": null,
+      "finalRemainingMP": 0,
+      "victoryReason": "0/2 objective settlements controlled at the campaign deadline."
+    },
+    {
+      "profile": "advanced",
+      "scenario": "drefeld-teaching",
+      "seed": 1986,
+      "swapped": true,
+      "sideDifficulty": {
+        "invader": "hard",
+        "resistance": "normal"
+      },
+      "winner": "resistance",
+      "winnerDifficulty": "normal",
+      "terminal": true,
+      "steps": 130,
+      "elapsedMs": 1521,
+      "largestLegalDecisionMs": 50,
+      "error": null,
+      "actionCounts": {
+        "collect-income": 6,
+        "recruit-hero": 2,
+        "hero-power": 4,
+        "magic-pass": 16,
+        "mine": 3,
+        "move": 12,
+        "attack": 10,
+        "allocate-hit": 7,
+        "settlement": 4,
+        "build": 10,
+        "end-turn": 6,
+        "study": 20,
+        "finish-study": 12,
+        "play-card": 6,
+        "magic-choice": 1,
+        "accept-hit": 5,
+        "pass": 3,
+        "explore-lair": 1,
+        "command-monster": 1,
+        "resolve-combat": 1
+      },
+      "kingdomActions": {
+        "oathborn": 74,
+        "fjordland": 56
+      },
+      "remainingKingdoms": [
+        "oathborn",
+        "fjordland"
+      ],
+      "finalPhase": "game-over",
+      "finalActor": "fjordland",
+      "finalPending": null,
+      "finalYear": 1,
+      "finalSeason": 2,
+      "finalActiveUnit": null,
+      "finalRemainingMP": 0,
+      "victoryReason": "1/2 objective settlements controlled at the campaign deadline."
+    },
+    {
+      "profile": "advanced",
+      "scenario": "six-banners-sandbox",
+      "seed": 1986,
+      "swapped": false,
+      "sideDifficulty": {
+        "invader": "easy",
+        "resistance": "normal"
+      },
+      "winner": "resistance",
+      "winnerDifficulty": "normal",
+      "terminal": true,
+      "steps": 1047,
+      "elapsedMs": 12602,
+      "largestLegalDecisionMs": 131,
+      "error": null,
+      "actionCounts": {
+        "collect-income": 31,
+        "recruit-hero": 8,
+        "move": 67,
+        "attack": 48,
+        "magic-pass": 288,
+        "allocate-hit": 48,
+        "advance": 12,
+        "build": 31,
+        "pass": 51,
+        "end-turn": 31,
+        "study": 219,
+        "finish-study": 159,
+        "resolve-combat": 12,
+        "suppress": 9,
+        "play-card": 1,
+        "ship": 3,
+        "explore-lair": 4,
+        "command-monster": 4,
+        "recover": 7,
+        "accept-hit": 4,
+        "settlement": 1,
+        "finish-winter": 5,
+        "slink-away": 1,
+        "hero-power": 3
+      },
+      "kingdomActions": {
+        "oathborn": 262,
+        "night": 172,
+        "orcs": 127,
+        "goblins": 51,
+        "fjordland": 267,
+        "empire": 168
+      },
+      "remainingKingdoms": [
+        "oathborn",
+        "fjordland",
+        "empire",
+        "night"
+      ],
+      "finalPhase": "game-over",
+      "finalActor": "empire",
+      "finalPending": null,
+      "finalYear": 589,
+      "finalSeason": 2,
+      "finalActiveUnit": null,
+      "finalRemainingMP": 0,
+      "victoryReason": "0/2 objective settlements controlled at the campaign deadline."
+    },
+    {
+      "profile": "advanced",
+      "scenario": "six-banners-sandbox",
+      "seed": 1986,
+      "swapped": true,
+      "sideDifficulty": {
+        "invader": "normal",
+        "resistance": "easy"
+      },
+      "winner": "resistance",
+      "winnerDifficulty": "easy",
+      "terminal": true,
+      "steps": 1089,
+      "elapsedMs": 12045,
+      "largestLegalDecisionMs": 146,
+      "error": null,
+      "actionCounts": {
+        "collect-income": 32,
+        "build": 33,
+        "end-turn": 30,
+        "study": 208,
+        "finish-study": 161,
+        "recruit-hero": 6,
+        "move": 64,
+        "attack": 49,
+        "magic-pass": 361,
+        "play-card": 1,
+        "allocate-hit": 46,
+        "advance": 11,
+        "pass": 35,
+        "ship": 3,
+        "coven": 5,
+        "settlement": 1,
+        "hero-power": 3,
+        "explore-lair": 4,
+        "command-monster": 4,
+        "accept-hit": 5,
+        "resolve-combat": 11,
+        "lay-waste": 2,
+        "magic-choice": 2,
+        "recover": 4,
+        "regenerate": 2,
+        "finish-winter": 6
+      },
+      "kingdomActions": {
+        "oathborn": 132,
+        "fjordland": 113,
+        "empire": 77,
+        "night": 293,
+        "goblins": 253,
+        "orcs": 221
+      },
+      "remainingKingdoms": [
+        "oathborn",
+        "fjordland",
+        "empire",
+        "night"
+      ],
+      "finalPhase": "game-over",
+      "finalActor": "empire",
+      "finalPending": null,
+      "finalYear": 589,
+      "finalSeason": 2,
+      "finalActiveUnit": null,
+      "finalRemainingMP": 0,
+      "victoryReason": "0/2 objective settlements controlled at the campaign deadline."
+    },
+    {
+      "profile": "advanced",
+      "scenario": "six-banners-sandbox",
+      "seed": 1986,
+      "swapped": false,
+      "sideDifficulty": {
+        "invader": "easy",
+        "resistance": "hard"
+      },
+      "winner": "resistance",
+      "winnerDifficulty": "hard",
+      "terminal": true,
+      "steps": 872,
+      "elapsedMs": 5905,
+      "largestLegalDecisionMs": 71,
+      "error": null,
+      "actionCounts": {
+        "collect-income": 36,
+        "explore-lair": 4,
+        "command-monster": 4,
+        "play-card": 35,
+        "magic-pass": 75,
+        "build": 14,
+        "move": 47,
+        "mine": 5,
+        "recruit-hero": 4,
+        "end-turn": 36,
+        "study": 288,
+        "finish-study": 216,
+        "pass": 20,
+        "magic-choice": 8,
+        "hero-power": 14,
+        "allocate-hit": 16,
+        "accept-hit": 8,
+        "drop-hero": 1,
+        "suppress": 3,
+        "attack": 14,
+        "advance": 4,
+        "attack-monster": 2,
+        "sell-treasure": 1,
+        "resolve-combat": 8,
+        "ship": 2,
+        "finish-winter": 6,
+        "settlement": 1
+      },
+      "kingdomActions": {
+        "oathborn": 209,
+        "night": 137,
+        "orcs": 139,
+        "fjordland": 151,
+        "empire": 137,
+        "goblins": 99
+      },
+      "remainingKingdoms": [
+        "oathborn",
+        "fjordland",
+        "empire",
+        "night",
+        "goblins",
+        "orcs"
+      ],
+      "finalPhase": "game-over",
+      "finalActor": "orcs",
+      "finalPending": null,
+      "finalYear": 589,
+      "finalSeason": 2,
+      "finalActiveUnit": null,
+      "finalRemainingMP": 0,
+      "victoryReason": "1/2 objective settlements controlled at the campaign deadline."
+    },
+    {
+      "profile": "advanced",
+      "scenario": "six-banners-sandbox",
+      "seed": 1986,
+      "swapped": true,
+      "sideDifficulty": {
+        "invader": "hard",
+        "resistance": "easy"
+      },
+      "winner": "invader",
+      "winnerDifficulty": "hard",
+      "terminal": true,
+      "steps": 958,
+      "elapsedMs": 9187,
+      "largestLegalDecisionMs": 143,
+      "error": null,
+      "actionCounts": {
+        "collect-income": 36,
+        "build": 17,
+        "end-turn": 36,
+        "study": 278,
+        "finish-study": 216,
+        "move": 50,
+        "attack": 23,
+        "play-card": 56,
+        "magic-choice": 10,
+        "magic-pass": 118,
+        "allocate-hit": 27,
+        "pass": 15,
+        "coven": 4,
+        "resolve-combat": 2,
+        "monster-strike": 6,
+        "recruit-hero": 10,
+        "drop-hero": 3,
+        "accept-hit": 11,
+        "advance": 3,
+        "hero-power": 9,
+        "settlement": 3,
+        "recover": 2,
+        "ship": 1,
+        "explore-lair": 4,
+        "command-monster": 4,
+        "regenerate": 1,
+        "finish-winter": 6,
+        "lay-waste": 4,
+        "recolonize": 2,
+        "sell-treasure": 1
+      },
+      "kingdomActions": {
+        "oathborn": 115,
+        "fjordland": 119,
+        "empire": 125,
+        "night": 222,
+        "goblins": 178,
+        "orcs": 199
+      },
+      "remainingKingdoms": [
+        "oathborn",
+        "fjordland",
+        "empire",
+        "night",
+        "goblins",
+        "orcs"
+      ],
+      "finalPhase": "game-over",
+      "finalActor": "orcs",
+      "finalPending": null,
+      "finalYear": 589,
+      "finalSeason": 2,
+      "finalActiveUnit": null,
+      "finalRemainingMP": 0,
+      "victoryReason": "3/2 objective settlements controlled at the campaign deadline."
+    },
+    {
+      "profile": "advanced",
+      "scenario": "six-banners-sandbox",
+      "seed": 1986,
+      "swapped": false,
+      "sideDifficulty": {
+        "invader": "normal",
+        "resistance": "hard"
+      },
+      "winner": "resistance",
+      "winnerDifficulty": "hard",
+      "terminal": true,
+      "steps": 976,
+      "elapsedMs": 9710,
+      "largestLegalDecisionMs": 185,
+      "error": null,
+      "actionCounts": {
+        "collect-income": 28,
+        "explore-lair": 5,
+        "command-monster": 5,
+        "play-card": 48,
+        "magic-pass": 227,
+        "build": 49,
+        "move": 56,
+        "mine": 6,
+        "recruit-hero": 14,
+        "end-turn": 26,
+        "study": 200,
+        "finish-study": 121,
+        "attack": 38,
+        "magic-choice": 12,
+        "hero-power": 23,
+        "allocate-hit": 44,
+        "advance": 7,
+        "accept-hit": 7,
+        "drop-hero": 2,
+        "pass": 16,
+        "coven": 6,
+        "monster-strike": 2,
+        "suppress": 10,
+        "transfer-gold": 3,
+        "resolve-combat": 8,
+        "ship": 1,
+        "attack-monster": 2,
+        "regenerate": 4,
+        "recover": 2,
+        "finish-winter": 4
+      },
+      "kingdomActions": {
+        "oathborn": 234,
+        "night": 255,
+        "orcs": 94,
+        "fjordland": 158,
+        "empire": 113,
+        "goblins": 122
+      },
+      "remainingKingdoms": [
+        "oathborn",
+        "fjordland",
+        "empire",
+        "night"
+      ],
+      "finalPhase": "game-over",
+      "finalActor": "empire",
+      "finalPending": null,
+      "finalYear": 589,
+      "finalSeason": 2,
+      "finalActiveUnit": null,
+      "finalRemainingMP": 0,
+      "victoryReason": "0/2 objective settlements controlled at the campaign deadline."
+    },
+    {
+      "profile": "advanced",
+      "scenario": "six-banners-sandbox",
+      "seed": 1986,
+      "swapped": true,
+      "sideDifficulty": {
+        "invader": "hard",
+        "resistance": "normal"
+      },
+      "winner": "invader",
+      "winnerDifficulty": "hard",
+      "terminal": true,
+      "steps": 1293,
+      "elapsedMs": 12020,
+      "largestLegalDecisionMs": 118,
+      "error": null,
+      "actionCounts": {
+        "collect-income": 35,
+        "recruit-hero": 17,
+        "move": 57,
+        "attack": 50,
+        "magic-pass": 272,
+        "play-card": 79,
+        "magic-choice": 12,
+        "allocate-hit": 57,
+        "advance": 9,
+        "build": 34,
+        "pass": 18,
+        "end-turn": 35,
+        "study": 334,
+        "finish-study": 200,
+        "settlement": 5,
+        "coven": 4,
+        "drop-hero": 3,
+        "hero-power": 8,
+        "explore-lair": 6,
+        "command-monster": 6,
+        "resolve-combat": 10,
+        "accept-hit": 8,
+        "recover": 2,
+        "suppress": 7,
+        "ship": 1,
+        "monster-strike": 7,
+        "finish-winter": 6,
+        "attack-monster": 4,
+        "sell-treasure": 1,
+        "activate": 1,
+        "lay-waste": 3,
+        "recolonize": 1,
+        "mine": 1
+      },
+      "kingdomActions": {
+        "oathborn": 273,
+        "night": 230,
+        "orcs": 205,
+        "goblins": 196,
+        "fjordland": 220,
+        "empire": 169
+      },
+      "remainingKingdoms": [
+        "oathborn",
+        "fjordland",
+        "empire",
+        "night",
+        "orcs"
+      ],
+      "finalPhase": "game-over",
+      "finalActor": "orcs",
+      "finalPending": null,
+      "finalYear": 589,
+      "finalSeason": 2,
+      "finalActiveUnit": null,
+      "finalRemainingMP": 0,
+      "victoryReason": "2/2 objective settlements controlled at the campaign deadline."
+    }
+  ]
+}

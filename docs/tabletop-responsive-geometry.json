@@ -1,0 +1,366 @@
+[
+  {
+    "size": "Desktop",
+    "tab": "Counters & dice",
+    "modal": {
+      "h": 752,
+      "w": 720,
+      "x": 280,
+      "y": 24
+    },
+    "scrollWidth": 1280,
+    "wideForms": 0,
+    "width": 1280
+  },
+  {
+    "size": "Desktop",
+    "tab": "Private cards",
+    "modal": {
+      "h": 752,
+      "w": 720,
+      "x": 280,
+      "y": 24
+    },
+    "scrollWidth": 1280,
+    "wideForms": 0,
+    "width": 1280
+  },
+  {
+    "size": "Desktop",
+    "tab": "Map & markers",
+    "modal": {
+      "h": 752,
+      "w": 720,
+      "x": 280,
+      "y": 24
+    },
+    "scrollWidth": 1280,
+    "wideForms": 0,
+    "width": 1280
+  },
+  {
+    "size": "Desktop",
+    "tab": "Campaign ledger",
+    "modal": {
+      "h": 752,
+      "w": 720,
+      "x": 280,
+      "y": 24
+    },
+    "scrollWidth": 1280,
+    "wideForms": 0,
+    "width": 1280
+  },
+  {
+    "size": "Phone 390 × 844",
+    "tab": "Counters & dice",
+    "modal": {
+      "h": 820,
+      "w": 366,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 390,
+    "wideForms": 0,
+    "width": 390
+  },
+  {
+    "size": "Phone 390 × 844",
+    "tab": "Private cards",
+    "modal": {
+      "h": 820,
+      "w": 366,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 390,
+    "wideForms": 0,
+    "width": 390
+  },
+  {
+    "size": "Phone 390 × 844",
+    "tab": "Map & markers",
+    "modal": {
+      "h": 820,
+      "w": 366,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 390,
+    "wideForms": 0,
+    "width": 390
+  },
+  {
+    "size": "Phone 390 × 844",
+    "tab": "Campaign ledger",
+    "modal": {
+      "h": 820,
+      "w": 366,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 390,
+    "wideForms": 0,
+    "width": 390
+  },
+  {
+    "size": "Small phone",
+    "tab": "Counters & dice",
+    "modal": {
+      "h": 716,
+      "w": 336,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 360,
+    "wideForms": 0,
+    "width": 360
+  },
+  {
+    "size": "Small phone",
+    "tab": "Private cards",
+    "modal": {
+      "h": 716,
+      "w": 336,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 360,
+    "wideForms": 0,
+    "width": 360
+  },
+  {
+    "size": "Small phone",
+    "tab": "Map & markers",
+    "modal": {
+      "h": 716,
+      "w": 336,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 360,
+    "wideForms": 0,
+    "width": 360
+  },
+  {
+    "size": "Small phone",
+    "tab": "Campaign ledger",
+    "modal": {
+      "h": 716,
+      "w": 336,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 360,
+    "wideForms": 0,
+    "width": 360
+  },
+  {
+    "size": "Compact phone",
+    "tab": "Counters & dice",
+    "modal": {
+      "h": 544,
+      "w": 296,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 320,
+    "wideForms": 0,
+    "width": 320
+  },
+  {
+    "size": "Compact phone",
+    "tab": "Private cards",
+    "modal": {
+      "h": 544,
+      "w": 296,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 320,
+    "wideForms": 0,
+    "width": 320
+  },
+  {
+    "size": "Compact phone",
+    "tab": "Map & markers",
+    "modal": {
+      "h": 544,
+      "w": 296,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 320,
+    "wideForms": 0,
+    "width": 320
+  },
+  {
+    "size": "Compact phone",
+    "tab": "Campaign ledger",
+    "modal": {
+      "h": 544,
+      "w": 296,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 320,
+    "wideForms": 0,
+    "width": 320
+  },
+  {
+    "size": "Tablet",
+    "tab": "Counters & dice",
+    "modal": {
+      "h": 976,
+      "w": 720,
+      "x": 24,
+      "y": 24
+    },
+    "scrollWidth": 768,
+    "wideForms": 0,
+    "width": 768
+  },
+  {
+    "size": "Tablet",
+    "tab": "Private cards",
+    "modal": {
+      "h": 976,
+      "w": 720,
+      "x": 24,
+      "y": 24
+    },
+    "scrollWidth": 768,
+    "wideForms": 0,
+    "width": 768
+  },
+  {
+    "size": "Tablet",
+    "tab": "Map & markers",
+    "modal": {
+      "h": 976,
+      "w": 720,
+      "x": 24,
+      "y": 24
+    },
+    "scrollWidth": 768,
+    "wideForms": 0,
+    "width": 768
+  },
+  {
+    "size": "Tablet",
+    "tab": "Campaign ledger",
+    "modal": {
+      "h": 976,
+      "w": 720,
+      "x": 24,
+      "y": 24
+    },
+    "scrollWidth": 768,
+    "wideForms": 0,
+    "width": 768
+  },
+  {
+    "size": "Landscape",
+    "tab": "Counters & dice",
+    "modal": {
+      "h": 342,
+      "w": 720,
+      "x": 62,
+      "y": 24
+    },
+    "scrollWidth": 844,
+    "wideForms": 0,
+    "width": 844
+  },
+  {
+    "size": "Landscape",
+    "tab": "Private cards",
+    "modal": {
+      "h": 342,
+      "w": 720,
+      "x": 62,
+      "y": 24
+    },
+    "scrollWidth": 844,
+    "wideForms": 0,
+    "width": 844
+  },
+  {
+    "size": "Landscape",
+    "tab": "Map & markers",
+    "modal": {
+      "h": 342,
+      "w": 720,
+      "x": 62,
+      "y": 24
+    },
+    "scrollWidth": 844,
+    "wideForms": 0,
+    "width": 844
+  },
+  {
+    "size": "Landscape",
+    "tab": "Campaign ledger",
+    "modal": {
+      "h": 342,
+      "w": 720,
+      "x": 62,
+      "y": 24
+    },
+    "scrollWidth": 844,
+    "wideForms": 0,
+    "width": 844
+  },
+  {
+    "size": "Small landscape",
+    "tab": "Counters & dice",
+    "modal": {
+      "h": 390,
+      "w": 712,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 736,
+    "wideForms": 0,
+    "width": 736
+  },
+  {
+    "size": "Small landscape",
+    "tab": "Private cards",
+    "modal": {
+      "h": 390,
+      "w": 712,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 736,
+    "wideForms": 0,
+    "width": 736
+  },
+  {
+    "size": "Small landscape",
+    "tab": "Map & markers",
+    "modal": {
+      "h": 390,
+      "w": 712,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 736,
+    "wideForms": 0,
+    "width": 736
+  },
+  {
+    "size": "Small landscape",
+    "tab": "Campaign ledger",
+    "modal": {
+      "h": 390,
+      "w": 712,
+      "x": 12,
+      "y": 12
+    },
+    "scrollWidth": 736,
+    "wideForms": 0,
+    "width": 736
+  }
+]

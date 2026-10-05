@@ -329,6 +329,8 @@ function hardScore(s, a, actor) {
         case 'magic-pass':
         case 'finish-study': return 0;
         case 'finish-winter': return 20;
+        case 'winter-ruling': return 0;
+        case 'table-ruling': return -100;
         case 'request-cantrip': return -90;
         case 'play-card':
         case 'hero-power': return cardScore(s, a, actor);
@@ -373,7 +375,45 @@ function hardScore(s, a, actor) {
             const target = uBy(s, a.targetId), m = s.advanced.monsters.find(m => m.id === a.monsterId), d = monsterById(m.defId);
             return 4 + diceValue(d.light, d.heavy) + (target ? material(s, target) * (target.weakened ? 0.7 : 0.2) : objectiveWeight(s, hBy(s, a.targetId)) * 0.2);
         }
-        case 'magic-choice': return 2;
+        case 'magic-choice': {
+            const p = s.advanced?.pending;
+            if (p?.kind !== 'choice')
+                return 2;
+            if (p.flow === 'discard' || p.flow === 'book-discard')
+                return -cardReserve(a.value);
+            if (p.flow === 'return-card')
+                return a.value === 'keep' ? 8 : 0;
+            if (p.flow === 'recover') {
+                const u = uBy(s, a.value);
+                return u ? material(s, u) : 0;
+            }
+            if (p.flow === 'hero' || p.flow === 'build') {
+                const h = hBy(s, a.value), u = s.units.find(u => u.hexId === a.value && !isHero(s, u));
+                return h ? potential(s, h, actor) + (u ? material(s, u) * .4 : 0) : 0;
+            }
+            if (p.flow === 'forced-move') {
+                const u = uBy(s, p.data?.unitId ?? '');
+                if (!u)
+                    return 0;
+                if (a.value === 'hit')
+                    return u.weakened ? -material(s, u) : -2.5;
+                const id = a.value.slice(a.value.indexOf(':') + 1), h = hBy(s, id);
+                return h ? potential(s, h, actor) - potential(s, hBy(s, u.hexId), actor) - exposedValue(s, u, h) * .4 + (a.value.startsWith('army:') ? -2 : 0) : 0;
+            }
+            if (p.flow === 'repeat-strike') {
+                const u = uBy(s, p.data?.target ?? '');
+                return a.value === 'skip' ? 0 : (u ? material(s, u) * .8 : 2) - cardReserve(a.value) * .7;
+            }
+            if (p.flow === 'blessing')
+                return 4 - s.advanced.hands[p.playerId].filter(id => cardById(id)?.kind === 'blessing' && cardById(id)?.kingdom === a.value).length;
+            if (p.flow === 'book-target')
+                return 3;
+            if (p.flow === 'copy-monster') {
+                const m = s.advanced.monsters.find(m => m.id === a.value), abilities = monsterById(m?.defId ?? '')?.abilities ?? [];
+                return abilities.reduce((n, x) => n + (x === 'flying' ? 3 : x === 'stealth' ? 2.5 : x === 'ranged' ? 2 : 1), 0);
+            }
+            return 2;
+        }
         case 'settlement': {
             const h = hBy(s, s.pendingCombat.targetHex);
             const shashka = actor === 'orcs' || actor === 'goblins';
@@ -459,7 +499,7 @@ function hardScore(s, a, actor) {
         }
         case 'join-stack': {
             const u = uBy(s, a.unitId), v = uBy(s, a.armyId);
-            return u.activated !== v.activated ? -20 : u.activated ? -5 : 5;
+            return u.activated !== v.activated ? -80 : u.activated ? -80 : 5;
         }
         case 'drop-hero':
         case 'drop-army': {
@@ -467,7 +507,7 @@ function hardScore(s, a, actor) {
             if (!member)
                 return -80;
             if (a.type === 'drop-hero')
-                return hero.activated && !member.activated && (!s.activeUnitId || s.remainingMP > 0) ? 7 : -20;
+                return hero.activated && !member.activated && (!s.activeUnitId || s.remainingMP > 0) ? 7 : s.activeUnitId ? -20 : -35;
             return !hero.activated && member.activated ? 7 : -20;
         }
         case 'attack':
@@ -568,8 +608,8 @@ function easyAction(s, actions, fallback) {
 export function chooseDifficultyAction(s, difficulty, fallbackAction) {
     decisionCache = { state: s, goals: new Map(), potential: new Map(), exposure: new Map() };
     const all = legalActions(s);
-    if (!all.length)
-        return null;
+    if (!all.length || all.some(a => a.type === 'winter-ruling'))
+        return null; // Unverified printed-rule exceptions require a human table ruling.
     const fallback = fallbackAction ? all.find(a => a.type === fallbackAction.type && Object.entries(fallbackAction).filter(([key]) => key !== 'path').every(([key, value]) => a[key] === value)) ?? null : null;
     if (difficulty === 'normal')
         return fallback ?? all[0];

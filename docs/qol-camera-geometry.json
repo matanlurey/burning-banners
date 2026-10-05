@@ -1,0 +1,29 @@
+[
+  {
+    "action": "before",
+    "cameraHeight": "462.059",
+    "cameraScale": "1.4457",
+    "cameraWidth": "269.765",
+    "cameraX": "-93.658",
+    "cameraY": "-116.243",
+    "transform": "translate(-14.9514px, 17.6992px) scale(1.4457)"
+  },
+  {
+    "action": "wheel",
+    "cameraHeight": "392.941",
+    "cameraScale": "1.7000",
+    "cameraWidth": "229.412",
+    "cameraX": "-80.104",
+    "cameraY": "-72.475",
+    "transform": "translate(-40.624px, -53.5925px) scale(1.7)"
+  },
+  {
+    "action": "drag",
+    "cameraHeight": "392.941",
+    "cameraScale": "1.7000",
+    "cameraWidth": "229.412",
+    "cameraX": "-138.927",
+    "cameraY": "-125.416",
+    "transform": "translate(59.376px, 36.4075px) scale(1.7)"
+  }
+]
