@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node build.mjs",
     "test": "node --test tests/*.test.mjs",
-    "dev": "python3 -m http.server 5173 --directory dist"
+    "dev": "node dev-server.mjs"
   },
   "devDependencies": { "typescript": "5.9.3" }
 }

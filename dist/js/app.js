@@ -31,7 +31,7 @@ const icons = {
 };
 const icon = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[name] || icons.info}</svg>`;
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, x => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[x]));
-const button = (cmd, name, glyph, cls = '', disabled = false) => `<button type="button" data-command="${esc(cmd)}" class="${cls}" ${disabled ? 'disabled' : ''}>${icon(glyph)}<span>${esc(name)}</span></button>`;
+const button = (cmd, name, glyph, cls = '', disabled = false) => `<button type="button" data-command="${esc(cmd)}" aria-label="${esc(name)}" class="${cls}" ${disabled ? 'disabled' : ''}>${icon(glyph)}<span>${esc(name)}</span></button>`;
 const color = (id) => { const key = id.toLowerCase(); return key.includes('fjord') ? '#a69462' : key.includes('oath') ? '#5f7f85' : key.includes('night') ? '#9b748c' : key.includes('orc') ? '#9f6a4e' : key.includes('gob') ? '#7e8761' : key.includes('emp') ? '#bc665a' : '#b49767'; };
 const center = (hex) => ({ x: R * 1.5 * hex.q, y: R * SQRT3 * (hex.r + hex.q / 2) });
 const points = Array.from({ length: 6 }, (_, i) => `${R * Math.cos(i * Math.PI / 3)},${R * Math.sin(i * Math.PI / 3)}`).join(' ');
@@ -75,6 +75,7 @@ const kingdom = (id) => state.kingdoms.find(k => k.id === id);
 const kingdomName = (id) => kingdom(id)?.name || ({ oathborn: 'The Oathborn', fjordland: 'Fjordland', empire: 'Eastern Empire', night: 'Army of Night', goblins: 'The Goblins', orcs: 'The Orcs' }[id] || id);
 const actor = () => state.pendingCombat?.decisionKingdom || state.currentKingdom;
 const isBot = () => kingdom(actor())?.controller === 'ai';
+const mobileLayout = () => window.matchMedia('(max-width:760px)').matches;
 const art = (d) => {
     if (d.art)
         return d.art;
@@ -298,91 +299,267 @@ function scheduleBot() {
 function boardBounds(campaign = false) {
     const opening = state.units.map(u => getHex(u.hexId)).filter((h) => !!h);
     const coords = (campaign && state.scenario.id === 'drefeld-teaching' && opening.length ? opening : state.hexes).map(center);
-    const minX = Math.min(...coords.map(c => c.x)) - R - 45;
-    const minY = Math.min(...coords.map(c => c.y)) - R - 45;
-    const maxX = Math.max(...coords.map(c => c.x)) + R + 45;
-    const maxY = Math.max(...coords.map(c => c.y)) + R + 45;
+    const minX = Math.min(...coords.map(c => c.x)) - R - 32;
+    const minY = Math.min(...coords.map(c => c.y)) - R - 32;
+    const maxX = Math.max(...coords.map(c => c.x)) + R + 32;
+    const maxY = Math.max(...coords.map(c => c.y)) + R + 32;
     return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
-function fitBoard(campaign = false) {
-    const bounds = boardBounds(campaign);
-    if (campaign) {
-        bounds.x -= R;
-        bounds.y -= R;
-        bounds.w += R * 2;
-        bounds.h += R * 2;
-    }
-    const element = document.querySelector('.board-wrap');
-    const aspect = element ? element.clientWidth / Math.max(1, element.clientHeight) : 1.4;
-    let w = bounds.w, h = bounds.h;
-    if (w / h < aspect)
-        w = h * aspect;
-    else
-        h = w / aspect;
-    camera = { x: bounds.x - (w - bounds.w) / 2, y: bounds.y - (h - bounds.h) / 2, w, h };
-    cameraBaseWidth = w;
-    updateCamera();
+function viewport() {
+    const element = root.querySelector('.board-wrap');
+    const rect = element?.getBoundingClientRect();
+    return { width: Math.max(1, rect?.width || 900), height: Math.max(1, rect?.height || 650), left: rect?.left || 0, top: rect?.top || 0 };
 }
-function zoom(multiplier, anchor) {
+let cameraFrame = 0;
+let readyIndex = 0;
+let gestureActive = false;
+let suppressMapClickUntil = 0;
+function clampCamera() {
     if (!camera)
         return;
-    const newW = Math.min(cameraBaseWidth * 1.3, Math.max(180, camera.w * multiplier));
-    const ratio = newW / camera.w;
-    const cx = anchor?.x ?? camera.x + camera.w / 2, cy = anchor?.y ?? camera.y + camera.h / 2;
-    camera = { x: cx + (camera.x - cx) * ratio, y: cy + (camera.y - cy) * ratio, w: newW, h: camera.h * ratio };
+    const view = viewport();
+    camera.h = camera.w * view.height / view.width;
+    const bounds = boardBounds();
+    const area = visibleMapArea();
+    const visibleWidth = mobileLayout() && mobileOpen ? area.right / (view.width / camera.w) : camera.w;
+    const visibleHeight = mobileLayout() && mobileOpen ? area.bottom / (view.width / camera.w) : camera.h;
+    const margin = 70;
+    const clampAxis = (start, size, min, length) => size > length + margin * 2 ? min - (size - length) / 2 : Math.max(min - margin, Math.min(start, min + length + margin - size));
+    camera.x = clampAxis(camera.x, visibleWidth, bounds.x, bounds.w);
+    camera.y = clampAxis(camera.y, visibleHeight, bounds.y, bounds.h);
+}
+function visibleMapArea() {
+    const v = viewport();
+    const heading = root.querySelector('.board-heading');
+    const panel = mobileLayout() && mobileOpen ? root.querySelector('.sidebar.mobile-open') : null;
+    let right = v.width - 12, bottom = v.height - 72;
+    if (panel) {
+        const rect = panel.getBoundingClientRect();
+        if (rect.left - v.left > v.width * .3)
+            right = rect.left - v.left - 12;
+        else
+            bottom = rect.top - v.top - 12;
+    }
+    return { left: 12, top: heading ? heading.getBoundingClientRect().bottom - v.top + 12 : 70, right, bottom };
+}
+function fitBoard(campaign = false) {
+    const view = viewport();
+    const bounds = boardBounds(campaign);
+    let width = Math.max(bounds.w + 55, (bounds.h + 55) * view.width / view.height);
+    if (campaign && mobileLayout()) {
+        const first = state.units.find(u => u.kingdom === state.currentKingdom && !u.activated) || state.units[0];
+        const hex = first && getHex(first.hexId);
+        if (hex) {
+            const pos = center(hex);
+            width = view.width / .8;
+            camera = { x: pos.x - width / 2, y: pos.y - width * view.height / view.width / 2, w: width, h: width * view.height / view.width };
+        }
+    }
+    if (!camera || !campaign || !mobileLayout())
+        camera = { x: bounds.x + bounds.w / 2 - width / 2, y: bounds.y + bounds.h / 2 - width * view.height / view.width / 2, w: width, h: width * view.height / view.width };
+    if (campaign && state.scenario.id !== 'drefeld-teaching') {
+        const first = state.units.find(u => u.kingdom === state.currentKingdom && !u.activated);
+        const hex = first && getHex(first.hexId);
+        if (hex) {
+            const p = center(hex);
+            const w = view.width / .8;
+            camera = { x: p.x - w / 2, y: p.y - w * view.height / view.width / 2, w, h: w * view.height / view.width };
+        }
+    }
+    cameraBaseWidth = Math.max(boardBounds().w, boardBounds().h * view.width / view.height);
+    clampCamera();
+    updateCamera();
+}
+function zoom(multiplier, anchor, anchorScreen) {
+    if (!camera)
+        return;
+    const view = viewport(), bounds = boardBounds();
+    const fullWidth = Math.max(bounds.w, bounds.h * view.width / view.height);
+    const newW = Math.min(fullWidth * 1.08, Math.max(view.width / 1.7, camera.w * multiplier));
+    const point = anchor || { x: camera.x + camera.w / 2, y: camera.y + camera.h / 2 };
+    const screen = anchorScreen || { x: view.width / 2, y: view.height / 2 };
+    camera = { x: point.x - screen.x / view.width * newW, y: point.y - screen.y / view.width * newW, w: newW, h: newW * view.height / view.width };
+    clampCamera();
     updateCamera();
 }
 function updateCamera() {
-    const svg = document.querySelector('.board');
-    if (camera && svg)
-        svg.setAttribute('viewBox', `${camera.x} ${camera.y} ${camera.w} ${camera.h}`);
-    const label = document.querySelector('.zoom-level');
-    if (camera && label)
-        label.textContent = `${Math.round(cameraBaseWidth / camera.w * 100)}%`;
+    if (cameraFrame)
+        return;
+    cameraFrame = requestAnimationFrame(() => { cameraFrame = 0; paintCamera(); });
+}
+const markerInkCache = new WeakMap();
+function paintCamera() {
+    if (!camera)
+        return;
+    const view = viewport(), scale = view.width / camera.w, bounds = boardBounds();
+    const world = root.querySelector('.board-world');
+    if (world)
+        world.style.transform = `translate(${(bounds.x - camera.x) * scale}px,${(bounds.y - camera.y) * scale}px) scale(${scale})`;
+    const wrap = root.querySelector('.board-wrap');
+    if (!wrap)
+        return;
+    wrap.dataset.cameraX = camera.x.toFixed(3);
+    wrap.dataset.cameraY = camera.y.toFixed(3);
+    wrap.dataset.cameraWidth = camera.w.toFixed(3);
+    wrap.dataset.cameraHeight = camera.h.toFixed(3);
+    wrap.dataset.cameraScale = scale.toFixed(4);
+    wrap.classList.toggle('map-overview', scale < .48);
+    wrap.classList.toggle('map-detail', scale >= 1.12);
+    const units = [], townLabels = [], townIcons = [];
+    const markers = Array.from(root.querySelectorAll('.map-marker'));
+    const leaders = [];
+    const mode = `${scale < .48}:${mobileLayout()}`;
+    // Only newly mounted markers or a semantic zoom change need a DOM measurement.
+    // Every gesture thereafter uses cached local ink rectangles, not text guesses.
+    for (const marker of markers) {
+        const previous = markerInkCache.get(marker);
+        if (previous?.mode === mode)
+            continue;
+        const origin = marker.getBoundingClientRect(), cx = origin.left + origin.width / 2, cy = origin.top + origin.height / 2;
+        const parts = [];
+        for (const selector of marker.dataset.markerKind === 'unit' ? ['.unit-card', '.unit-map-name'] : ['img', '.town-map-name']) {
+            const element = marker.querySelector(selector);
+            if (!element)
+                continue;
+            const r = element.getBoundingClientRect();
+            if (r.width < 1 || r.height < 1)
+                continue;
+            parts.push({ kind: selector.includes('name') ? 'label' : 'icon', box: { left: r.left - cx, top: r.top - cy, right: r.right - cx, bottom: r.bottom - cy } });
+        }
+        if (marker.dataset.markerKind === 'town')
+            parts.push({ kind: 'hit', box: { left: -origin.width / 2, top: -origin.height / 2, right: origin.width / 2, bottom: origin.height / 2 } });
+        markerInkCache.set(marker, { mode, parts });
+    }
+    const overlap = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+    const shift = (b, x, y, pad = 2) => ({ left: b.left + x - pad, top: b.top + y - pad, right: b.right + x + pad, bottom: b.bottom + y + pad });
+    const setPosition = (marker, x, y) => {
+        marker.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px) translate(-50%,-50%)`;
+        const outside = x < -120 || x > view.width + 120 || y < -100 || y > view.height + 100;
+        marker.style.visibility = outside ? 'hidden' : 'visible';
+        marker.style.pointerEvents = outside ? 'none' : '';
+    };
+    for (const marker of markers.filter(m => m.dataset.markerKind === 'unit')) {
+        const x = (Number(marker.dataset.worldX) - camera.x) * scale + Number(marker.dataset.stackOffset || 0), y = (Number(marker.dataset.worldY) - camera.y) * scale - 8;
+        setPosition(marker, x, y);
+        for (const part of markerInkCache.get(marker)?.parts || [])
+            units.push(shift(part.box, Math.round(x), Math.round(y), 3));
+    }
+    const towns = markers.filter(m => m.dataset.markerKind === 'town').sort((a, b) => Number(b.classList.contains('selected')) - Number(a.classList.contains('selected')) || Number(b.classList.contains('important')) - Number(a.classList.contains('important')));
+    const destinations = [];
+    const selected = getUnit();
+    if (selected)
+        for (const action of currentActions) {
+            if (!('unitId' in action) || action.unitId !== selected.id || !['move', 'ship', 'attack'].includes(action.type))
+                continue;
+            const id = action.type === 'attack' ? action.targetHex : action.type === 'move' || action.type === 'ship' ? action.toHex : '';
+            const hex = getHex(id);
+            if (!hex)
+                continue;
+            const p = center(hex), px = (p.x - camera.x) * scale, py = (p.y - camera.y) * scale, half = Math.max(22, 15 * scale + 3);
+            destinations.push({ left: px - half, top: py - half, right: px + half, bottom: py + half });
+        }
+    for (const marker of towns) {
+        const x = (Number(marker.dataset.worldX) - camera.x) * scale, y = (Number(marker.dataset.worldY) - camera.y) * scale;
+        if ((scale < .48 && !marker.classList.contains('important') && !marker.classList.contains('selected')) || x < -80 || x > view.width + 80 || y < -80 || y > view.height + 80) {
+            marker.style.visibility = 'hidden';
+            marker.style.pointerEvents = 'none';
+            continue;
+        }
+        const ink = markerInkCache.get(marker)?.parts || [], label = ink.find(p => p.kind === 'label')?.box, iconBox = ink.find(p => p.kind === 'icon')?.box, hitBox = ink.find(p => p.kind === 'hit')?.box;
+        if (!label || !iconBox || !hitBox)
+            continue;
+        const occupied = state.units.some(u => u.hexId === marker.dataset.mapHex);
+        const candidates = occupied ? [[0, 44], [105, 0], [-105, 0], [105, 52], [-105, 52], [0, -84], [0, 112], [142, -48], [-142, -48]] : [[0, 12], [90, 0], [-90, 0], [0, 60], [0, -70], [130, 40], [-130, 40]];
+        for (const radius of [120, 170, 220])
+            for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [.75, .75], [-.75, .75], [.75, -.75], [-.75, -.75]])
+                candidates.push([dx * radius, dy * radius]);
+        let chosen = { x, y }, best = Infinity, chosenLabel = shift(label, x, y), chosenIcon = shift(iconBox, x, y);
+        for (let i = 0; i < candidates.length; i++) {
+            const [dx, dy] = candidates[i];
+            // Clamp the whole plaque into view before comparing candidates; otherwise
+            // a partially offscreen town can prefer a text collision to edge clipping.
+            const px = Math.round(Math.max(7 - label.left, Math.min(x + dx, view.width - 7 - label.right)));
+            const py = Math.round(Math.max(7 - iconBox.top, Math.min(y + dy, view.height - 7 - label.bottom)));
+            const plaque = shift(label, px, py, 3), image = shift(iconBox, px, py, 2), buttonBox = shift(hitBox, px, py, 3);
+            const textHit = units.reduce((n, u) => n + overlap(plaque, u), 0) + townLabels.reduce((n, t) => n + overlap(plaque, t), 0);
+            const imageHit = units.reduce((n, u) => n + overlap(image, u), 0) + townIcons.reduce((n, t) => n + overlap(image, t), 0);
+            const destinationHit = destinations.reduce((n, d) => n + overlap(buttonBox, d) + overlap(plaque, d), 0);
+            const score = destinationHit * 1000000 + textHit * 100000 + imageHit * 25 + Math.hypot(px - x, py - y) * .1 + i * .01;
+            if (score < best) {
+                best = score;
+                chosen = { x: px, y: py };
+                chosenLabel = plaque;
+                chosenIcon = image;
+            }
+            if (destinationHit === 0 && textHit === 0 && imageHit === 0 && i === 0)
+                break;
+        }
+        setPosition(marker, chosen.x, chosen.y);
+        townLabels.push(chosenLabel);
+        townIcons.push(chosenIcon);
+        marker.dataset.labelShiftX = (chosen.x - x).toFixed(1);
+        marker.dataset.labelShiftY = (chosen.y - y).toFixed(1);
+        if (occupied || Math.abs(chosen.x - x) > 1 || Math.abs(chosen.y - y - 12) > 1)
+            leaders.push(`<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${chosen.x.toFixed(1)}" y2="${(chosen.y - 8).toFixed(1)}"/>`);
+    }
+    const leaderLayer = root.querySelector('.map-leaders');
+    if (leaderLayer)
+        leaderLayer.innerHTML = leaders.join('');
+    const label = root.querySelector('.zoom-level');
+    if (label)
+        label.textContent = `${Math.round(scale * 100)}%`;
 }
 function focusUnit(u) {
     const hex = getHex(u.hexId);
-    if (!hex || !camera)
+    if (!hex)
         return;
+    const view = viewport();
     const pos = center(hex);
-    if (camera.w > 1800)
-        zoom(900 / camera.w, pos);
-    camera = { ...camera, x: pos.x - camera.w / 2, y: pos.y - camera.h / 2 };
+    const scale = Math.max(.8, Math.min(1.1, camera ? view.width / camera.w : .9));
+    const w = view.width / scale;
+    const area = visibleMapArea();
+    const targetX = mobileLayout() ? (area.left + area.right) / 2 : view.width / 2;
+    let targetY = mobileLayout() ? (area.top + area.bottom) / 2 : view.height / 2;
+    if (mobileLayout()) {
+        const marker = Array.from(root.querySelectorAll('[data-map-unit]')).find(m => m.dataset.mapUnit === u.id);
+        let inkTop = -40, inkBottom = 53;
+        if (marker) {
+            const origin = marker.getBoundingClientRect(), cy = origin.top + origin.height / 2;
+            const rects = Array.from(marker.querySelectorAll('.unit-card,.unit-map-name')).map(e => e.getBoundingClientRect()).filter(r => r.height > 0);
+            if (rects.length) {
+                inkTop = Math.min(...rects.map(r => r.top - cy)) - 8;
+                inkBottom = Math.max(...rects.map(r => r.bottom - cy)) - 8;
+            }
+        }
+        // Centre the complete visible card and its name, not just the hex centre.
+        const minY = area.top - inkTop, maxY = area.bottom - inkBottom;
+        targetY = minY <= maxY ? Math.max(minY, Math.min((area.top + area.bottom - inkTop - inkBottom) / 2, maxY)) : minY;
+    }
+    camera = { x: pos.x - targetX / scale, y: pos.y - targetY / scale, w, h: w * view.height / view.width };
+    clampCamera();
     updateCamera();
 }
-function drawCounter(u, index) {
+function drawCounter(u) {
     const h = getHex(u.hexId);
     if (!h)
         return '';
     const d = definition(u), s = stats(u), pos = center(h);
-    const friendly = u.kingdom === state.currentKingdom;
-    const name = d.name.length > 18 ? d.name.slice(0, 17) + '…' : d.name;
     const stack = state.units.filter(v => v.hexId === u.hexId);
-    const offset = (stack.findIndex(v => v.id === u.id) - (stack.length - 1) / 2) * 24;
-    return `<g class="counter ${u.activated ? 'used' : ''} ${selectedUnitId === u.id ? 'selected' : ''}" transform="translate(${pos.x - 30 + offset},${pos.y - 36 + offset / 3})" data-unit="${esc(u.id)}" role="button" tabindex="0" aria-label="${esc(`${d.name}, ${kingdomName(u.kingdom)}, ${u.weakened ? 'weakened' : 'full strength'}, ${u.activated ? 'activated' : 'ready'}`)}">
-    <title>${esc(d.name)} · ${esc(kingdomName(u.kingdom))} · ${s.light} Light / ${s.heavy} Heavy · Move ${s.move}</title>
-    <rect class="counter-border" x="0" y="0" width="60" height="65" rx="1.5" style="stroke:${selectedUnitId === u.id ? '#fff2b4' : color(u.kingdom)};stroke-width:${selectedUnitId === u.id ? 3 : 2}"/>
-    <clipPath id="counter-clip-${index}"><rect x="2" y="2" width="56" height="45"/></clipPath>
-    <image href="${esc(art(d))}" x="2" y="2" width="56" height="45" preserveAspectRatio="xMidYMid slice" clip-path="url(#counter-clip-${index})"/>
-    <rect x="2" y="2" width="56" height="9" fill="${color(u.kingdom)}" fill-opacity=".88"/>
-    <text class="counter-faction" x="30" y="8.5" text-anchor="middle">${esc(kingdomName(u.kingdom).toUpperCase())}</text>
-    <rect x="2" y="43" width="56" height="20" fill="#192028" fill-opacity=".9"/>
-    <text class="counter-name" x="30" y="50.5" text-anchor="middle">${esc(name)}</text>
-    <rect x="6" y="53" width="11" height="10" rx="1.5" fill="#eee5c9"/><text x="11.5" y="61.5" text-anchor="middle" class="counter-stat">${s.light}</text>
-    <path d="m24 53 5-1 5 3v5l-5 3-5-3Z" fill="#45545d" stroke="#afbbc0" stroke-width=".5"/><text x="29" y="61.5" text-anchor="middle" class="counter-stat heavy">${s.heavy}</text>
-    <text x="49" y="61" text-anchor="middle" class="counter-move">${s.move}›</text>
-    ${u.weakened ? '<rect x="1" y="1" width="58" height="63" class="counter-weakened"/>' : ''}
-    ${friendly && !u.activated ? '<circle cx="57" cy="3" r="3" fill="#e9dfb7" stroke="#273d33" stroke-width="1"/>' : ''}
-  </g>`;
+    const offset = (stack.findIndex(v => v.id === u.id) - (stack.length - 1) / 2) * 54;
+    const ready = !u.activated && u.kingdom === state.currentKingdom;
+    const short = d.name.replace(/^(The |King’s |King's )/, '').split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase();
+    return `<button type="button" class="map-marker unit-marker counter ${u.activated ? 'used' : ''} ${selectedUnitId === u.id ? 'selected' : ''}" data-map-unit="${esc(u.id)}" data-unit="${esc(u.id)}" data-marker-kind="unit" data-world-x="${pos.x}" data-world-y="${pos.y}" data-stack-offset="${offset}" style="--faction:${color(u.kingdom)}" aria-label="${esc(`${d.name}, ${kingdomName(u.kingdom)}, ${u.weakened ? 'weakened' : 'full strength'}, ${u.activated ? 'activated' : 'ready'}`)}" title="${esc(d.name)} · ${esc(kingdomName(u.kingdom))}">
+    <span class="unit-card ${u.weakened ? 'weakened' : ''}"><img src="${esc(art(d))}" alt="" draggable="false"><span class="unit-faction-mark">${esc(short)}</span>${ready ? '<span class="unit-ready" title="Ready"></span>' : ''}<span class="unit-card-stats"><span class="light-die">${s.light}</span><span class="heavy-die">${s.heavy}</span><span class="move-value">${u.id === state.activeUnitId ? state.remainingMP : s.move}›</span></span></span><span class="unit-map-name">${esc(d.name)}</span>${u.weakened ? '<span class="unit-condition">WEAK</span>' : ''}
+  </button>`;
 }
 function renderMap() {
     const unit = getUnit();
     const movement = unit && unit.kingdom === state.currentKingdom ? (shipMode ? shipOptions(state, unit.id) : moveOptions(state, unit.id)) : [];
     const moveSet = new Set(movement.map(m => m.hexId));
     const attackSet = new Set(currentActions.filter(a => a.type === 'attack' && a.unitId === unit?.id).map(a => a.type === 'attack' ? a.targetHex : ''));
-    const terrainColors = { clear: '#cbc19b', forest: '#7e9171', mountain: '#989486', swamp: '#829588', sea: '#92abb0', coastal: '#a2b5b0', 'major-river': '#92aaa6', lair: '#979076' };
+    const terrainColors = { clear: '#e0d7b8', forest: '#a9b99a', mountain: '#b8b5a5', swamp: '#acb9a5', sea: '#a9c0c6', coastal: '#b7cac5', 'major-river': '#a9c0c6', lair: '#b4a99d' };
     const terrainAsset = { coastal: 'sea', 'major-river': 'sea', lair: 'mountain' };
-    const definitions = Object.keys(terrainColors).map(t => `<pattern id="terrain-${t}" width="200" height="200" patternUnits="userSpaceOnUse"><rect width="200" height="200" fill="${terrainColors[t]}"/><image href="./assets/terrain-${terrainAsset[t] || t}.webp" width="200" height="200" opacity=".92"/></pattern>`).join('');
+    const definitions = Object.keys(terrainColors).map(t => `<pattern id="terrain-${t}" width="220" height="220" patternUnits="userSpaceOnUse"><rect width="220" height="220" fill="${terrainColors[t]}"/><image href="./assets/terrain-${terrainAsset[t] || t}.webp" width="220" height="220" opacity=".23"/></pattern>`).join('');
     let roads = '';
     const byId = new Map(state.hexes.map(h => [h.id, h]));
     for (const hex of state.hexes)
@@ -400,30 +577,22 @@ function renderMap() {
             }
         }
     const cells = state.hexes.map(h => {
-        const p = center(h);
-        const controlled = state.controls[h.id];
-        const razed = state.razed.includes(h.id);
-        const selected = selectedHex === h.id;
-        const settlement = h.settlement;
-        const landmark = h.mine ? 'mine' : razed ? 'ruin' : settlement?.city ? 'city' : settlement?.port ? 'port' : settlement ? 'village' : h.entry ? 'spire' : null;
-        const label = settlement?.name || (h.mine ? 'Gold mine' : h.entry || '');
-        return `<g class="hex-group ${selected ? 'selected' : ''} ${moveSet.has(h.id) ? 'move-option' : ''} ${attackSet.has(h.id) ? 'attack-option' : ''} ${h.prohibited ? 'unavailable' : ''}" transform="translate(${p.x},${p.y})" data-hex="${esc(h.id)}" role="button" tabindex="-1" aria-label="${esc(`${h.id}, ${h.terrain}${label ? `, ${label}` : ''}`)}">
-      <title>${esc(h.id)} · ${esc(h.terrain)}${label ? ` · ${esc(label)}` : ''}${controlled ? ` · ${esc(kingdomName(controlled))} control` : ''}</title>
-      <polygon class="hex-shape" points="${points}" fill="url(#terrain-${h.terrain})"/>
-      ${controlled ? `<circle class="control-ring" r="24" stroke="${color(controlled)}"/>` : ''}
-      ${landmark ? `<image href="./assets/landmark-${landmark}.webp" x="-28" y="-25" width="56" height="50" preserveAspectRatio="xMidYMid meet"/>` : ''}
-      ${state.covens.includes(h.id) ? '<path d="m-10 4 10-19 10 19-10-5Z" fill="#634354" stroke="#e0b7ca" stroke-width="1.5"/>' : ''}
-      ${label ? `<text class="map-name" text-anchor="middle" x="0" y="${landmark ? 39 : 9}">${esc(label)}</text>` : ''}
-      ${moveSet.has(h.id) && !state.units.some(u => u.hexId === h.id) ? `<circle r="7" fill="#315d47" fill-opacity=".6" stroke="#d7e0b3"/><text x="0" y="3" text-anchor="middle" font-size="8" fill="#eeeacb">${movement.find(m => m.hexId === h.id)?.cost ?? ''}</text>` : ''}
-      <text class="map-id" x="42" y="-36" text-anchor="middle">${esc(h.id)}</text>
-    </g>`;
+        const p = center(h), controlled = state.controls[h.id], selected = selectedHex === h.id;
+        return `<g class="hex-group ${selected ? 'selected' : ''} ${moveSet.has(h.id) ? 'move-option' : ''} ${attackSet.has(h.id) ? 'attack-option' : ''} ${h.prohibited ? 'unavailable' : ''}" transform="translate(${p.x},${p.y})" data-hex="${esc(h.id)}" role="button" tabindex="-1" aria-label="${esc(`${h.id}, ${h.terrain}${h.settlement ? `, ${h.settlement.name}` : ''}`)}"><title>${esc(h.id)} · ${esc(h.terrain)}${h.settlement ? ` · ${esc(h.settlement.name)}` : ''}</title><polygon class="hex-shape" points="${points}" fill="url(#terrain-${h.terrain})"/>${controlled ? `<circle class="control-ring" r="28" stroke="${color(controlled)}"/>` : ''}${state.covens.includes(h.id) ? '<path d="m-14 4 14-23 14 23-14-6Z" fill="#634354" stroke="#e0b7ca" stroke-width="2"/>' : ''}${moveSet.has(h.id) && !state.units.some(u => u.hexId === h.id) ? `<circle r="15" fill="#366450" stroke="#fcf6db" stroke-width="2"/><text x="0" y="5" text-anchor="middle" font-size="15" font-weight="600" fill="#fff9df">${movement.find(m => m.hexId === h.id)?.cost ?? ''}</text>` : ''}</g>`;
     }).join('');
     const target = selectedTargetAction();
     const path = target && (target.type === 'move' || target.type === 'ship') && target.path ? [unit?.hexId, ...target.path].filter((id) => !!id).map(id => getHex(id)).filter((h) => !!h).map(center) : [];
-    const line = path.length > 1 ? `<polyline points="${path.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#f5e4ad" stroke-width="4" stroke-dasharray="5 7" stroke-linecap="round" pointer-events="none"/>` : '';
-    const bounds = camera || boardBounds();
+    const line = path.length > 1 ? `<polyline points="${path.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#fff6c7" stroke-width="7" stroke-dasharray="8 7" stroke-linecap="round" pointer-events="none"/>` : '';
+    const towns = state.hexes.filter(h => h.settlement || h.mine || h.entry).map(h => {
+        const p = center(h), razed = state.razed.includes(h.id), settlement = h.settlement;
+        const kind = h.mine ? 'mine' : razed ? 'ruin' : settlement?.city ? 'city' : settlement?.port ? 'port' : settlement ? 'village' : 'spire';
+        const name = settlement?.name || (h.mine ? 'Gold mine' : h.entry || '');
+        const important = !!state.controls[h.id] || state.scenario.objective.hexIds.includes(h.id) || !!state.units.find(u => u.hexId === h.id);
+        return `<button type="button" class="map-marker town-marker ${important ? 'important' : ''} ${selectedHex === h.id ? 'selected' : ''}" data-map-hex="${esc(h.id)}" data-marker-kind="town" data-world-x="${p.x}" data-world-y="${p.y}" title="${esc(name)} · ${esc(h.terrain)}" aria-label="${esc(name)}, ${esc(kind)}"><img src="./assets/landmark-${kind}.webp" alt="" draggable="false"><span class="town-map-name">${esc(name)}</span>${state.controls[h.id] ? `<i style="background:${color(state.controls[h.id])}"></i>` : ''}</button>`;
+    }).join('');
+    const bounds = boardBounds();
     const sortedUnits = state.units.slice().sort((a, b) => Number(a.id === selectedUnitId) - Number(b.id === selectedUnitId));
-    return `<svg class="board" viewBox="${bounds.x} ${bounds.y} ${bounds.w} ${bounds.h}" tabindex="0" role="application" aria-label="War map. Drag to pan, mouse wheel to zoom. Arrow keys pan; plus and minus zoom. Select armies in the Council panel to use keyboard controls." preserveAspectRatio="xMidYMid meet"><defs>${definitions}</defs>${cells}${roads}${line}${sortedUnits.map(drawCounter).join('')}</svg>`;
+    return `<svg class="board board-world" viewBox="${bounds.x} ${bounds.y} ${bounds.w} ${bounds.h}" width="${bounds.w}" height="${bounds.h}" role="img" aria-label="Terrain and legal destinations on the Wildlands map" preserveAspectRatio="none"><defs>${definitions}</defs>${cells}${roads}${line}</svg><svg class="map-leaders" aria-hidden="true"></svg><div class="map-marker-layer">${towns}${sortedUnits.map(drawCounter).join('')}</div>`;
 }
 function selectedDescription() {
     const h = getHex(selectedHex);
@@ -517,6 +686,8 @@ function chroniclePanel() {
 function actionBar() {
     const description = selectedDescription();
     const target = selectedTargetAction();
+    const u = getUnit(), values = u ? stats(u) : null;
+    const statCopy = values ? `<span class="action-stats">${values.light} Light · ${values.heavy} Heavy · ${u.id === state.activeUnitId ? state.remainingMP : values.move} Move</span> ` : '';
     let actions = '';
     if (isBot())
         actions = button('bot-toggle', botPaused ? 'Resume computer' : 'Pause computer', botPaused ? 'arrow' : 'pause', 'secondary-button');
@@ -533,12 +704,17 @@ function actionBar() {
         actions = button('victory', 'Campaign result', 'banner', 'primary-button');
     else {
         const pass = currentActions.find(a => a.type === 'pass' && a.unitId === state.activeUnitId);
+        const ready = state.units.some(u => u.kingdom === state.currentKingdom && !u.activated);
+        if (getUnit() && !getUnit().activated && getUnit().kingdom === state.currentKingdom)
+            actions += '<button class="primary-button" disabled><span class="desktop-label">Choose destination</span><span class="phone-label">Choose hex</span></button>';
+        else if (ready)
+            actions += button('next-ready', 'Command army', 'army', 'primary-button');
         if (pass)
-            actions += `<button class="secondary-button desktop-pass" ${actionAttr(pass)} ${stateReady() ? '' : 'disabled'}>Finish activation</button>`;
+            actions += `<button class="secondary-button desktop-pass" ${actionAttr(pass)} ${stateReady() ? '' : 'disabled'}>Finish army</button>`;
         const end = currentActions.find(a => a.type === 'end-turn');
-        actions += `<button class="${pass ? 'secondary-button' : 'primary-button'}" ${actionAttr({ type: 'end-turn' })} ${end && stateReady() ? '' : 'disabled'}>${icon('arrow')}<span>End turn</span></button>`;
+        actions += `<button class="${ready || pass ? 'secondary-button' : 'primary-button'}" ${actionAttr({ type: 'end-turn' })} ${end && stateReady() ? '' : 'disabled'}>${icon('arrow')}<span>End turn</span></button>`;
     }
-    return `<div class="actionbar"><div class="action-context"><div class="phase-icon">${icon(target?.type === 'attack' ? 'swords' : 'banner')}</div><div><h3>${esc(description.title)}</h3><p>${esc(description.text)}</p></div></div><div class="action-buttons">${actions}${button('mobile-panel', 'Open Council', 'army', 'mobile-panel-toggle')}</div></div>`;
+    return `<div class="actionbar"><div class="action-context"><div class="phase-icon">${icon(target?.type === 'attack' ? 'swords' : 'banner')}</div><div><h3>${esc(description.title)}</h3><p>${statCopy}<span class="action-instruction">${esc(description.text)}</span></p></div></div><div class="action-buttons">${actions}${button('mobile-panel', 'Details', 'army', 'mobile-panel-toggle')}</div></div>`;
 }
 function setupModal() {
     const sc = config.scenario;
@@ -558,16 +734,23 @@ function galleryModal() {
 function victoryModal() {
     return standardModal('The campaign ends', `<div class="eyebrow">${esc(seasons[state.season])} ${state.year}</div><h3 class="game-over-title" style="margin-top:17px">${state.winner ? `${state.winner === 'invader' ? 'Invaders' : 'Resistance'} prevail` : 'Campaign complete'}</h3><p>${esc(state.victoryReason || 'The campaign has reached its conclusion.')}</p><p style="margin-top:17px">Your final position remains on the table. Export a copy or start another campaign.</p><div style="display:flex;gap:9px;margin-top:23px"><button class="primary-button" data-command="setup">New campaign</button><button class="secondary-button" data-command="export">Export final position</button></div>`);
 }
+function endTurnModal() {
+    const count = state.units.filter(u => u.kingdom === state.currentKingdom && !u.activated).length;
+    return standardModal('End this kingdom’s turn?', `<p>${count} ${count === 1 ? 'army is' : 'armies are'} still ready. Ending the turn leaves their remaining actions unused.</p><div class="end-turn-choices"><button class="secondary-button" data-command="close-modal">Keep commanding</button><button class="primary-button" data-command="end-now">End turn</button></div>`);
+}
 function standardModal(title, body) { return `<div class="modal-shade"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="modal-header"><h2 id="dialog-title">${esc(title)}</h2>${button('close-modal', 'Close dialog', 'close')}</div><div class="modal-body">${body}</div><div class="modal-footer"><button class="secondary-button" data-command="close-modal">Return to the table</button></div></section></div>`; }
 function curtainHTML() { return `<div class="curtain" role="dialog" aria-modal="true" aria-labelledby="handoff-title"><div class="curtain-inner"><div class="curtain-seal">${icon('banner')}</div><div class="eyebrow">Pass the table</div><h2 id="handoff-title">${esc(kingdomName(curtain))}</h2><p>It is your decision. Pass the device to the player commanding this kingdom, then reveal the table.</p><button class="primary-button" data-command="reveal">I’m ready · Reveal the map</button></div></div>`; }
 function render() {
+    if (gestureActive)
+        suppressMapClickUntil = performance.now() + 250;
+    gestureActive = false;
     const previousFocus = document.activeElement;
     const focusID = previousFocus?.id;
     const focusData = previousFocus && ['command', 'controller', 'selectUnit', 'recruit'].map(key => [key, previousFocus.dataset[key]]).find(([, value]) => !!value);
-    const mapFocused = previousFocus?.classList.contains('board');
+    const mapFocused = previousFocus?.classList.contains('board-wrap');
     currentActions = legalActions(state);
     const k = kingdom(state.currentKingdom);
-    root.innerHTML = `<main class="war-app"><header class="topbar"><div class="brand"><div class="brand-seal">${icon('banner')}</div><div><h1>Burning Banners</h1><small>RAGE OF THE WITCH QUEEN</small></div></div><div class="header-scenario"><strong>${esc(state.scenario.name)}</strong><span class="separator"></span><span>Basic Game</span></div><div class="header-actions"><span class="save-status ${saveError ? 'error' : ''}" role="status">${esc(saveStatus)}</span>${button('rules', 'Rules', 'book')}${button('export', 'Save', 'download')}${button('setup', 'Campaign', 'settings')}</div></header><section class="workspace"><nav class="toolrail" aria-label="Table tools">${button('council', 'Council', 'map', `rail-button ${sideTab === 'council' ? 'active' : ''}`)}${button('muster', 'Muster', 'army', `rail-button ${sideTab === 'muster' ? 'active' : ''}`)}${button('chronicle', 'Chronicle', 'history', `rail-button ${sideTab === 'chronicle' ? 'active' : ''}`)}<div class="rail-spacer"></div>${button('gallery', 'Armies', 'banner', 'rail-button rail-secondary')}${button('rules', 'Rules', 'book', 'rail-button rail-secondary')}${button('sound', sound ? 'Sound on' : 'Sound off', sound ? 'sound' : 'mute', `rail-button rail-secondary ${sound ? 'active' : ''}`)}${button('credits', 'Sources', 'info', 'rail-button rail-secondary')}</nav><div class="board-wrap"><div class="board-heading"><span>${esc(state.scenario.official ? 'THE WILDLANDS' : 'THE WILDLANDS · ORIGINAL SETUP')}</span><h2>${esc(state.scenario.name)}</h2></div><div class="board-legend"><span><i class="legend-dot"></i>Legal movement</span><span><i class="legend-dot enemy"></i>Legal attack</span></div>${renderMap()}<div class="board-compass"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 2 29 20 46 24 29 29 24 46 19 29 2 24 19 20Z"/><circle cx="24" cy="24" r="8" fill="#d6cda8"/><path d="M24 6 27 22 24 24 21 22Z"/></svg>NORTH</div><div class="map-controls">${button('zoom-out', 'Zoom out', 'minus')}<span class="zoom-level">100%</span>${button('zoom-in', 'Zoom in', 'plus')}${button('fit', 'Fit board', 'fit')}</div></div><aside class="sidebar ${mobileOpen ? 'mobile-open' : ''}" aria-label="Kingdom and army details"><div class="turn-card"><div class="eyebrow"><span>${esc(seasons[state.season])} ${state.year}</span><span>${isBot() ? '<span class="bot-indicator">COMPUTER</span>' : 'YOUR COMMAND'}</span></div><h2><span class="faction-dot" style="background:${color(k.id)}"></span>${esc(k.name)}</h2><div class="turn-meta"><span><span class="gold-icon">•</span><strong>${k.gold}</strong> gold</span><span>Income +${k.income}</span><span class="phase">${state.pendingCombat ? 'Battle decision' : state.phase === 'income-actions' ? 'Income phase' : state.phase === 'game-over' ? 'Campaign ends' : 'Activations'}</span></div></div>${button('mobile-panel', 'Close Council', 'close', 'close-panel')}<div class="side-tabs" role="tablist" aria-label="Kingdom panels">${button('council', 'Council', 'map', sideTab === 'council' ? 'active' : '')}${button('muster', 'Muster', 'army', sideTab === 'muster' ? 'active' : '')}${button('chronicle', 'Chronicle', 'history', sideTab === 'chronicle' ? 'active' : '')}</div><div class="side-scroll">${sideTab === 'council' ? councilPanel() : sideTab === 'muster' ? musterPanel() : chroniclePanel()}</div></aside></section>${actionBar()}</main>${modal === 'setup' ? setupModal() : modal === 'rules' ? rulesModal() : modal === 'credits' ? creditsModal() : modal === 'gallery' ? galleryModal() : modal === 'victory' ? victoryModal() : ''}${curtain ? curtainHTML() : ''}`;
+    root.innerHTML = `<main class="war-app"><header class="topbar"><div class="brand"><div class="brand-seal">${icon('banner')}</div><div><h1>Burning Banners</h1><small>RAGE OF THE WITCH QUEEN</small></div></div><div class="header-scenario"><strong>${esc(state.scenario.name)}</strong><span class="separator"></span><span>Basic Game</span></div><div class="header-actions"><span class="save-status ${saveError ? 'error' : ''}" role="status">${esc(saveStatus)}</span>${button('rules', 'Rules', 'book')}${button('export', 'Save', 'download')}${button('setup', 'Campaign', 'settings')}</div></header><section class="workspace"><nav class="toolrail" aria-label="Table tools">${button('council', 'Council', 'map', `rail-button ${sideTab === 'council' ? 'active' : ''}`)}${button('muster', 'Muster', 'army', `rail-button ${sideTab === 'muster' ? 'active' : ''}`)}${button('chronicle', 'Chronicle', 'history', `rail-button ${sideTab === 'chronicle' ? 'active' : ''}`)}<div class="rail-spacer"></div>${button('gallery', 'Armies', 'banner', 'rail-button rail-secondary')}${button('rules', 'Rules', 'book', 'rail-button rail-secondary')}${button('sound', sound ? 'Sound on' : 'Sound off', sound ? 'sound' : 'mute', `rail-button rail-secondary ${sound ? 'active' : ''}`)}${button('credits', 'Sources', 'info', 'rail-button rail-secondary')}</nav><div class="board-wrap" tabindex="0" role="application" aria-label="War map. Drag to pan, scroll or pinch to zoom. Arrow keys pan, N finds the next ready army."><div class="board-heading"><span>${esc(state.scenario.official ? 'THE WILDLANDS' : 'THE WILDLANDS · ORIGINAL SETUP')}</span><h2>${esc(state.scenario.name)}</h2></div><div class="board-legend"><span><i class="legend-dot"></i>Legal movement</span><span><i class="legend-dot enemy"></i>Legal attack</span></div>${renderMap()}<div class="board-compass"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 2 29 20 46 24 29 29 24 46 19 29 2 24 19 20Z"/><circle cx="24" cy="24" r="8" fill="#d6cda8"/><path d="M24 6 27 22 24 24 21 22Z"/></svg>NORTH</div><div class="map-nav">${button('next-ready', 'Next army', 'army')}${button('focus-selected', 'Focus', 'fit', '', !getUnit())}</div><div class="map-controls">${button('zoom-out', 'Zoom out', 'minus')}<span class="zoom-level">100%</span>${button('zoom-in', 'Zoom in', 'plus')}${button('fit', 'Overview', 'fit')}</div></div><aside class="sidebar ${mobileOpen ? 'mobile-open' : ''}" aria-label="Kingdom and army details"><div class="turn-card"><div class="eyebrow"><span>${esc(seasons[state.season])} ${state.year}</span><span>${isBot() ? '<span class="bot-indicator">COMPUTER</span>' : 'YOUR COMMAND'}</span></div><h2><span class="faction-dot" style="background:${color(k.id)}"></span>${esc(k.name)}</h2><div class="turn-meta"><span><span class="gold-icon">•</span><strong>${k.gold}</strong> gold</span><span>Income +${k.income}</span><span class="phase">${state.pendingCombat ? 'Battle decision' : state.phase === 'income-actions' ? 'Income phase' : state.phase === 'game-over' ? 'Campaign ends' : 'Activations'}</span></div></div>${button('mobile-panel', 'Close Council', 'close', 'close-panel')}<div class="side-tabs" role="tablist" aria-label="Kingdom panels">${button('council', 'Council', 'map', sideTab === 'council' ? 'active' : '')}${button('muster', 'Muster', 'army', sideTab === 'muster' ? 'active' : '')}${button('chronicle', 'Chronicle', 'history', sideTab === 'chronicle' ? 'active' : '')}</div><div class="side-scroll">${sideTab === 'council' ? councilPanel() : sideTab === 'muster' ? musterPanel() : chroniclePanel()}</div></aside></section>${actionBar()}</main>${modal === 'setup' ? setupModal() : modal === 'rules' ? rulesModal() : modal === 'credits' ? creditsModal() : modal === 'gallery' ? galleryModal() : modal === 'victory' ? victoryModal() : modal === 'end-confirm' ? endTurnModal() : ''}${curtain ? curtainHTML() : ''}`;
     wireBoard();
     if (!stateReady())
         root.querySelectorAll('button[data-action]').forEach(b => { b.disabled = true; });
@@ -582,7 +765,7 @@ function render() {
         if (!destination && focusData)
             destination = Array.from(root.querySelectorAll('button')).find(b => b.dataset[focusData[0]] === focusData[1]) || null;
         if (!destination && mapFocused)
-            destination = root.querySelector('.board');
+            destination = root.querySelector('.board-wrap');
         if (!destination && (modal || curtain))
             destination = root.querySelector('.curtain button, .modal select, .modal button');
         destination?.focus({ preventScroll: true });
@@ -596,6 +779,8 @@ function selectUnit(id, focus = false) {
     selectedHex = null;
     shipMode = false;
     sideTab = 'council';
+    if (mobileLayout())
+        mobileOpen = false;
     render();
     if (focus)
         focusUnit(unit);
@@ -614,65 +799,160 @@ function selectHex(id) {
     render();
 }
 function wireBoard() {
-    const svg = root.querySelector('.board');
-    let dragging = false;
+    const wrap = root.querySelector('.board-wrap');
+    const pointers = new Map();
+    let lastX = 0, lastY = 0, downX = 0, downY = 0;
     let moved = false;
-    let downX = 0, downY = 0;
-    let lastX = 0, lastY = 0;
     let downTarget = null;
-    const position = (x, y) => { const rect = svg.getBoundingClientRect(); return { x: camera.x + (x - rect.left) / rect.width * camera.w, y: camera.y + (y - rect.top) / rect.height * camera.h }; };
-    svg.addEventListener('wheel', event => { event.preventDefault(); if (!camera)
-        return; zoom(event.deltaY > 0 ? 1.12 : .89, position(event.clientX, event.clientY)); }, { passive: false });
-    svg.addEventListener('pointerdown', event => { if (event.button !== 0 || !camera)
-        return; dragging = true; moved = false; downX = lastX = event.clientX; downY = lastY = event.clientY; downTarget = event.target; svg.setPointerCapture(event.pointerId); });
-    svg.addEventListener('pointermove', event => { if (!dragging || !camera)
-        return; if (Math.hypot(event.clientX - downX, event.clientY - downY) > 5)
-        moved = true; if (moved) {
-        svg.classList.add('dragging');
-        const rect = svg.getBoundingClientRect();
-        camera.x -= (event.clientX - lastX) / rect.width * camera.w;
-        camera.y -= (event.clientY - lastY) / rect.height * camera.h;
-        updateCamera();
-    } lastX = event.clientX; lastY = event.clientY; });
-    const release = (event) => { if (!dragging)
-        return; dragging = false; svg.classList.remove('dragging'); if (svg.hasPointerCapture(event.pointerId))
-        svg.releasePointerCapture(event.pointerId); if (!moved && downTarget) {
-        const counter = downTarget.closest('[data-unit]');
-        const cell = downTarget.closest('[data-hex]');
-        if (counter) {
-            const u = state.units.find(u => u.id === counter.dataset.unit);
-            const selected = getUnit();
-            if (u && selected && u.kingdom !== selected.kingdom && currentActions.some(a => a.type === 'attack' && a.unitId === selected.id && a.targetHex === u.hexId))
-                selectHex(u.hexId);
-            else
-                selectUnit(counter.dataset.unit);
+    let pinch = null;
+    const position = (x, y) => { const v = viewport(); return { x: camera.x + (x - v.left) / v.width * camera.w, y: camera.y + (y - v.top) / v.height * camera.h }; };
+    const measurePinch = () => {
+        const pair = Array.from(pointers.values()).slice(0, 2);
+        return { distance: Math.max(1, Math.hypot(pair[1].x - pair[0].x, pair[1].y - pair[0].y)), x: (pair[0].x + pair[1].x) / 2, y: (pair[0].y + pair[1].y) / 2 };
+    };
+    wrap.addEventListener('wheel', event => {
+        if (event.target.closest('.map-controls') || !camera)
+            return;
+        event.preventDefault();
+        wrap.focus({ preventScroll: true });
+        const v = viewport();
+        const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? v.height : 1);
+        const factor = Math.exp(Math.max(-180, Math.min(180, delta)) * .0017);
+        zoom(factor, position(event.clientX, event.clientY), { x: event.clientX - v.left, y: event.clientY - v.top });
+    }, { passive: false });
+    wrap.addEventListener('pointerdown', event => {
+        if (event.button !== 0 || !camera || event.target.closest('.map-controls, .map-nav'))
+            return;
+        event.preventDefault();
+        wrap.focus({ preventScroll: true });
+        if (!pointers.size) {
+            moved = false;
+            downTarget = event.target;
+            downX = lastX = event.clientX;
+            downY = lastY = event.clientY;
         }
+        pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        gestureActive = true;
+        wrap.setPointerCapture(event.pointerId);
+        if (pointers.size === 2) {
+            const p = measurePinch();
+            pinch = { distance: p.distance, width: camera.w, anchor: position(p.x, p.y) };
+            moved = true;
+        }
+    });
+    wrap.addEventListener('pointermove', event => {
+        if (!pointers.has(event.pointerId) || !camera)
+            return;
+        pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        if (pointers.size >= 2 && pinch) {
+            const p = measurePinch(), v = viewport();
+            zoom(pinch.width / camera.w * pinch.distance / p.distance, pinch.anchor, { x: p.x - v.left, y: p.y - v.top });
+            wrap.classList.add('dragging');
+            moved = true;
+            return;
+        }
+        if (Math.hypot(event.clientX - downX, event.clientY - downY) > 6)
+            moved = true;
+        if (moved) {
+            const v = viewport();
+            camera.x -= (event.clientX - lastX) / v.width * camera.w;
+            camera.y -= (event.clientY - lastY) / v.height * camera.h;
+            clampCamera();
+            updateCamera();
+            wrap.classList.add('dragging');
+        }
+        lastX = event.clientX;
+        lastY = event.clientY;
+    });
+    const release = (event, cancelled = false) => {
+        if (!pointers.has(event.pointerId))
+            return;
+        pointers.delete(event.pointerId);
+        if (wrap.hasPointerCapture(event.pointerId))
+            wrap.releasePointerCapture(event.pointerId);
+        if (pointers.size >= 2 && camera) {
+            const p = measurePinch();
+            pinch = { distance: p.distance, width: camera.w, anchor: position(p.x, p.y) };
+            moved = true;
+            return;
+        }
+        if (pointers.size) {
+            const other = Array.from(pointers.values())[0];
+            lastX = downX = other.x;
+            lastY = downY = other.y;
+            pinch = null;
+            moved = true;
+            return;
+        }
+        gestureActive = false;
+        wrap.classList.remove('dragging');
+        pinch = null;
+        suppressMapClickUntil = performance.now() + 250;
+        if (moved || cancelled || !downTarget)
+            return;
+        const counter = downTarget.closest('[data-map-unit]');
+        const town = downTarget.closest('[data-map-hex]');
+        const cell = downTarget.closest('[data-hex]');
+        if (counter)
+            selectMapUnit(counter.dataset.mapUnit);
+        else if (town)
+            selectHex(town.dataset.mapHex);
         else if (cell)
             selectHex(cell.dataset.hex);
-    } };
-    svg.addEventListener('pointerup', release);
-    svg.addEventListener('pointercancel', () => { dragging = false; svg.classList.remove('dragging'); });
-    svg.addEventListener('keydown', event => { if (!camera)
-        return; const counter = event.target.closest('[data-unit]'); if (counter && (event.key === 'Enter' || event.key === ' ')) {
+    };
+    wrap.addEventListener('pointerup', event => release(event));
+    wrap.addEventListener('pointercancel', event => release(event, true));
+    wrap.addEventListener('lostpointercapture', event => { if (pointers.has(event.pointerId))
+        release(event, true); });
+    wrap.addEventListener('keydown', event => {
+        const cell = event.target.closest('[data-hex]');
+        if (cell && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            selectHex(cell.dataset.hex);
+            return;
+        }
+        if (!camera || event.target.closest('.map-controls, .map-nav, button'))
+            return;
+        const amount = camera.w * .08;
+        if (event.key === '+' || event.key === '=')
+            zoom(.85);
+        else if (event.key === '-')
+            zoom(1 / .85);
+        else if (event.key === '0')
+            fitBoard();
+        else if (event.key.toLowerCase() === 'n')
+            nextReadyUnit();
+        else if (event.key === 'ArrowLeft')
+            camera.x -= amount;
+        else if (event.key === 'ArrowRight')
+            camera.x += amount;
+        else if (event.key === 'ArrowUp')
+            camera.y -= amount;
+        else if (event.key === 'ArrowDown')
+            camera.y += amount;
+        else
+            return;
         event.preventDefault();
-        selectUnit(counter.dataset.unit);
-        return;
-    } const amount = camera.w * .075; if (event.key === '+')
-        zoom(.8);
-    else if (event.key === '-')
-        zoom(1.25);
-    else if (event.key === '0')
-        fitBoard();
-    else if (event.key === 'ArrowLeft')
-        camera.x -= amount;
-    else if (event.key === 'ArrowRight')
-        camera.x += amount;
-    else if (event.key === 'ArrowUp')
-        camera.y -= amount;
-    else if (event.key === 'ArrowDown')
-        camera.y += amount;
+        clampCamera();
+        updateCamera();
+    });
+}
+function selectMapUnit(id) {
+    const u = state.units.find(u => u.id === id), selected = getUnit();
+    if (u && selected && u.kingdom !== selected.kingdom && currentActions.some(a => a.type === 'attack' && a.unitId === selected.id && a.targetHex === u.hexId))
+        selectHex(u.hexId);
     else
-        return; event.preventDefault(); updateCamera(); });
+        selectUnit(id);
+}
+function nextReadyUnit() {
+    const available = state.units.filter(u => u.kingdom === state.currentKingdom && !u.activated);
+    if (!available.length) {
+        notify('No ready armies remain for this kingdom.');
+        return;
+    }
+    const current = available.findIndex(u => u.id === selectedUnitId);
+    readyIndex = current < 0 ? 0 : (current + 1) % available.length;
+    selectUnit(available[readyIndex].id, true);
 }
 function startGame() {
     const input = root.querySelector('#game-seed');
@@ -772,12 +1052,35 @@ function importFile(pack = false) {
     input.click();
 }
 root.addEventListener('click', event => {
+    const cell = event.target.closest('[data-hex]');
+    if (cell) {
+        if (event.detail && performance.now() < suppressMapClickUntil)
+            return;
+        selectHex(cell.dataset.hex);
+        return;
+    }
     const element = event.target.closest('button');
     if (!element || element.hasAttribute('disabled'))
         return;
+    if (element.dataset.mapUnit || element.dataset.mapHex) {
+        if (event.detail && performance.now() < suppressMapClickUntil)
+            return;
+        if (element.dataset.mapUnit)
+            selectMapUnit(element.dataset.mapUnit);
+        else
+            selectHex(element.dataset.mapHex);
+        return;
+    }
     if (element.dataset.action) {
         try {
-            perform(JSON.parse(element.dataset.action));
+            const action = JSON.parse(element.dataset.action);
+            if (action.type === 'end-turn' && stateReady() && state.units.some(u => u.kingdom === state.currentKingdom && !u.activated)) {
+                modal = 'end-confirm';
+                modalParent = null;
+                render();
+                return;
+            }
+            perform(action);
         }
         catch {
             notify('Invalid action.');
@@ -815,8 +1118,23 @@ root.addEventListener('click', event => {
         fitBoard();
         return;
     }
+    if (command === 'next-ready') {
+        nextReadyUnit();
+        return;
+    }
+    if (command === 'focus-selected') {
+        const u = getUnit();
+        if (u)
+            focusUnit(u);
+        return;
+    }
     if (command === 'start') {
         startGame();
+        return;
+    }
+    if (command === 'end-now') {
+        modal = null;
+        perform({ type: 'end-turn' });
         return;
     }
     if (command === 'export') {
@@ -872,6 +1190,11 @@ root.addEventListener('click', event => {
             botSteps = 0;
     }
     render();
+    if ((command === 'mobile-panel' || command === 'decisions' || command === 'council') && mobileOpen) {
+        const u = getUnit();
+        if (u)
+            focusUnit(u);
+    }
     scheduleBot();
 });
 root.addEventListener('change', event => {
@@ -930,9 +1253,14 @@ window.addEventListener('resize', () => {
     const wrap = root.querySelector('.board-wrap');
     if (!camera || !wrap)
         return;
-    const centerY = camera.y + camera.h / 2;
-    camera.h = camera.w * wrap.clientHeight / Math.max(1, wrap.clientWidth);
+    const centerX = camera.x + camera.w / 2, centerY = camera.y + camera.h / 2;
+    const view = viewport(), bounds = boardBounds();
+    const fullWidth = Math.max(bounds.w, bounds.h * view.width / view.height);
+    camera.w = Math.min(fullWidth * 1.08, Math.max(view.width / 1.7, camera.w));
+    camera.h = camera.w * view.height / view.width;
+    camera.x = centerX - camera.w / 2;
     camera.y = centerY - camera.h / 2;
+    clampCamera();
     updateCamera();
 });
 window.addEventListener('beforeunload', () => { if (!gameHasBegun)
@@ -942,6 +1270,7 @@ window.addEventListener('beforeunload', () => { if (!gameHasBegun)
 catch { /* IndexedDB copy may still be available. */ } });
 window.__GAME_DEBUG__ = Object.freeze({
     getState: () => structuredClone(state),
+    getCamera: () => camera ? { x: camera.x, y: camera.y, width: camera.w, height: camera.h, scale: viewport().width / camera.w, gestureActive } : null,
     legalActions: () => structuredClone(legalActions(state)),
     exportSave: () => exportGame(state),
     getAIAction: () => structuredClone(botAction(state)),

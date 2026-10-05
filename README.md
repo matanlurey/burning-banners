@@ -9,7 +9,8 @@ This repository is the source of truth for the implementation, generated product
 - **Drefeld teaching table:** a three-season, two-kingdom original fixture using the inspected Wildlands grid and printed army values.
 - **Six banners at war:** an original six-kingdom sandbox with Invader and Resistance alliances and independently assignable human/computer kingdoms.
 - Move, ship transport, attack, ambush, critical-hit confirmation, capture/raze, recruit, recover, income, mining, Covens, Shashka upkeep, Imperial revolts, allied gold transfers and kingdom collapse.
-- Generated terrain tiles, individual introductory troop portraits, faction art, transparent settlement vignettes, map pan/zoom, legal destinations, combat previews, dice receipts and an event chronicle.
+- Generated terrain tiles, individual introductory troop portraits, faction art, transparent settlement vignettes, readable map counters and labels, legal destinations, combat previews, dice receipts and an event chronicle.
+- Pointer-centered wheel zoom, drag and pinch controls, bounded map navigation, Next Army/Focus/Overview controls, a desktop inspector and phone panels. Terrain moves as one world layer; counters and labels retain readable screen sizes, with smaller markers at overview zoom.
 - Browser-local IndexedDB saves, downloadable checked JSON backups, runtime-validated content packs, a local reference-image map editor, keyboard controls and a responsive map-centered interface.
 
 ## Fidelity status
@@ -35,7 +36,7 @@ Open `http://localhost:5173/`. `npm run build` strictly compiles the shared rule
 
 The same validator/transition is used by human buttons and bots. Core types and logic are in [src/engine.ts](src/engine.ts); immutable definitions are in [src/content.ts](src/content.ts); original fixtures are in [src/scenarios.ts](src/scenarios.ts). There are no backend imports in the local bundle.
 
-`window.__GAME_DEBUG__` exposes the current position, legal choices, last combat, an AI proposal and fixture loading for reproduction. Tests use fixed seeds and inspect accepted transitions and saves. Human playtesting and browser visual QA have not yet certified the mobile experience or AI strength.
+`window.__GAME_DEBUG__` exposes the current position, camera, legal choices, an AI proposal and fixture loading for reproduction. Tests use fixed seeds and inspect accepted transitions and saves. The October 5 UI revision passed real Chrome checks at seven desktop, tablet and phone-sized CSS frames, including 320×568 and short landscape. Human movement/combat/capture, save reloads, handoff, zoom anchoring, keyboard selection, crowded labels and camera retention were checked. Results and screenshots are in the [browser check record](docs/ui-browser-checks.md). Run the development server and open `/__qa` to repeat the responsive checks. Physical touchscreen hardware testing and AI-strength assessment have not been completed. This revision changes presentation and interaction, not the rules engine or opponent behavior.
 
 ## Content workshop
 
@@ -49,6 +50,8 @@ Open `/content-editor.html`, optionally load an authorized local reference image
 - [Advanced implementation research](docs/advanced-implementation.md)
 - [Content pack format](docs/content-pack-format.md)
 - [Design findings](docs/design-findings.md)
+- [Strategy-game UI references](docs/ui-reference-research.md)
+- [UI browser checks and screenshots](docs/ui-browser-checks.md)
 - [Verification record](docs/verification.md)
 - [Generated assets manifest](content/assets-manifest.json)
 
