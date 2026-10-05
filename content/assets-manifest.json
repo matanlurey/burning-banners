@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "assets": [
     {
       "id": "fortress-banner",
@@ -297,6 +297,21 @@
       "width": 384,
       "height": 384,
       "alpha": false
+    },
+    {
+      "id": "arcane-library",
+      "path": "assets/arcane-library.webp",
+      "type": "original-generated-raster",
+      "source": "Built-in image generation, original illustration for this project; generated 2026-10-05 UTC",
+      "redistributionStatus": "original-project-asset",
+      "sha256": "a91c465559d5c93eda407565c4dfcee08112b837e7bf4dd6f1bf7491ece61613",
+      "width": 1874,
+      "height": 839,
+      "alpha": false,
+      "bytes": 329602,
+      "brief": "Ink and watercolor fantasy spellbook, treasures and cartographic map for the Arcane Library banner; parchment palette and readable negative space.",
+      "generationBriefType": "summary-of-visual-brief; not a verbatim prompt transcript",
+      "role": "decorative-codex-banner; no printed rules or map topology"
     }
   ]
 }

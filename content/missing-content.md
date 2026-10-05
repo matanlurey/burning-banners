@@ -1,21 +1,27 @@
-# Content availability
+# Content availability and remaining work
 
-The playable build implements a Basic local rules profile. Advanced gameplay is disabled rather than offering a hybrid with placeholder card effects.
+The selectable build includes Basic play and an **Advanced preview**. Catalog completeness and executable rule coverage are separate facts. The two supplied setups remain original digital fixtures, not official campaigns.
 
-## Advanced inventory
+## Advanced coverage
 
-`cards-index.json` lists every base-game card and separates verified names, reviewed mechanical examples, reference-face availability and runtime availability. The printed inventory totals 192: 52 Spells, 36 Treasures, 60 Blessings, 38 Hero cards and six kingdom information cards.
+`advanced-catalog.json` is the authoritative normalized catalog for all 186 game cards and 36 Monsters. The stable `cards-index.json` also includes six kingdom information cards, making 192 printed cards. Every Advanced card/Monster record's normalized facts were visually checked; that flag does not certify all runtime interactions.
 
-Twenty mechanical examples in `cards-mechanical-reference.json` were visually checked against printed reference faces and the Undying card guide. These are research data, not executable effects. The remaining cards require transcription and visual checking of requirements, dice symbols, ranges, Cantrip/Discard/Tome icons, target classes and corrections. All Advanced cards still require effect handlers and independent fixtures.
+The preview enables 44 Spells, 28 Treasures, 42 Blessings and 27 Hero card effects. All 38 Hero counters are available. **45 effects remain reference-only** and are excluded from Magic decks or Hero Power actions. The exact IDs, names and missing decisions are listed in [runtime coverage](../docs/advanced-runtime-coverage.md). Those include Enslave's separate supply/lifecycle, multi-target and elimination-triggered choices, some reaction/event hooks and uncertain unsellable Treasure Winter exceptions.
 
-Enabling Advanced additionally requires player-owned hands, private pass-and-play handoffs for responses and study, the ordered Battle Magic state machine, per-hit decisions, Hero random pools and lock lifecycle, Hero/Army stack movement, Monster pools/command actions/rewards, Treasure owned/held/eliminated zones, Autumn study pools and Winter cleanup. These mechanics are documented in `docs/advanced-implementation.md`.
+Executable systems now include hidden player-owned cards and handoffs, ordered Battle Magic, counter/Tome cancellation, per-hit recovery, Hero pools/locks/stacks, Monster command actions/rewards, Study and Winter. They are documented in [Advanced implementation](../docs/advanced-implementation.md) and tested in [Advanced playtests](../docs/advanced-playtests.md). Their availability does not make every printed card or official campaign supported.
 
-## Official maps and scenarios
+## Official maps and campaigns
 
-Current content provenance and enabled scenarios are recorded in the supplied source and content manifests. The editor accepts complete externally verified Basic content packs; structural validation cannot establish that a submitted map matches the printed boards or a scenario matches its campaign instructions. Unverified geography and setup must remain labeled custom/reference until reviewed.
+The four-board location inventory contains 66 settlements, 11 mines and 22 lairs. Full terrain, road, river, Sea/coastal edges, Settlement flags, Entry hexes, shared half-hexes, joins and campaign exclusions still need certification. Only the partially reviewed 217-cell Wildlands graph is currently playable. None of the four boards has a completely certified mechanical graph.
 
-Four exact map-board hex graphs require terrain, road/river/Sea edges, Settlement attributes, Entry hexes, joins and campaign exclusions to be checked against authoritative images. The publisher's 29-scenario count does not prove all setup/objective values have been imported. Unsupported scenarios should remain unavailable. Campaigns 8 and 16 require full setup, board geometry and applicable correction verification before release.
+The campaign catalog identifies 28 named starts: the introductory campaign, 17 Scrolls campaigns and ten Chronicle chapters. The publisher advertises 29 scenarios; the count discrepancy remains explicit. **No official executable campaign setup is complete.** Retrieved headers, correction fragments and purchasing allowances must not be converted into guessed fixed armies or victory rules. Campaigns 8 and 16 still require full instructions and applicable geometry. See [campaign/map audit](../docs/campaign-map-audit.md).
+
+Custom content imports validate structural consistency, not source fidelity. Editor exports remain unofficial until their geography and setup are independently reviewed. Physical control-marker supplies outside Army of the Night, allied entry denial and the Ambush garrison interpretation also remain disclosed in [rules ambiguities](../rules/ambiguities.md).
+
+## Async and online play
+
+This release is a local shared-table game with algorithmic opponents. Separate-device rooms, actor-secured private views and server persistence are not enabled. The local Campaign Desk now supports return briefings, read-only replay, explicit AI delegation/takeback, table/alliance messages, pings and private notes. Easy/Normal/Hard policies have a separate [evaluation record](../docs/async-play.md). Those aids work in a running client or trusted save-file exchange; they do not provide cross-device synchronization, closed-browser progress or push/email delivery. Full saves contain all seats’ private data.
 
 ## Artwork
 
-The downloadable VASSAL module was inspected as reference. Original map, counter, card and playmat images from that module are excluded from the public build because no public redistribution grant was established. Original generated presentation art may approximate the board game's illustration language; it cannot replace map geometry or printed mechanical data.
+Source scans and full manuals are research-only. No public redistribution grant was established for the VASSAL bitmap components. The production build uses 28 original generated raster illustrations, including the new Arcane Library banner. Presentation art cannot establish printed mechanical facts or map topology.

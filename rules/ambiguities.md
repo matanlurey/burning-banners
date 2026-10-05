@@ -18,8 +18,16 @@ The capture table 4.9.2 presents an income increase for its hostile outcome; 4.9
 
 ## Full support vs diagnostic content
 
-Basic rule verification does not establish complete official content support. Six kingdom unit rosters and broad faction mechanics can be used in a clearly labeled original diagnostic scenario. A synthetic map, unverified victory condition, or fixed initial army must not be presented as an official campaign. Advanced play remains blocked until its private decisions, effects and card inventory are implemented.
+Basic rule verification does not establish complete official content support. Six kingdom unit rosters and broad faction mechanics can be used in a clearly labeled original diagnostic scenario. A synthetic map, unverified victory condition, or fixed initial army must not be presented as an official campaign. Advanced preview now implements its core private decisions, stacks, Study, Monsters and Winter. Its 45 unsupported effects remain reference-only and excluded from legal plays; cataloged printed facts alone do not establish complete Advanced fidelity. The two original fixtures and partial Wildlands graph remain diagnostic content. See [runtime coverage](../docs/advanced-runtime-coverage.md).
 
 ## Allied controller consent
 
 Team side membership, shared victory, recovery beside allied welcoming settlements, and the printed 2:1 gold transfer are implemented. The shared-table interface assumes allied consent when entering an allied settlement. It does not yet offer the allied controller's denial-of-entry decision described in 1.11.4. Teams should agree on those moves at the table.
+
+## Unsellable Treasures in Winter
+
+The two curse and two fountain Treasures have exceptional disposal/holding wording. A verified exception to ordinary Winter selling and holding limits has not been established for their combined edge cases. These four cards remain reference-only rather than allowing a mandatory cleanup deadlock or inventing a sale rule. Their exact gates are recorded in the [runtime coverage table](../docs/advanced-runtime-coverage.md).
+
+## Partial campaigns and joined boards
+
+The source audit obtained 28 named starts but not complete official opening/victory instructions. The publisher advertises 29 scenarios; the discrepancy is retained. Four-board location inventories do not establish road, river, coast or shared half-hex topology. No source fragment is promoted into an invented official setup. See [campaign/map audit](../docs/campaign-map-audit.md).

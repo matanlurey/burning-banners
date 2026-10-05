@@ -1,0 +1,971 @@
+{
+  "version": 1,
+  "researchDate": "2026-10-05",
+  "scope": "base game campaign catalog; metadata is not an executable official setup",
+  "publisherAdvertisedScenarioCount": 29,
+  "namedStartingSetupCount": 28,
+  "countStatus": "unresolved: publicly transcribed contents identify 1 introductory campaign + 17 Scrolls campaigns + 10 Chronicle starting chapters (28). No invented 29th scenario is added. The complete war is described separately, but whether it accounts for the advertised count is unverified.",
+  "officialExecutableSetupCount": 0,
+  "sources": {
+    "publisher": "https://www.compassgames.com/product/burning-banners-rage-of-the-witch-queen/",
+    "campaignNotes": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying+Campaign+Notes+v.1.0.pdf",
+    "errata": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Burning+Banners+Clarifications+%26+Errata+0824.pdf",
+    "correctedCampaign6CardFront": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/PastedGraphic-1+(2).png",
+    "vassalModule": "https://obj.vassalengine.org/images/8/84/Burning_Banners_v1.7.vmod",
+    "secondaryContentsWitness": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/",
+    "printedCampaign16Header": "https://theboardgameschronicle.com/wp-content/uploads/2025/03/bb_16_01.jpg"
+  },
+  "entries": [
+    {
+      "id": "intro",
+      "name": "The Invasion of Drefeld",
+      "series": "scrolls-of-sandaria",
+      "number": null,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 3,
+        "players": 2,
+        "boardCount": 1,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {
+        "corrections": [
+          {
+            "type": "starting-gold",
+            "kingdom": "fjordland",
+            "gold": 7,
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Burning+Banners+Clarifications+%26+Errata+0824.pdf"
+          },
+          {
+            "type": "posture",
+            "settlement": "Fort Gorod",
+            "hostileTo": [
+              "oathborn",
+              "fjordland"
+            ],
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying+Campaign+Notes+v.1.0.pdf"
+          },
+          {
+            "type": "posture",
+            "rule": "All other allowed settlements welcome their starting controlling kingdom.",
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying+Campaign+Notes+v.1.0.pdf"
+          }
+        ],
+        "allowedSettlementsWitness": {
+          "authority": "community VASSAL setup note; not complete official campaign",
+          "source": "https://obj.vassalengine.org/images/8/84/Burning_Banners_v1.7.vmod",
+          "settlements": [
+            "Norstead",
+            "Far Tumed",
+            "Barlas on the Lake",
+            "Zarinbar",
+            "Shaded Vale",
+            "Fort Gorod"
+          ]
+        }
+      },
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "publisher photograph/correction"
+    },
+    {
+      "id": "campaign-1",
+      "name": "Fight to the Death",
+      "series": "scrolls-of-sandaria",
+      "number": 1,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 5,
+        "players": 2,
+        "boardCount": 1,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {
+        "corrections": [
+          {
+            "type": "entry-edge",
+            "kingdom": "orcs",
+            "edge": "eastern",
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Burning+Banners+Clarifications+%26+Errata+0824.pdf",
+            "note": "Corrects the Orc quick setup card; all entry positions and other setup remain missing."
+          }
+        ]
+      },
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "campaign-2",
+      "name": "The Jarl’s War",
+      "series": "scrolls-of-sandaria",
+      "number": 2,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 5,
+        "players": 2,
+        "boardCount": 2,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "campaign-3",
+      "name": "The Great Goblin Raid",
+      "series": "scrolls-of-sandaria",
+      "number": 3,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 6,
+        "players": 2,
+        "boardCount": 1,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "campaign-4",
+      "name": "Orcs on the Deepwater",
+      "series": "scrolls-of-sandaria",
+      "number": 4,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 3,
+        "players": 2,
+        "boardCount": 1,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "campaign-5",
+      "name": "Approaching Thunder",
+      "series": "scrolls-of-sandaria",
+      "number": 5,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 6,
+        "players": 2,
+        "boardCount": 2,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "campaign-6",
+      "name": "The Spire of the Moon",
+      "series": "scrolls-of-sandaria",
+      "number": 6,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 5,
+        "players": 2,
+        "boardCount": 1,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {
+        "partialSetup": {
+          "kingdom": "oathborn",
+          "startingGold": 0,
+          "income": 6,
+          "turnPosition": 2,
+          "startingArmies": [
+            {
+              "armyName": "King’s Crossbows",
+              "at": "Dwelfholm"
+            },
+            {
+              "armyName": "King’s Crossbows",
+              "at": "Zarinbar"
+            },
+            {
+              "armyName": "King’s Crossbows",
+              "at": "Nal Narag"
+            },
+            {
+              "armyName": "Miners",
+              "at": "Dwarven Falls Mine"
+            }
+          ],
+          "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/PastedGraphic-1+(2).png",
+          "authority": "publisher corrected Oathborn setup-card front; visually reviewed 2026-10-05",
+          "sourceSha256": "34ed3ff1989f10279184ecfaa4cb17b5c2efa055545691afb6c1677abda80415",
+          "note": "Only one front face is public. It does not certify the opposing setup, Advanced opening cards/heroes, complete controls, special rules or victory."
+        }
+      },
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "publisher photograph/correction"
+    },
+    {
+      "id": "campaign-7",
+      "name": "Fire in the Fields of Ash",
+      "series": "scrolls-of-sandaria",
+      "number": 7,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 6,
+        "players": 4,
+        "boardCount": 2,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {
+        "corrections": [
+          {
+            "type": "opening-control",
+            "kingdom": "night",
+            "board": "imperial-heartland",
+            "count": 1,
+            "placement": "Any non-city settlement; before other kingdoms build.",
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying+Campaign+Notes+v.1.0.pdf"
+          }
+        ]
+      },
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "publisher photograph/correction"
+    },
+    {
+      "id": "campaign-8",
+      "name": "Goblin Apocalypse",
+      "series": "scrolls-of-sandaria",
+      "number": 8,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 6,
+        "players": 5,
+        "boardCount": 2,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "campaign-9",
+      "name": "Marauders in the Empire",
+      "series": "scrolls-of-sandaria",
+      "number": 9,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 6,
+        "players": 2,
+        "boardCount": 1,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "campaign-10",
+      "name": "Last Stand in the East",
+      "series": "scrolls-of-sandaria",
+      "number": 10,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 6,
+        "players": 4,
+        "boardCount": 1,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "campaign-11",
+      "name": "Across the Oskolton",
+      "series": "scrolls-of-sandaria",
+      "number": 11,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 4,
+        "players": 3,
+        "boardCount": 1,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "campaign-12",
+      "name": "Goblin High Tide",
+      "series": "scrolls-of-sandaria",
+      "number": 12,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 6,
+        "players": 4,
+        "boardCount": 2,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {
+        "corrections": [
+          {
+            "type": "rebuild-cost",
+            "kingdom": "oathborn",
+            "gold": 0,
+            "effect": "May remove Razed markers without paying gold.",
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying+Campaign+Notes+v.1.0.pdf"
+          },
+          {
+            "type": "opening-coven",
+            "kingdom": "night",
+            "openingCovens": 0,
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Burning+Banners+Clarifications+%26+Errata+0824.pdf",
+            "note": "August errata remove the Coven from Opening Builds; an Army of the Night control can later be removed and attempted as a Coven through legal income actions."
+          }
+        ]
+      },
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "publisher photograph/correction"
+    },
+    {
+      "id": "campaign-13",
+      "name": "Orcs at the Gate",
+      "series": "scrolls-of-sandaria",
+      "number": 13,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 8,
+        "players": 3,
+        "boardCount": 2,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {
+        "corrections": [
+          {
+            "type": "posture",
+            "kingdom": "oathborn",
+            "welcomingToSide": "resistance",
+            "hostileToSide": "invader",
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Burning+Banners+Clarifications+%26+Errata+0824.pdf"
+          }
+        ]
+      },
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "publisher photograph/correction"
+    },
+    {
+      "id": "campaign-14",
+      "name": "Return of the Long Ships",
+      "series": "scrolls-of-sandaria",
+      "number": 14,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 6,
+        "players": 2,
+        "boardCount": 1,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {
+        "corrections": [
+          {
+            "type": "opening-control",
+            "kingdom": "oathborn",
+            "settlement": "Belgunot",
+            "effect": "When a Fjordland unit enters while Oathborn controlled, remove that control without loot; becomes loyal Fjordland.",
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying+Campaign+Notes+v.1.0.pdf"
+          },
+          {
+            "type": "entry-edge",
+            "kingdom": "fjordland",
+            "edge": "western",
+            "terrain": "sea",
+            "count": 5,
+            "excludePartialWestHexes": true,
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying+Campaign+Notes+v.1.0.pdf"
+          },
+          {
+            "type": "opening-build-exclusion",
+            "kingdom": "fjordland",
+            "atAndAdjacentTo": "Sunehammer",
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying+Campaign+Notes+v.1.0.pdf"
+          }
+        ]
+      },
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "publisher photograph/correction"
+    },
+    {
+      "id": "campaign-15",
+      "name": "Against the Spire",
+      "series": "scrolls-of-sandaria",
+      "number": 15,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 5,
+        "players": 3,
+        "boardCount": 1,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "campaign-16",
+      "name": "Assault in the North",
+      "series": "scrolls-of-sandaria",
+      "number": 16,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "printed header and errata verified; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 5,
+        "players": 3,
+        "boardCount": 2,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {
+        "printedHeader": {
+          "players": 3,
+          "campaignSeasons": 5,
+          "boards": [
+            "broken-coast",
+            "wildlands"
+          ],
+          "invader": [
+            "night"
+          ],
+          "resistance": [
+            "fjordland",
+            "oathborn"
+          ],
+          "turnOrder": [
+            "fjordland",
+            "night",
+            "oathborn"
+          ],
+          "start": {
+            "year": 1,
+            "season": "spring"
+          },
+          "end": {
+            "year": 2,
+            "season": "summer"
+          },
+          "arcaneStudy": {
+            "glyph": 3,
+            "churn": 1
+          },
+          "source": "https://theboardgameschronicle.com/wp-content/uploads/2025/03/bb_16_01.jpg",
+          "authority": "photograph of printed campaign header; visually reviewed"
+        },
+        "corrections": [
+          {
+            "type": "posture",
+            "settlements": "neutral except Assassin’s Guild",
+            "welcomingToSide": "resistance",
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Burning+Banners+Clarifications+%26+Errata+0824.pdf"
+          },
+          {
+            "type": "posture",
+            "settlements": "Assassin’s Guild",
+            "hostileToSide": "resistance",
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Burning+Banners+Clarifications+%26+Errata+0824.pdf"
+          }
+        ]
+      },
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "publisher photograph/correction"
+    },
+    {
+      "id": "campaign-17",
+      "name": "The Undead Empress",
+      "series": "scrolls-of-sandaria",
+      "number": 17,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official setup unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 6,
+        "players": 4,
+        "boardCount": 2,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "chronicle-1",
+      "name": "Out of the Shadows",
+      "series": "chronicle-of-the-war-of-burning-banners",
+      "book": 1,
+      "chapter": 1,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official starting positions unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 3,
+        "players": 6,
+        "boardCount": 4,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "chronicle-2",
+      "name": "With Fire and Steel",
+      "series": "chronicle-of-the-war-of-burning-banners",
+      "book": 1,
+      "chapter": 2,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official starting positions unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 3,
+        "players": 6,
+        "boardCount": 4,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "chronicle-3",
+      "name": "In the Fangs of the Beast",
+      "series": "chronicle-of-the-war-of-burning-banners",
+      "book": 1,
+      "chapter": 3,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official starting positions unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 3,
+        "players": 6,
+        "boardCount": 4,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "chronicle-4",
+      "name": "Wolves of the North",
+      "series": "chronicle-of-the-war-of-burning-banners",
+      "book": 1,
+      "chapter": 4,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official starting positions unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 3,
+        "players": 6,
+        "boardCount": 4,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {
+        "partialSetupCorrections": [
+          {
+            "kingdom": "goblins",
+            "openingBuildGold": 33,
+            "openingHeroes": 1,
+            "startingControls": {
+              "wildlands": [
+                "Arulud"
+              ],
+              "broken-coast": [
+                "Belgunot",
+                "The Bjornfoss",
+                "Odgervik",
+                "Skegheld"
+              ]
+            },
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying+Campaign+Notes+v.1.0.pdf"
+          },
+          {
+            "kingdom": "orcs",
+            "openingBuildGold": 35,
+            "openingHeroes": 1,
+            "startingControls": {
+              "wildlands": [
+                "Far Tumed",
+                "Zarinbar",
+                "Oronar"
+              ],
+              "fields-of-ash": [
+                "Urut",
+                "Yurku",
+                "Southbridge",
+                "Darhad",
+                "Port Gilder",
+                "Shadowglen"
+              ]
+            },
+            "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying+Campaign+Notes+v.1.0.pdf"
+          }
+        ]
+      },
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "publisher photograph/correction"
+    },
+    {
+      "id": "chronicle-5",
+      "name": "The Sword is Broken",
+      "series": "chronicle-of-the-war-of-burning-banners",
+      "book": 2,
+      "chapter": 5,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official starting positions unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 3,
+        "players": 5,
+        "boardCount": 4,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "chronicle-6",
+      "name": "World on Fire",
+      "series": "chronicle-of-the-war-of-burning-banners",
+      "book": 2,
+      "chapter": 6,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official starting positions unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 3,
+        "players": 5,
+        "boardCount": 4,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "chronicle-7",
+      "name": "The Longest Night",
+      "series": "chronicle-of-the-war-of-burning-banners",
+      "book": 2,
+      "chapter": 7,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official starting positions unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 3,
+        "players": 4,
+        "boardCount": 4,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {
+        "specialRuleCorrection": {
+          "wildlandsSettlements": [
+            "Nal Narag",
+            "Arulud",
+            "Chanos",
+            "Mangut",
+            "Far Tumed",
+            "Fort Gorod",
+            "Zarinbar"
+          ],
+          "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying+Campaign+Notes+v.1.0.pdf",
+          "note": "Living notes give this replacement list without the full surrounding special rule; do not assign an executable effect from this fragment."
+        }
+      },
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "publisher photograph/correction"
+    },
+    {
+      "id": "chronicle-8",
+      "name": "The Sword Reforged",
+      "series": "chronicle-of-the-war-of-burning-banners",
+      "book": 3,
+      "chapter": 8,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official starting positions unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 3,
+        "players": 5,
+        "boardCount": 4,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "chronicle-9",
+      "name": "The Lion Rampant",
+      "series": "chronicle-of-the-war-of-burning-banners",
+      "book": 3,
+      "chapter": 9,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official starting positions unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 3,
+        "players": 5,
+        "boardCount": 4,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    },
+    {
+      "id": "chronicle-10",
+      "name": "Twilight of a Goddess",
+      "series": "chronicle-of-the-war-of-burning-banners",
+      "book": 3,
+      "chapter": 10,
+      "officialTitle": true,
+      "playableOfficialSetup": false,
+      "status": "catalog-metadata-only; complete official starting positions unavailable",
+      "reportedMetadata": {
+        "campaignSeasons": 3,
+        "players": 4,
+        "boardCount": 4,
+        "authority": "secondary contents transcription; not independently verified in the Campaign Book",
+        "source": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/"
+      },
+      "verifiedFacts": {},
+      "missing": [
+        "complete Campaign Book opening builds and placement rules",
+        "all kingdom starting gold, income, controls, heroes and covens",
+        "full posture matrix and special rules",
+        "exact victory and defeat conditions",
+        "complete board topology and seams"
+      ],
+      "titleAuthority": "secondary contents witness; not independently checked in complete Campaign Book"
+    }
+  ]
+}

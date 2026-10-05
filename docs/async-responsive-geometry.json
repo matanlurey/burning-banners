@@ -1,0 +1,597 @@
+[
+  {
+    "deskOverflow": false,
+    "modal": [
+      280,
+      24,
+      720,
+      752
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Desktop",
+    "section": "Briefing",
+    "viewport": [
+      1280,
+      800
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      280,
+      24,
+      720,
+      752
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Desktop",
+    "section": "Replay",
+    "viewport": [
+      1280,
+      800
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      280,
+      24,
+      720,
+      752
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Desktop",
+    "section": "Command",
+    "viewport": [
+      1280,
+      800
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      280,
+      24,
+      720,
+      752
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Desktop",
+    "section": "/^Messages/",
+    "viewport": [
+      1280,
+      800
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      280,
+      24,
+      720,
+      752
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Desktop",
+    "section": "Notes",
+    "viewport": [
+      1280,
+      800
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      366,
+      820
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Phone 390 × 844",
+    "section": "Briefing",
+    "viewport": [
+      390,
+      844
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      366,
+      820
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Phone 390 × 844",
+    "section": "Replay",
+    "viewport": [
+      390,
+      844
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      366,
+      820
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Phone 390 × 844",
+    "section": "Command",
+    "viewport": [
+      390,
+      844
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      366,
+      820
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Phone 390 × 844",
+    "section": "/^Messages/",
+    "viewport": [
+      390,
+      844
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      366,
+      820
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Phone 390 × 844",
+    "section": "Notes",
+    "viewport": [
+      390,
+      844
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      336,
+      716
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Small phone",
+    "section": "Briefing",
+    "viewport": [
+      360,
+      740
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      336,
+      716
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Small phone",
+    "section": "Replay",
+    "viewport": [
+      360,
+      740
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      336,
+      716
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Small phone",
+    "section": "Command",
+    "viewport": [
+      360,
+      740
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      336,
+      716
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Small phone",
+    "section": "/^Messages/",
+    "viewport": [
+      360,
+      740
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      336,
+      716
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Small phone",
+    "section": "Notes",
+    "viewport": [
+      360,
+      740
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      296,
+      544
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Compact phone",
+    "section": "Briefing",
+    "viewport": [
+      320,
+      568
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      296,
+      544
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Compact phone",
+    "section": "Replay",
+    "viewport": [
+      320,
+      568
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      296,
+      544
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Compact phone",
+    "section": "Command",
+    "viewport": [
+      320,
+      568
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      296,
+      544
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Compact phone",
+    "section": "/^Messages/",
+    "viewport": [
+      320,
+      568
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      296,
+      544
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Compact phone",
+    "section": "Notes",
+    "viewport": [
+      320,
+      568
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      24,
+      121.78125,
+      720,
+      780.4375
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Tablet",
+    "section": "Briefing",
+    "viewport": [
+      768,
+      1024
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      24,
+      24,
+      720,
+      976
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Tablet",
+    "section": "Replay",
+    "viewport": [
+      768,
+      1024
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      24,
+      36.5625,
+      720,
+      950.859375
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Tablet",
+    "section": "Command",
+    "viewport": [
+      768,
+      1024
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      24,
+      24,
+      720,
+      976
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Tablet",
+    "section": "/^Messages/",
+    "viewport": [
+      768,
+      1024
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      24,
+      89.140625,
+      720,
+      845.703125
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Tablet",
+    "section": "Notes",
+    "viewport": [
+      768,
+      1024
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      62,
+      24,
+      720,
+      342
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Landscape",
+    "section": "Briefing",
+    "viewport": [
+      844,
+      390
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      62,
+      24,
+      720,
+      342
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Landscape",
+    "section": "Replay",
+    "viewport": [
+      844,
+      390
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      62,
+      24,
+      720,
+      342
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Landscape",
+    "section": "Command",
+    "viewport": [
+      844,
+      390
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      62,
+      24,
+      720,
+      342
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Landscape",
+    "section": "/^Messages/",
+    "viewport": [
+      844,
+      390
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      62,
+      24,
+      720,
+      342
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Landscape",
+    "section": "Notes",
+    "viewport": [
+      844,
+      390
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      712,
+      390
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Small landscape",
+    "section": "Briefing",
+    "viewport": [
+      736,
+      414
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      712,
+      390
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Small landscape",
+    "section": "Replay",
+    "viewport": [
+      736,
+      414
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      712,
+      390
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Small landscape",
+    "section": "Command",
+    "viewport": [
+      736,
+      414
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      712,
+      390
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Small landscape",
+    "section": "/^Messages/",
+    "viewport": [
+      736,
+      414
+    ]
+  },
+  {
+    "deskOverflow": false,
+    "modal": [
+      12,
+      12,
+      712,
+      390
+    ],
+    "modalWithin": true,
+    "pageOverflow": false,
+    "preset": "Small landscape",
+    "section": "Notes",
+    "viewport": [
+      736,
+      414
+    ]
+  }
+]

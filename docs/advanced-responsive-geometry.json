@@ -1,0 +1,100 @@
+[
+  {
+    "controlsInsideBoard": true,
+    "modal": {
+      "bottom": 776,
+      "left": 280,
+      "right": 1000,
+      "top": 24
+    },
+    "overflow": 0,
+    "size": [
+      1280,
+      800
+    ]
+  },
+  {
+    "controlsInsideBoard": true,
+    "modal": {
+      "bottom": 832,
+      "left": 12,
+      "right": 378,
+      "top": 12
+    },
+    "overflow": 0,
+    "size": [
+      390,
+      844
+    ]
+  },
+  {
+    "controlsInsideBoard": true,
+    "modal": {
+      "bottom": 728,
+      "left": 12,
+      "right": 348,
+      "top": 12
+    },
+    "overflow": 0,
+    "size": [
+      360,
+      740
+    ]
+  },
+  {
+    "controlsInsideBoard": true,
+    "modal": {
+      "bottom": 556,
+      "left": 12,
+      "right": 308,
+      "top": 12
+    },
+    "overflow": 0,
+    "size": [
+      320,
+      568
+    ]
+  },
+  {
+    "controlsInsideBoard": true,
+    "modal": {
+      "bottom": 907.6875,
+      "left": 24,
+      "right": 744,
+      "top": 116.3125
+    },
+    "overflow": 0,
+    "size": [
+      768,
+      1024
+    ]
+  },
+  {
+    "controlsInsideBoard": true,
+    "modal": {
+      "bottom": 366,
+      "left": 62,
+      "right": 782,
+      "top": 24
+    },
+    "overflow": 0,
+    "size": [
+      844,
+      390
+    ]
+  },
+  {
+    "controlsInsideBoard": true,
+    "modal": {
+      "bottom": 402,
+      "left": 12,
+      "right": 724,
+      "top": 12
+    },
+    "overflow": 0,
+    "size": [
+      736,
+      414
+    ]
+  }
+]

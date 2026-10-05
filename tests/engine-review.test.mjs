@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGame, applyAction, legalActions, shipOptions, isWelcoming } from '../dist/js/engine.js';
+import { createGame, applyAction, legalActions, shipOptions, isWelcoming, validateState, exportGame, importGame } from '../dist/js/engine.js';
 
 function fixture() {
   const config = {
@@ -33,4 +33,26 @@ test('LoyalNeutral posture follows campaign when loyalty kingdom is absent (4.1.
   const s=ready(pack), h=s.hexes.find(h=>h.id==='h2');
   assert.equal(isWelcoming(s,h,'fjordland'),true);
   assert.equal(isWelcoming(s,h,'oathborn'),false);
+});
+
+for (const kingdom of ['fjordland','empire']) test(`${kingdom} Ship Movement can hand activation to a friendly ready Army`,()=>{
+  const pack=fixture();
+  pack.unitDefinitions[0].kingdom=kingdom;
+  pack.scenario.kingdoms[0].id=kingdom;
+  pack.scenario.turnOrder[0]=kingdom;
+  pack.scenario.objective.kingdom=kingdom;
+  pack.scenario.initialUnits.push({defId:'freeholders',hexId:'h1'});
+  let s=ready(pack);
+  const landing=legalActions(s).find(a=>a.type==='ship'&&a.unitId==='unit-1'&&a.toHex==='h1');
+  assert.ok(landing);
+  s=applyAction(s,landing);
+  assert.equal(s.activeUnitId,'unit-2');
+  assert.equal(s.units.find(u=>u.id==='unit-1').activated,true);
+  assert.equal(s.units.find(u=>u.id==='unit-2').activated,false);
+  assert.deepEqual(validateState(s),[]);
+  assert.deepEqual(importGame(exportGame(s)),s);
+  const departure=legalActions(s).find(a=>a.type==='move'&&a.unitId==='unit-2'&&a.toHex==='h2');
+  assert.ok(departure);
+  s=applyAction(s,departure);
+  assert.deepEqual(validateState(s),[]);
 });

@@ -1,9 +1,9 @@
 {
-  "retrievalDate": "2026-10-04",
+  "retrievalDate": "2026-10-05",
   "sources": [
     {
       "id": "publisher-hub",
-      "title": "Burning Banners: Rage of the Witch Queen \u2014 product and downloads",
+      "title": "Burning Banners: Rage of the Witch Queen — product and downloads",
       "issuer": "Compass Games",
       "url": "https://www.compassgames.com/product/burning-banners-rage-of-the-witch-queen/",
       "retrieved": "2026-10-04",
@@ -26,7 +26,9 @@
       "redistribution": "Copyright Compass Games 2023; research copy only; do not bundle complete PDF",
       "sha256": "77d904b41730edff5e00b4bba8c61b5dab38dafd5f6e3017ca1140b009e2f3f6",
       "bytes": 13410446,
-      "researchPath": "/workspace/scratch/a8aa4deba18b/research/Undying-Rules-v1.1.pdf"
+      "researchPath": "/workspace/scratch/a8aa4deba18b/research/Undying-Rules-v1.1.pdf",
+      "additionalReviewDate": "2026-10-05",
+      "additionalReview": "Advanced §§13–18 timing, Hero stacks, Monster play, Study, Winter and card corrections; docs/advanced-rules-audit.md"
     },
     {
       "id": "undying-campaign-notes-1.0",
@@ -74,18 +76,23 @@
     },
     {
       "id": "vassal-component-pack-1.7",
-      "title": "Burning Banners VASSAL module v1.7 \u2014 component research",
+      "title": "Burning Banners VASSAL module v1.7 — component research",
       "issuer": "VASSAL community module using physical components",
-      "url": "https://vassalengine.org/wiki_old/wiki/Module:Burning_Banners",
+      "url": "https://vassalengine.org/library/projects/Burning_Banners",
       "retrieved": "2026-10-04",
       "documentDate": null,
       "authority": "component-scan-mirror",
-      "status": "verified-component-images: terrain/combat/actions charts, all Army fronts/backs; map work partial",
+      "status": "verified-component-images: all-44-Army-types, all-186-card-faces, all-38-Hero-counters, all-36-Monsters; four-board-location-audit; full-map-topology-partial",
       "redistribution": "Unverified redistribution rights; source images remain research-only",
       "sha256": "edf9991723174a2c3105a70bbfe10a96da1f72f17581789d3524f7126a01927e",
       "bytes": 47732730,
       "researchPath": "/workspace/scratch/a8aa4deba18b/research-assets/Burning_Banners_v1.7.vmod",
-      "downloadUrl": "https://obj.vassalengine.org/images/8/84/Burning_Banners_v1.7.vmod"
+      "downloadUrl": "https://obj.vassalengine.org/images/8/84/Burning_Banners_v1.7.vmod",
+      "auditDate": "2026-10-05",
+      "auditRecords": [
+        "docs/advanced-content-audit.md",
+        "docs/campaign-map-audit.md"
+      ]
     },
     {
       "id": "community-player-aid-scribd",
@@ -97,6 +104,42 @@
       "authority": "community-secondary",
       "status": "partial-cross-check; known errors; not operative authority",
       "redistribution": "All rights reserved; do not reproduce"
+    },
+    {
+      "id": "corrected-campaign-6-oathborn-front",
+      "title": "Corrected Campaign 6 Oathborn quick setup card front",
+      "issuer": "Compass Games / Christopher Moeller",
+      "url": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/PastedGraphic-1+(2).png",
+      "retrieved": "2026-10-05",
+      "authority": "publisher-primary",
+      "status": "visually-reviewed-front-only; incomplete-official-campaign-setup",
+      "sha256": "34ed3ff1989f10279184ecfaa4cb17b5c2efa055545691afb6c1677abda80415",
+      "bytes": 3537922,
+      "redistribution": "Research witness only; printed image not bundled",
+      "auditRecord": "docs/campaign-map-audit.md"
+    },
+    {
+      "id": "campaign-contents-transcription",
+      "title": "Ouverture Burning Banners — contents witness",
+      "issuer": "Strategeek",
+      "url": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/",
+      "retrieved": "2026-10-05",
+      "documentDate": "2024-05-03",
+      "authority": "secondary-contents-witness",
+      "status": "28-named-starts-and-reported-metadata; not-authoritative-complete-setups",
+      "redistribution": "Paraphrased metadata only; no article or printed page images bundled",
+      "auditRecord": "docs/campaign-map-audit.md"
+    },
+    {
+      "id": "campaign-16-printed-header",
+      "title": "Campaign 16 printed header photograph",
+      "issuer": "The Boardgames Chronicle, photograph of Compass Games material",
+      "url": "https://theboardgameschronicle.com/wp-content/uploads/2025/03/bb_16_01.jpg",
+      "retrieved": "2026-10-05",
+      "authority": "printed-primary-header-in-secondary-hosting",
+      "status": "visually-checked-header; opening-and-victory-instructions-incomplete",
+      "redistribution": "Research image only; not bundled",
+      "auditRecord": "docs/campaign-map-audit.md"
     }
   ]
 }

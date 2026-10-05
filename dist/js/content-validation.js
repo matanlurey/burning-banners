@@ -186,7 +186,7 @@ export function validateContentPack(input) {
         return h;
     });
     const unitDefinitions = arr(top.unitDefinitions, '$.unitDefinitions', 1000, 1).map((v, i) => {
-        const p = `$.unitDefinitions[${i}]`, o = obj(v, p, ['id', 'name', 'kingdom', 'cost', 'recoveryCost', 'movement', 'light', 'heavy', 'weakenedLight', 'weakenedHeavy', 'abilities', 'characteristics', 'count', 'art']);
+        const p = `$.unitDefinitions[${i}]`, o = obj(v, p, ['id', 'name', 'kingdom', 'cost', 'recoveryCost', 'movement', 'light', 'heavy', 'weakenedLight', 'weakenedHeavy', 'abilities', 'characteristics', 'count', 'art', 'kind', 'heroCardId']);
         const d = { id: id(o.id, `${p}.id`), name: str(o.name, `${p}.name`), kingdom: id(o.kingdom, `${p}.kingdom`), cost: num(o.cost, `${p}.cost`, 0, 100), recoveryCost: num(o.recoveryCost, `${p}.recoveryCost`, 0, 100), movement: num(o.movement, `${p}.movement`, 0, 30), light: num(o.light, `${p}.light`, 0, 50), heavy: num(o.heavy, `${p}.heavy`, 0, 50), count: num(o.count, `${p}.count`, 1, 2000), abilities: arr(o.abilities, `${p}.abilities`, 7).map((a, j) => one(a, `${p}.abilities[${j}]`, ABILITIES)), characteristics: arr(o.characteristics, `${p}.characteristics`, 3).map((a, j) => one(a, `${p}.characteristics[${j}]`, CHARACTERISTICS)) };
         if (new Set(d.abilities).size !== d.abilities.length || new Set(d.characteristics).size !== d.characteristics.length)
             fail(p, 'Duplicate ability or characteristic');
@@ -194,6 +194,10 @@ export function validateContentPack(input) {
             d.weakenedLight = num(o.weakenedLight, `${p}.weakenedLight`, 0, 50);
         if (o.weakenedHeavy !== undefined)
             d.weakenedHeavy = num(o.weakenedHeavy, `${p}.weakenedHeavy`, 0, 50);
+        if (o.kind !== undefined)
+            d.kind = one(o.kind, `${p}.kind`, ['army', 'hero']);
+        if (o.heroCardId !== undefined)
+            d.heroCardId = id(o.heroCardId, `${p}.heroCardId`);
         if (o.art !== undefined) {
             const art = str(o.art, `${p}.art`, 2_000_000);
             if (!(/^[a-zA-Z0-9_./-]+\.(png|webp|jpe?g|gif)$/i.test(art) && !art.split('/').includes('..')) && !/^https:\/\/[^\s<>]+$/i.test(art) && !/^data:image\/(png|webp|jpeg|gif);base64,[A-Za-z0-9+/=]+$/.test(art))

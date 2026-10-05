@@ -1,0 +1,1104 @@
+{
+  "version": 1,
+  "researchDate": "2026-10-05",
+  "scope": "four base-game board source geometry and named-location audit; not a certified four-board mechanical map",
+  "sourceRule": "Undying Rules v1.1 sections 1.3 and 8.2.2: classify hex terrain at its center; isolated partial hexes need at least half visible. Neighboring board halves must be reviewed as a joined cell rather than duplicated.",
+  "productionArtPolicy": "Original generated or code-native presentation only. No VASSAL scanned board or counter art is redistributed.",
+  "existingWildlandsDigitalHexCount": 217,
+  "independentlyCertifiedOtherBoardHexCount": 0,
+  "officialCompleteBoardGraphCount": 0,
+  "boards": [
+    {
+      "id": "broken-coast",
+      "name": "The Broken Coast",
+      "boardRow": "north",
+      "source": {
+        "module": "https://obj.vassalengine.org/images/8/84/Burning_Banners_v1.7.vmod",
+        "moduleSha256": "edf9991723174a2c3105a70bbfe10a96da1f72f17581789d3524f7126a01927e",
+        "internalImage": "The_Broken_Coast.jpg",
+        "imageSha256": "b9d3b5396dcca90a5c8825c110336163219b3145b40b87a5781d6f563bb30873",
+        "sourcePixelSize": [
+          1898,
+          2446
+        ],
+        "sourceArtRedistribution": "not-granted; source scans not included in application or repository"
+      },
+      "pixelGrid": {
+        "dx": 139.92431864335458,
+        "dy": 161.4,
+        "x0": 6.0,
+        "y0": 23.0,
+        "offsetConvention": "column q, row j; x=x0+q*dx; y=y0+j*dy+(q mod 2)*dy/2",
+        "axialConvention": "r=j-floor(q/2)",
+        "columns": 14
+      },
+      "mechanicalGraphStatus": {
+        "terrain": "not comprehensively transcribed",
+        "roads": "not transcribed",
+        "rivers": "not transcribed",
+        "seaAndCoastalHexsides": "not comprehensively certified",
+        "boardSeams": "not certified; shared partial hexes need deduplication and side continuity review",
+        "officialPlayableMap": false
+      },
+      "namedLocationReview": "settlement and named-feature centers visually inspected against labeled source; new boards require independent cross-check before official executable import",
+      "settlements": [
+        {
+          "name": "Gorpin",
+          "offsetColumn": 1,
+          "offsetRow": 1,
+          "axialQ": 1,
+          "axialR": 1,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "The Heinburg",
+          "offsetColumn": 4,
+          "offsetRow": 3,
+          "axialQ": 4,
+          "axialR": 1,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Nordhome",
+          "offsetColumn": 2,
+          "offsetRow": 5,
+          "axialQ": 2,
+          "axialR": 4,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Seekirk",
+          "offsetColumn": 5,
+          "offsetRow": 5,
+          "axialQ": 5,
+          "axialR": 3,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Highgarden",
+          "offsetColumn": 10,
+          "offsetRow": 4,
+          "axialQ": 10,
+          "axialR": -1,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Barzirak",
+          "offsetColumn": 12,
+          "offsetRow": 5,
+          "axialQ": 12,
+          "axialR": -1,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Belgunot",
+          "offsetColumn": 8,
+          "offsetRow": 6,
+          "axialQ": 8,
+          "axialR": 2,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "The Bjornfoss",
+          "offsetColumn": 11,
+          "offsetRow": 7,
+          "axialQ": 11,
+          "axialR": 2,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Odgervik",
+          "offsetColumn": 12,
+          "offsetRow": 9,
+          "axialQ": 12,
+          "axialR": 3,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Sunehammer",
+          "offsetColumn": 4,
+          "offsetRow": 10,
+          "axialQ": 4,
+          "axialR": 8,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Astridfjord",
+          "offsetColumn": 8,
+          "offsetRow": 10,
+          "axialQ": 8,
+          "axialR": 6,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Felstoft",
+          "offsetColumn": 13,
+          "offsetRow": 11,
+          "axialQ": 13,
+          "axialR": 5,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Adakirk",
+          "offsetColumn": 11,
+          "offsetRow": 12,
+          "axialQ": 11,
+          "axialR": 7,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Blackstone Fortress",
+          "offsetColumn": 5,
+          "offsetRow": 12,
+          "axialQ": 5,
+          "axialR": 10,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Skegheld",
+          "offsetColumn": 12,
+          "offsetRow": 14,
+          "axialQ": 12,
+          "axialR": 8,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        }
+      ],
+      "mines": [
+        {
+          "name": "The Lost Mine",
+          "offsetColumn": 8,
+          "offsetRow": 3,
+          "axialQ": 8,
+          "axialR": -1,
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Copper Reef",
+          "offsetColumn": 12,
+          "offsetRow": 3,
+          "axialQ": 12,
+          "axialR": -3,
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Iron Hole",
+          "offsetColumn": 12,
+          "offsetRow": 6,
+          "axialQ": 12,
+          "axialR": 0,
+          "review": "visual source center; awaiting independent cross-check"
+        }
+      ],
+      "lairs": [
+        {
+          "name": "The Frozen Tomb",
+          "offsetColumn": 1,
+          "offsetRow": 3,
+          "axialQ": 1,
+          "axialR": 3,
+          "pool": "land",
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Labyrinth of Evil",
+          "offsetColumn": 7,
+          "offsetRow": 3,
+          "axialQ": 7,
+          "axialR": 0,
+          "pool": "land",
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Blood Skull Stronghold",
+          "offsetColumn": 2,
+          "offsetRow": 8,
+          "axialQ": 2,
+          "axialR": 7,
+          "pool": "land",
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "The Forgotten City",
+          "offsetColumn": 2,
+          "offsetRow": 12,
+          "axialQ": 2,
+          "axialR": 11,
+          "pool": "land",
+          "review": "visual source center; awaiting independent cross-check"
+        }
+      ]
+    },
+    {
+      "id": "wildlands",
+      "name": "The Wildlands",
+      "boardRow": "north",
+      "source": {
+        "module": "https://obj.vassalengine.org/images/8/84/Burning_Banners_v1.7.vmod",
+        "moduleSha256": "edf9991723174a2c3105a70bbfe10a96da1f72f17581789d3524f7126a01927e",
+        "internalImage": "The_Wildlands.jpg",
+        "imageSha256": "9c54f1fcb044fcb491adfde1d11bc2589adaa599b170ccef19f4ace86e86b4f9",
+        "sourcePixelSize": [
+          1899,
+          2446
+        ],
+        "sourceArtRedistribution": "not-granted; source scans not included in application or repository"
+      },
+      "pixelGrid": {
+        "dx": 139.92431864335458,
+        "dy": 161.4,
+        "x0": 66.0,
+        "y0": 24.0,
+        "offsetConvention": "column q, row j; x=x0+q*dx; y=y0+j*dy+(q mod 2)*dy/2",
+        "axialConvention": "r=j-floor(q/2)",
+        "columns": 14
+      },
+      "mechanicalGraphStatus": {
+        "terrain": "reviewed center interpretation in existing digital map",
+        "roads": "partial existing digital southern-sector review",
+        "rivers": "partial existing digital southern-sector review",
+        "seaAndCoastalHexsides": "not comprehensively certified",
+        "boardSeams": "not certified; shared partial hexes need deduplication and side continuity review",
+        "officialPlayableMap": false
+      },
+      "namedLocationReview": "settlement and named-feature centers visually inspected against labeled source; new boards require independent cross-check before official executable import",
+      "settlements": [
+        {
+          "name": "Dwelfholm",
+          "offsetColumn": 1,
+          "offsetRow": 4,
+          "axialQ": 1,
+          "axialR": 4,
+          "loyalty": "oathborn",
+          "city": true,
+          "port": false,
+          "fortified": 2,
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Khorikar",
+          "offsetColumn": 1,
+          "offsetRow": 6,
+          "axialQ": 1,
+          "axialR": 6,
+          "loyalty": null,
+          "city": false,
+          "port": true,
+          "fortified": 0,
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Norstead",
+          "offsetColumn": 2,
+          "offsetRow": 8,
+          "axialQ": 2,
+          "axialR": 7,
+          "loyalty": null,
+          "city": false,
+          "port": false,
+          "fortified": 0,
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Barlas on the Lake",
+          "offsetColumn": 3,
+          "offsetRow": 13,
+          "axialQ": 3,
+          "axialR": 12,
+          "loyalty": "fjordland",
+          "city": false,
+          "port": false,
+          "fortified": 0,
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Tagathol",
+          "offsetColumn": 5,
+          "offsetRow": 3,
+          "axialQ": 5,
+          "axialR": 1,
+          "loyalty": "oathborn",
+          "city": false,
+          "port": false,
+          "fortified": 1,
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Arulud",
+          "offsetColumn": 5,
+          "offsetRow": 5,
+          "axialQ": 5,
+          "axialR": 3,
+          "loyalty": null,
+          "city": false,
+          "port": false,
+          "fortified": 0,
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Spire of the Moon",
+          "offsetColumn": 5,
+          "offsetRow": 7,
+          "axialQ": 5,
+          "axialR": 5,
+          "loyalty": "night",
+          "city": true,
+          "port": false,
+          "fortified": 2,
+          "wilderness": "mountain",
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Far Tumed",
+          "offsetColumn": 5,
+          "offsetRow": 9,
+          "axialQ": 5,
+          "axialR": 7,
+          "loyalty": null,
+          "city": false,
+          "port": false,
+          "fortified": 0,
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Zarinbar",
+          "offsetColumn": 5,
+          "offsetRow": 11,
+          "axialQ": 5,
+          "axialR": 9,
+          "loyalty": "oathborn",
+          "city": false,
+          "port": false,
+          "fortified": 0,
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Mangut",
+          "offsetColumn": 7,
+          "offsetRow": 7,
+          "axialQ": 7,
+          "axialR": 4,
+          "loyalty": null,
+          "city": false,
+          "port": true,
+          "fortified": 0,
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Nal Narag",
+          "offsetColumn": 8,
+          "offsetRow": 3,
+          "axialQ": 8,
+          "axialR": -1,
+          "loyalty": "oathborn",
+          "city": false,
+          "port": true,
+          "fortified": 0,
+          "wilderness": "mountain",
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Shaded Vale",
+          "offsetColumn": 8,
+          "offsetRow": 14,
+          "axialQ": 8,
+          "axialR": 10,
+          "loyalty": null,
+          "city": false,
+          "port": false,
+          "fortified": 0,
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Chanos",
+          "offsetColumn": 9,
+          "offsetRow": 9,
+          "axialQ": 9,
+          "axialR": 5,
+          "loyalty": null,
+          "city": false,
+          "port": false,
+          "fortified": 0,
+          "review": "existing reviewed source-zone/location mapping"
+        },
+        {
+          "name": "Fort Gorod",
+          "offsetColumn": 9,
+          "offsetRow": 11,
+          "axialQ": 9,
+          "axialR": 7,
+          "loyalty": null,
+          "city": false,
+          "port": true,
+          "fortified": 1,
+          "review": "existing reviewed source-zone/location mapping"
+        }
+      ],
+      "mines": [
+        {
+          "name": "The Trollshaft",
+          "offsetColumn": 2,
+          "offsetRow": 2,
+          "axialQ": 2,
+          "axialR": 1,
+          "review": "existing reviewed source-center interpretation"
+        },
+        {
+          "name": "Black Deep",
+          "offsetColumn": 6,
+          "offsetRow": 3,
+          "axialQ": 6,
+          "axialR": 0,
+          "review": "existing reviewed source-center interpretation"
+        },
+        {
+          "name": "North Drift",
+          "offsetColumn": 11,
+          "offsetRow": 1,
+          "axialQ": 11,
+          "axialR": -4,
+          "review": "existing reviewed source-center interpretation"
+        },
+        {
+          "name": "Dwarven Falls",
+          "offsetColumn": 7,
+          "offsetRow": 12,
+          "axialQ": 7,
+          "axialR": 9,
+          "review": "existing reviewed source-center interpretation"
+        },
+        {
+          "name": "The Endless Paths",
+          "offsetColumn": 5,
+          "offsetRow": 14,
+          "axialQ": 5,
+          "axialR": 12,
+          "review": "existing reviewed source-center interpretation"
+        }
+      ],
+      "lairs": [
+        {
+          "name": "The Devil’s Furnace",
+          "offsetColumn": 4,
+          "offsetRow": 2,
+          "axialQ": 4,
+          "axialR": 0,
+          "pool": "land",
+          "review": "existing reviewed source-center interpretation"
+        },
+        {
+          "name": "The Drowned Tomb",
+          "offsetColumn": 8,
+          "offsetRow": 6,
+          "axialQ": 8,
+          "axialR": 2,
+          "pool": "land",
+          "review": "existing reviewed source-center interpretation"
+        },
+        {
+          "name": "Frostmarsh Mansion",
+          "offsetColumn": 0,
+          "offsetRow": 8,
+          "axialQ": 0,
+          "axialR": 8,
+          "pool": "land",
+          "review": "existing reviewed source-center interpretation"
+        },
+        {
+          "name": "City of the Dead",
+          "offsetColumn": 3,
+          "offsetRow": 9,
+          "axialQ": 3,
+          "axialR": 8,
+          "pool": "land",
+          "review": "existing reviewed source-center interpretation"
+        },
+        {
+          "name": "The Sunken Temple",
+          "offsetColumn": 11,
+          "offsetRow": 9,
+          "axialQ": 11,
+          "axialR": 4,
+          "pool": "sea",
+          "review": "existing reviewed source-center interpretation"
+        },
+        {
+          "name": "The Risen Keep",
+          "offsetColumn": 10,
+          "offsetRow": 13,
+          "axialQ": 10,
+          "axialR": 8,
+          "pool": "land",
+          "review": "existing reviewed source-center interpretation"
+        },
+        {
+          "name": "The Ancient Necropolis",
+          "offsetColumn": 1,
+          "offsetRow": 13,
+          "axialQ": 1,
+          "axialR": 13,
+          "pool": "land",
+          "review": "existing reviewed source-center interpretation"
+        }
+      ]
+    },
+    {
+      "id": "imperial-heartland",
+      "name": "Imperial Heartland",
+      "boardRow": "south",
+      "source": {
+        "module": "https://obj.vassalengine.org/images/8/84/Burning_Banners_v1.7.vmod",
+        "moduleSha256": "edf9991723174a2c3105a70bbfe10a96da1f72f17581789d3524f7126a01927e",
+        "internalImage": "Imperial_Heartland.jpg",
+        "imageSha256": "a27006abe702d684ee21b018f1cdc93ab8eec4e9229e2c54d3ba22c5102efcbc",
+        "sourcePixelSize": [
+          1898,
+          2446
+        ],
+        "sourceArtRedistribution": "not-granted; source scans not included in application or repository"
+      },
+      "pixelGrid": {
+        "dx": 139.92431864335458,
+        "dy": 161.4,
+        "x0": 6.0,
+        "y0": -2.0,
+        "offsetConvention": "column q, row j; x=x0+q*dx; y=y0+j*dy+(q mod 2)*dy/2",
+        "axialConvention": "r=j-floor(q/2)",
+        "columns": 14
+      },
+      "mechanicalGraphStatus": {
+        "terrain": "not comprehensively transcribed",
+        "roads": "not transcribed",
+        "rivers": "not transcribed",
+        "seaAndCoastalHexsides": "not comprehensively certified",
+        "boardSeams": "not certified; shared partial hexes need deduplication and side continuity review",
+        "officialPlayableMap": false
+      },
+      "namedLocationReview": "settlement and named-feature centers visually inspected against labeled source; new boards require independent cross-check before official executable import",
+      "settlements": [
+        {
+          "name": "Megas",
+          "offsetColumn": 3,
+          "offsetRow": 0,
+          "axialQ": 3,
+          "axialR": -1,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Njaldeep",
+          "offsetColumn": 5,
+          "offsetRow": 2,
+          "axialQ": 5,
+          "axialR": 0,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Vilkensinger Fortress",
+          "offsetColumn": 12,
+          "offsetRow": 1,
+          "axialQ": 12,
+          "axialR": -5,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Rjukkenheld",
+          "offsetColumn": 11,
+          "offsetRow": 3,
+          "axialQ": 11,
+          "axialR": -2,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Feodorus",
+          "offsetColumn": 7,
+          "offsetRow": 4,
+          "axialQ": 7,
+          "axialR": 1,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Urbicus",
+          "offsetColumn": 4,
+          "offsetRow": 6,
+          "axialQ": 4,
+          "axialR": 4,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Aureliana",
+          "offsetColumn": 10,
+          "offsetRow": 7,
+          "axialQ": 10,
+          "axialR": 2,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Silverian",
+          "offsetColumn": 3,
+          "offsetRow": 9,
+          "axialQ": 3,
+          "axialR": 8,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Priscian",
+          "offsetColumn": 6,
+          "offsetRow": 9,
+          "axialQ": 6,
+          "axialR": 6,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Gallienus",
+          "offsetColumn": 9,
+          "offsetRow": 8,
+          "axialQ": 9,
+          "axialR": 4,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Port Castinus",
+          "offsetColumn": 8,
+          "offsetRow": 12,
+          "axialQ": 8,
+          "axialR": 8,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Farsund",
+          "offsetColumn": 3,
+          "offsetRow": 13,
+          "axialQ": 3,
+          "axialR": 12,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Khalesh",
+          "offsetColumn": 8,
+          "offsetRow": 14,
+          "axialQ": 8,
+          "axialR": 10,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Beledi",
+          "offsetColumn": 12,
+          "offsetRow": 13,
+          "axialQ": 12,
+          "axialR": 7,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        }
+      ],
+      "mines": [],
+      "lairs": [
+        {
+          "name": "Shark Reef",
+          "offsetColumn": 8,
+          "offsetRow": 1,
+          "axialQ": 8,
+          "axialR": -3,
+          "pool": "sea",
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Tower of Crows",
+          "offsetColumn": 5,
+          "offsetRow": 4,
+          "axialQ": 5,
+          "axialR": 2,
+          "pool": "land",
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Valley of Storm Giants",
+          "offsetColumn": 13,
+          "offsetRow": 6,
+          "axialQ": 13,
+          "axialR": 0,
+          "pool": "land",
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Khronos: City of Traps",
+          "offsetColumn": 11,
+          "offsetRow": 9,
+          "axialQ": 11,
+          "axialR": 4,
+          "pool": "land",
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Darkwater Deeps",
+          "offsetColumn": 4,
+          "offsetRow": 12,
+          "axialQ": 4,
+          "axialR": 10,
+          "pool": "sea",
+          "review": "visual source center; awaiting independent cross-check"
+        }
+      ]
+    },
+    {
+      "id": "fields-of-ash",
+      "name": "Fields of Ash",
+      "boardRow": "south",
+      "source": {
+        "module": "https://obj.vassalengine.org/images/8/84/Burning_Banners_v1.7.vmod",
+        "moduleSha256": "edf9991723174a2c3105a70bbfe10a96da1f72f17581789d3524f7126a01927e",
+        "internalImage": "Fields_of_Ash.jpg",
+        "imageSha256": "128158d5ac78385666a0600f68f85d7dc1b80fd5a7cfd349585a5af0ad1e01d4",
+        "sourcePixelSize": [
+          1899,
+          2446
+        ],
+        "sourceArtRedistribution": "not-granted; source scans not included in application or repository"
+      },
+      "pixelGrid": {
+        "dx": 139.92431864335458,
+        "dy": 161.4,
+        "x0": 65.0,
+        "y0": -2.0,
+        "offsetConvention": "column q, row j; x=x0+q*dx; y=y0+j*dy+(q mod 2)*dy/2",
+        "axialConvention": "r=j-floor(q/2)",
+        "columns": 14
+      },
+      "mechanicalGraphStatus": {
+        "terrain": "not comprehensively transcribed",
+        "roads": "not transcribed",
+        "rivers": "not transcribed",
+        "seaAndCoastalHexsides": "not comprehensively certified",
+        "boardSeams": "not certified; shared partial hexes need deduplication and side continuity review",
+        "officialPlayableMap": false
+      },
+      "namedLocationReview": "settlement and named-feature centers visually inspected against labeled source; new boards require independent cross-check before official executable import",
+      "settlements": [
+        {
+          "name": "Auger",
+          "offsetColumn": 2,
+          "offsetRow": 1,
+          "axialQ": 2,
+          "axialR": 0,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Highbridge",
+          "offsetColumn": 3,
+          "offsetRow": 2,
+          "axialQ": 3,
+          "axialR": 1,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Muffin Town",
+          "offsetColumn": 0,
+          "offsetRow": 4,
+          "axialQ": 0,
+          "axialR": 4,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Southbridge",
+          "offsetColumn": 3,
+          "offsetRow": 4,
+          "axialQ": 3,
+          "axialR": 3,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Urut",
+          "offsetColumn": 6,
+          "offsetRow": 1,
+          "axialQ": 6,
+          "axialR": -2,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Yurku",
+          "offsetColumn": 9,
+          "offsetRow": 1,
+          "axialQ": 9,
+          "axialR": -3,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Dungkha",
+          "offsetColumn": 9,
+          "offsetRow": 4,
+          "axialQ": 9,
+          "axialR": 0,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Drakenhold",
+          "offsetColumn": 6,
+          "offsetRow": 5,
+          "axialQ": 6,
+          "axialR": 2,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Khotan Khong",
+          "offsetColumn": 8,
+          "offsetRow": 6,
+          "axialQ": 8,
+          "axialR": 2,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Darhad",
+          "offsetColumn": 4,
+          "offsetRow": 7,
+          "axialQ": 4,
+          "axialR": 5,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Placidia",
+          "offsetColumn": 0,
+          "offsetRow": 8,
+          "axialQ": 0,
+          "axialR": 8,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Alyttium",
+          "offsetColumn": 2,
+          "offsetRow": 8,
+          "axialQ": 2,
+          "axialR": 7,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Agra Yakoo",
+          "offsetColumn": 1,
+          "offsetRow": 11,
+          "axialQ": 1,
+          "axialR": 11,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Cestae",
+          "offsetColumn": 4,
+          "offsetRow": 10,
+          "axialQ": 4,
+          "axialR": 8,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Shadowglen",
+          "offsetColumn": 7,
+          "offsetRow": 10,
+          "axialQ": 7,
+          "axialR": 7,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Port Gilder",
+          "offsetColumn": 8,
+          "offsetRow": 8,
+          "axialQ": 8,
+          "axialR": 4,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Katurkhas",
+          "offsetColumn": 10,
+          "offsetRow": 10,
+          "axialQ": 10,
+          "axialR": 5,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Pewter Falls",
+          "offsetColumn": 3,
+          "offsetRow": 12,
+          "axialQ": 3,
+          "axialR": 11,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Barukil",
+          "offsetColumn": 8,
+          "offsetRow": 12,
+          "axialQ": 8,
+          "axialR": 8,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Port Talonshield",
+          "offsetColumn": 9,
+          "offsetRow": 12,
+          "axialQ": 9,
+          "axialR": 8,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Budar",
+          "offsetColumn": 12,
+          "offsetRow": 13,
+          "axialQ": 12,
+          "axialR": 7,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Zawikosa",
+          "offsetColumn": 2,
+          "offsetRow": 14,
+          "axialQ": 2,
+          "axialR": 13,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        },
+        {
+          "name": "Port Lark",
+          "offsetColumn": 5,
+          "offsetRow": 14,
+          "axialQ": 5,
+          "axialR": 12,
+          "review": "visual source center; awaiting independent cross-check",
+          "mechanicsStatus": "loyalty/city/fortification/port/wilderness not yet fully imported"
+        }
+      ],
+      "mines": [
+        {
+          "name": "Flinthome",
+          "offsetColumn": 3,
+          "offsetRow": 1,
+          "axialQ": 3,
+          "axialR": 0,
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Flowstone",
+          "offsetColumn": 7,
+          "offsetRow": 3,
+          "axialQ": 7,
+          "axialR": 0,
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Cascades",
+          "offsetColumn": 2,
+          "offsetRow": 5,
+          "axialQ": 2,
+          "axialR": 4,
+          "review": "visual source center; awaiting independent cross-check"
+        }
+      ],
+      "lairs": [
+        {
+          "name": "Corridors of Elemental Death",
+          "offsetColumn": 7,
+          "offsetRow": 2,
+          "axialQ": 7,
+          "axialR": -1,
+          "pool": "land",
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Firewing Peak",
+          "offsetColumn": 5,
+          "offsetRow": 3,
+          "axialQ": 5,
+          "axialR": 1,
+          "pool": "land",
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Ruins on the Borderland",
+          "offsetColumn": 10,
+          "offsetRow": 8,
+          "axialQ": 10,
+          "axialR": 3,
+          "pool": "land",
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Towers of the Mad Wizard",
+          "offsetColumn": 4,
+          "offsetRow": 12,
+          "axialQ": 4,
+          "axialR": 10,
+          "pool": "land",
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "The Giant’s Staircase",
+          "offsetColumn": 0,
+          "offsetRow": 13,
+          "axialQ": 0,
+          "axialR": 13,
+          "pool": "land",
+          "review": "visual source center; awaiting independent cross-check"
+        },
+        {
+          "name": "Palace of the Sea Demon",
+          "offsetColumn": 6,
+          "offsetRow": 13,
+          "axialQ": 6,
+          "axialR": 10,
+          "pool": "sea",
+          "review": "visual source center; awaiting independent cross-check"
+        }
+      ]
+    }
+  ],
+  "unresolvedNames": [
+    {
+      "name": "Oronar",
+      "claimedBoard": "wildlands",
+      "source": "https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying+Campaign+Notes+v.1.0.pdf",
+      "context": "Chronicle chapter 4 Orc control-marker correction",
+      "status": "Not found in the VASSAL 1.7 board image or named zones; cannot assign a hex without another source."
+    }
+  ]
+}
