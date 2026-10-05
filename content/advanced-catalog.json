@@ -7083,7 +7083,7 @@
       },
       "powerName": "Prince of Deception",
       "sourceFace": "images/Orc Spy-Master Kagash.png",
-      "summary": "Lock Kagash to make one of two adjacent enemy Units within three hexes Strike the other using its combat rating.",
+      "summary": "Lock Kagash to have one of two adjacent enemy Armies within three hexes Strike the other using its combat rating.",
       "powerLabel": "Prince of Deception"
     },
     {
@@ -7490,7 +7490,7 @@
       "mage": false,
       "tome": false,
       "range": {
-        "min": 0,
+        "min": 1,
         "max": 1
       },
       "targets": [
@@ -7514,7 +7514,8 @@
         "cannotGenerateCriticalHits": true,
         "lockSource": true,
         "ongoing": false,
-        "fortifiedTargetsProhibited": true
+        "fortifiedTargetsProhibited": true,
+        "onFailureMayEliminateSourceHero": true
       },
       "cost": 3,
       "verified": true,
@@ -7546,7 +7547,7 @@
         "cantrip": false,
         "mage": false,
         "range": {
-          "min": 0,
+          "min": 1,
           "max": 1
         },
         "targets": [
@@ -7570,14 +7571,15 @@
           "cannotGenerateCriticalHits": true,
           "lockSource": true,
           "ongoing": false,
-          "fortifiedTargetsProhibited": true
+          "fortifiedTargetsProhibited": true,
+          "onFailureMayEliminateSourceHero": true
         },
-        "summary": "Lock Luna to roll a heavy die against a Hero or Monster in an adjacent hex. Success eliminates it; failure randomly discards a Spell or sacrifices Luna if none remain.",
+        "summary": "Lock Luna to Strike an adjacent Hero or Monster with one heavy die. Success eliminates it without hits or criticals; failure either randomly discards a Spell or sacrifices Luna.",
         "name": "Deadly Assassin"
       },
       "powerName": "Deadly Assassin",
       "sourceFace": "images/AN Luna Mist Hunter.png",
-      "summary": "Lock Luna to roll a heavy die against a Hero or Monster in an adjacent hex. Success eliminates it; failure randomly discards a Spell or sacrifices Luna if none remain.",
+      "summary": "Lock Luna to Strike an adjacent Hero or Monster with one heavy die. Success eliminates it without hits or criticals; failure either randomly discards a Spell or sacrifices Luna.",
       "powerLabel": "Deadly Assassin"
     },
     {

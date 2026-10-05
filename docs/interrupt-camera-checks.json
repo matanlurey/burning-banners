@@ -1,0 +1,38 @@
+[
+  {
+    "step": "focused Army",
+    "bodyScrollWidth": 1280,
+    "layerScrollLeft": 0,
+    "scrollLeft": 0,
+    "scrollTop": 0,
+    "transform": "translate(-70.2px, -104.881px) scale(0.8)",
+    "viewport": 1280
+  },
+  {
+    "step": "two zoom-out clicks",
+    "bodyScrollWidth": 1280,
+    "layerScrollLeft": 0,
+    "scrollLeft": 0,
+    "scrollTop": 0,
+    "transform": "translate(35.84px, 35.84px) scale(0.512)",
+    "viewport": 1280
+  },
+  {
+    "step": "two zoom-in clicks",
+    "bodyScrollWidth": 1280,
+    "layerScrollLeft": 0,
+    "scrollLeft": 0,
+    "scrollTop": 0,
+    "transform": "translate(-194.312px, -128.219px) scale(0.8)",
+    "viewport": 1280
+  },
+  {
+    "step": "keyboard pan",
+    "bodyScrollWidth": 1280,
+    "layerScrollLeft": 0,
+    "scrollLeft": 0,
+    "scrollTop": 0,
+    "transform": "translate(-265.512px, -128.219px) scale(0.8)",
+    "viewport": 1280
+  }
+]

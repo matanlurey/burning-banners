@@ -1,6 +1,6 @@
 # Full tabletop play
 
-Full tabletop is the local, human-adjudicated way to exercise the physical game's entire component set. Its engine handles ordinary legal actions and 169 automated effects. Table controls expose all 148 Magic cards, 38 named Heroes, 44 Army types, 36 Monsters and four Enslaved Hero markers, including the 17 effects that still need printed-rule adjudication. It does not certify missing official campaign setups or enforce every special card rule automatically.
+Full tabletop is the local, human-adjudicated way to exercise the physical game's entire component set. Its engine handles ordinary legal actions and 181 automated effects. Table controls expose all 148 Magic cards, 38 named Heroes, 44 Army types, 36 Monsters and four Enslaved Hero markers, including the 5 effects that still need printed-rule adjudication. It does not certify missing official campaign setups or enforce every special card rule automatically.
 
 ## Set up a printed campaign
 
@@ -22,7 +22,7 @@ Counters & dice provides deterministic dice receipts. If a printed effect preven
 
 ## Enslaved Heroes
 
-Map & markers holds the separate **four-counter** Enslaved Hero supply, including the two Heavy Mage markers. Mark an eligible, unaccompanied enemy Army after resolving the printed Enslave instructions. The Army retains its printed kingdom identity and receives a visible Night-control marker; use table controls for its Night-directed actions. Named Hero inventories are not consumed.
+Map & markers holds the separate **four-counter** Enslaved Hero supply, Each marker has Mage and zero printed combat dice; it inherits the accompanying Army’s movement and abilities. Mark an eligible, unaccompanied enemy Army after resolving the printed Enslave instructions. The Army retains its printed kingdom identity and receives a visible Night-control marker; use table controls for its Night-directed actions. Named Hero inventories are not consumed.
 
 Adjudicate the printed Mage rating, mandatory first hit, release placement and failed/locked-caster lifecycle. Remove the marker at the proper time, relocate or eliminate the released Army as required, and apply temporary modifiers separately. These lifecycle choices remain manual; the marker alone does not grant an invented automated Enslave rule.
 

@@ -109,7 +109,7 @@ function canEnd(s:GameState,u:Unit,h:Hex):boolean {
   else {const other=others[0];if(other&&(other.kingdom!==u.kingdom||other.activated))return false;}
   if(h.entry&&h.entry!==u.kingdom)return false;
   if(aliveSettlement(s,h)&&!isWelcoming(s,h,u.kingdom))return false;
-  if(characteristic(defOf(s,u),'huge')&&isWelcoming(s,h,u.kingdom))return false;
+  if(group.some(id=>characteristic(defOf(s,unitById(s,id)),'huge'))&&isWelcoming(s,h,u.kingdom))return false;
   return true;
 }
 function movementCost(s:GameState,u:Unit,from:string,to:Hex):number {
@@ -193,9 +193,9 @@ function diceFor(s:GameState,u:Unit|undefined):{light:number;heavy:number} {
   return Advanced.adjustedDice(s,u.id,u.weakened?{light:d.weakenedLight??d.light,heavy:d.weakenedHeavy??d.heavy}:{light:d.light,heavy:d.heavy});
 }
 const diceExpected=(light:number,heavy:number,penalty:number)=>light*(Math.max(0,7-(5+penalty))/6)+heavy*(Math.max(0,9-(5+penalty))/8+Math.max(0,9-(7+penalty))/24);
-function canAttack(s:GameState,u:Unit,target:Hex):boolean {
+function canAttack(s:GameState,u:Unit,target:Hex,granted=false):boolean {
   if(Advanced.isHero(s,u))return false;
-  if(!unitMayAct(s,u)||!adjacent(s,u.hexId,target.id)||target.prohibited||target.terrain==='sea'||target.terrain==='lair'||!canCross(s,u,u.hexId,target.id))return false;
+  if(!granted&&!unitMayAct(s,u)||!adjacent(s,u.hexId,target.id)||target.prohibited||target.terrain==='sea'||target.terrain==='lair'||!canCross(s,u,u.hexId,target.id))return false;
   const enemy=s.units.find(v=>v.hexId===target.id&&!sameSide(s,v.kingdom,u.kingdom)&&!Advanced.isHero(s,v));
   if(siege(defOf(s,u))&&!aliveSettlement(s,target))return false;
   return !!enemy||(aliveSettlement(s,target)&&!isWelcoming(s,target,u.kingdom));
@@ -245,10 +245,10 @@ export function legalActions(s:GameState):Action[] {
   if(s.pendingCombat){const p=s.pendingCombat;
     if(p.stage==='ambush'){const f=combatForecast(s,p.attackerId,p.targetHex);const a:Action[]=[{type:'resolve-combat',ambush:null}];if(f.attackerCanAmbush)a.push({type:'resolve-combat',ambush:'attacker'});if(f.defenderCanAmbush)a.push({type:'resolve-combat',ambush:'defender'});return a;}
     if(p.stage==='advance')return [{type:'advance',accept:true},{type:'advance',accept:false}];
-    const k=kingdomOf(s,s.currentKingdom),controls=Object.values(s.controls).filter(id=>id===k.id).length+(k.id==='night'?s.covens.filter(id=>id!==p.targetHex).length:0);
+    const k=kingdomOf(s,p.decisionKingdom),controls=Object.values(s.controls).filter(id=>id===k.id).length+(k.id==='night'?s.covens.filter(id=>id!==p.targetHex).length:0);
     const choices:Action[]=controls<controlCapacity(k)?[{type:'settlement',choice:'control'},{type:'settlement',choice:'raze'}]:[{type:'settlement',choice:'raze'}];
     for(const [id,owner]of Object.entries(s.controls))if(owner===k.id)choices.push({type:'remove-control',hexId:id});
-    if(k.id==='night')for(const id of s.covens)choices.push({type:'remove-coven',hexId:id});
+    if(k.id==='night'&&!Advanced.covensProtected(s))for(const id of s.covens)choices.push({type:'remove-coven',hexId:id});
     return choices;
   }
   const k=kingdomOf(s,s.currentKingdom),actions:Action[]=[...extra.actions];
@@ -259,7 +259,7 @@ export function legalActions(s:GameState):Action[] {
     if(k.id==='night'&&!s.incomeActionsUsed.includes('coven')&&Object.values(s.controls).filter(id=>id==='night').length+s.covens.length<(k.controlLimit??5))for(const h of s.hexes)if(aliveSettlement(s,h)&&!isWelcoming(s,h,k.id)&&!s.covens.includes(h.id))actions.push({type:'coven',hexId:h.id});
     if(isShashka(k.id))for(const h of s.hexes)if(s.controls[h.id]===k.id)actions.push({type:'lay-waste',hexId:h.id});
     for(const u of s.units)if(u.kingdom===k.id&&siege(defOf(s,u)))actions.push({type:'disband-siege',unitId:u.id});
-    if(k.id==='night')for(const id of s.covens)actions.push({type:'remove-coven',hexId:id});
+    if(k.id==='night'&&!Advanced.covensProtected(s))for(const id of s.covens)actions.push({type:'remove-coven',hexId:id});
     return actions;
   }
   if(!s.activeUnitId){
@@ -283,7 +283,7 @@ export function legalActions(s:GameState):Action[] {
   // where a newly gained finished Hero blocks further movement/actions.
   if(s.activeUnitId){const u=unitById(s,s.activeUnitId),d=defOf(s,u);if(u.kingdom===k.id&&!u.activated&&!s.units.some(v=>v.id!==u.id&&v.hexId===u.hexId&&!Advanced.stackIds(s,u.id).includes(v.id))&&!(characteristic(d,'huge')&&isWelcoming(s,hexById(s,u.hexId),u.kingdom))&&!actions.some(a=>a.type==='pass'&&a.unitId===u.id))actions.push({type:'pass',unitId:u.id});}
   for(const h of s.hexes)if(s.controls[h.id]===k.id)actions.push({type:'remove-control',hexId:h.id});
-  if(k.id==='night')for(const id of s.covens)actions.push({type:'remove-coven',hexId:id});
+  if(k.id==='night'&&!Advanced.covensProtected(s))for(const id of s.covens)actions.push({type:'remove-coven',hexId:id});
   if(k.id==='empire'&&(k.revolt??0)>0&&k.gold>0&&!s.advanced?.effects.some(e=>e.extra?.noSuppression))actions.push({type:'suppress',amount:1});
   if(!s.units.some(u=>u.kingdom===k.id&&(s.units.some(v=>v.id!==u.id&&v.hexId===u.hexId&&!Advanced.stackIds(s,u.id).includes(v.id))||hexById(s,u.hexId).terrain==='sea'||(characteristic(defOf(s,u),'huge')&&isWelcoming(s,hexById(s,u.hexId),u.kingdom)))))actions.push({type:'end-turn'});
   return actions;
@@ -310,11 +310,12 @@ function loseIncome(s:GameState,owner:string|null,amount=1):void {if(owner&&!isS
 function gainIncome(s:GameState,owner:string|null,amount=1):void {if(owner&&!isShashka(owner)){const k=s.kingdoms.find(k=>k.id===owner);if(k&&!k.collapsed)k.income+=amount;}}
 function raze(s:GameState,h:Hex,loot=false):void {
   const owner=settlementController(s,h);if(loot&&owner){if(s.advanced)Advanced.queueAdvancedEvent(s,{type:'settlement-looted',kingdom:owner,hexId:h.id});const k=kingdomOf(s,owner);k.gold+=(isShashka(owner)?3:2)*(h.settlement?.city?2:1);}
-  loseIncome(s,owner);delete s.controls[h.id];if(!s.razed.includes(h.id))s.razed.push(h.id);s.covens=s.covens.filter(id=>id!==h.id);
+  loseIncome(s,owner);delete s.controls[h.id];if(!s.razed.includes(h.id))s.razed.push(h.id);if(!Advanced.covensProtected(s))s.covens=s.covens.filter(id=>id!==h.id);
   log(s,`${h.settlement?.name??h.id} was razed${loot?' and looted':''}.`);
 }
 function encounterCoven(s:GameState,u:Unit):void {
   if(u.kingdom==='night'||sameSide(s,u.kingdom,'night')||!s.covens.includes(u.hexId)||s.covenProtected.includes(u.hexId))return;
+  if(Advanced.covensProtected(s)){if(!s.covenProtected.includes(u.hexId))s.covenProtected.push(u.hexId);log(s,'Your True Rulers protects this Coven.');return;}
   const result=randomDie(s,6);if(result>=5){s.covenProtected.push(u.hexId);log(s,`Coven hides in shadows (${result}); protected for this Kingdom's turn.`);}else{s.covens=s.covens.filter(id=>id!==u.hexId);log(s,`Coven discovered (${result}) and removed.`);}
 }
 function startActivation(s:GameState,u:Unit):void {
@@ -323,9 +324,10 @@ function startActivation(s:GameState,u:Unit):void {
   s.activeUnitId=u.id;s.remainingMP=defOf(s,u).movement;s.allRoad=true;s.moved=false;s.shipUsed=false;
 }
 function finishActivation(s:GameState):void {
+  if(s.advanced&&Advanced.afterAdvanceChoices(s,advancedContext()))return;
   if(s.advanced)Advanced.finishAdvancedActivation(s,advancedContext());
   const u=s.units.find(u=>u.id===s.activeUnitId);
-  if(u){encounterCoven(s,u);u.activated=true;
+  if(u){if(!s.advanced)encounterCoven(s,u);u.activated=true;
     const h=hexById(s,u.hexId);
     if(aliveSettlement(s,h)&&!s.controls[h.id]&&!h.settlement?.loyalty){
       const d=defOf(s,u),count=Object.values(s.controls).filter(k=>k===u.kingdom).length+(u.kingdom==='night'?s.covens.length:0);
@@ -333,6 +335,7 @@ function finishActivation(s:GameState):void {
     }
   }
   s.activeUnitId=null;s.remainingMP=0;s.moved=false;s.allRoad=true;s.shipUsed=false;
+  if(s.advanced)Advanced.finishGrant(s,advancedContext());
 }
 function hitArmy(s:GameState,id:string|undefined,hits:number):void {
   if(!id||hits<=0)return;const u=s.units.find(u=>u.id===id);if(!u)return;
@@ -342,10 +345,11 @@ function hitArmy(s:GameState,id:string|undefined,hits:number):void {
 function strikeDice(s:GameState,u:Unit|undefined,target:Hex):{light:number;heavy:number} {
   return u?diceFor(s,u):{light:target.settlement?.city?3:target.settlement?1:0,heavy:0};
 }
-function advanceInto(s:GameState,attackerId:string,targetHex:string):void {
+function advanceInto(s:GameState,attackerId:string,targetHex:string,entryCleared=false):void {
+  if(s.advanced&&!entryCleared){Advanced.beforeAdvance(s,attackerId,targetHex,advancedContext());return;}
   const a=unitById(s,attackerId),h=hexById(s,targetHex),d=defOf(s,a);
   if(s.advanced)for(const hero of s.units.filter(u=>u.hexId===targetHex&&!sameSide(s,u.kingdom,a.kingdom)&&Advanced.isHero(s,u)))hitArmy(s,hero.id,1);
-  if(!aliveSettlement(s,h)){for(const id of Advanced.stackIds(s,a.id))unitById(s,id).hexId=h.id;s.pendingCombat=null;finishActivation(s);return;}
+  if(!aliveSettlement(s,h)){for(const id of Advanced.stackIds(s,a.id))unitById(s,id).hexId=h.id;if(s.advanced)s.advanced.justAdvanced=a.id;s.pendingCombat=null;finishActivation(s);return;}
   const wasWelcoming=isWelcoming(s,h,a.kingdom),former=settlementController(s,h);
   if(!wasWelcoming){
     if(!characteristic(d,'huge')&&!characteristic(d,'feral')){
@@ -356,11 +360,11 @@ function advanceInto(s:GameState,attackerId:string,targetHex:string):void {
   const welcoming=isWelcoming(s,h,a.kingdom);
   if(welcoming){
     if(!wasWelcoming)gainIncome(s,h.settlement?.loyalty??null);
-    if(!characteristic(d,'huge'))for(const id of Advanced.stackIds(s,a.id))unitById(s,id).hexId=h.id;
-    s.covens=s.covens.filter(id=>id!==h.id);s.newlyFriendly.push(h.id);s.pendingCombat=null;finishActivation(s);return;
+    if(!characteristic(d,'huge')){for(const id of Advanced.stackIds(s,a.id))unitById(s,id).hexId=h.id;if(s.advanced)s.advanced.justAdvanced=a.id;}
+    if(!Advanced.covensProtected(s))s.covens=s.covens.filter(id=>id!==h.id);s.newlyFriendly.push(h.id);s.pendingCombat=null;finishActivation(s);return;
   }
-  for(const id of Advanced.stackIds(s,a.id))unitById(s,id).hexId=h.id;
-  if(characteristic(d,'feral')||characteristic(d,'huge')){if(!s.razed.includes(h.id))s.razed.push(h.id);s.covens=s.covens.filter(id=>id!==h.id);log(s,`${h.settlement?.name} razed by ${d.name}.`);s.pendingCombat=null;finishActivation(s);return;}
+  for(const id of Advanced.stackIds(s,a.id))unitById(s,id).hexId=h.id;if(s.advanced)s.advanced.justAdvanced=a.id;
+  if(characteristic(d,'feral')||characteristic(d,'huge')){if(!s.razed.includes(h.id))s.razed.push(h.id);if(!Advanced.covensProtected(s))s.covens=s.covens.filter(id=>id!==h.id);log(s,`${h.settlement?.name} razed by ${d.name}.`);s.pendingCombat=null;finishActivation(s);return;}
   s.pendingCombat={attackerId,targetHex,stage:'settlement',decisionKingdom:a.kingdom,result:s.lastCombat??undefined};
 }
 function completeCombat(s:GameState,result:CombatResult):void {
@@ -489,25 +493,25 @@ export function applyAction(state:GameState,action:Action):GameState {
       break;
     }
     case 'attack': {
-      const u=unitById(s,legal.unitId);startActivation(s,u);encounterCoven(s,u);const f=combatForecast(s,u.id,legal.targetHex);
+      const u=unitById(s,legal.unitId);startActivation(s,u);if(!s.advanced)encounterCoven(s,u);const f=combatForecast(s,u.id,legal.targetHex);
       s.pendingCombat={attackerId:u.id,targetHex:legal.targetHex,stage:'ambush',decisionKingdom:f.defenderCanAmbush?s.units.find(v=>v.id===f.defenderUnitId)!.kingdom:u.kingdom,...(f.defenderUnitId?{defenderUnitId:f.defenderUnitId}:{})};
       if(s.advanced)Advanced.startBattleMagic(s,advancedContext());else if(!f.attackerCanAmbush&&!f.defenderCanAmbush)resolveCombat(s,null);break;
     }
     case 'resolve-combat':if(s.advanced)Advanced.beginAdvancedRoll(s,legal.ambush??null,advancedContext());else resolveCombat(s,legal.ambush??null);break;
     case 'advance': {const p=s.pendingCombat!;if(legal.accept)advanceInto(s,p.attackerId,p.targetHex);else{s.pendingCombat=null;finishActivation(s);}break;}
     case 'settlement': {
-      const p=s.pendingCombat!,h=hexById(s,p.targetHex);
-      if(legal.choice==='control'){s.controls[h.id]=k.id;k.hasEverControlled=true;gainIncome(s,k.id);s.newlyFriendly.push(h.id);log(s,`${k.name} controls ${h.settlement?.name}.`);}else{if(!s.razed.includes(h.id))s.razed.push(h.id);log(s,`${h.settlement?.name} was razed.`);}
-      s.covens=s.covens.filter(id=>id!==h.id);s.pendingCombat=null;finishActivation(s);break;
+      const p=s.pendingCombat!,h=hexById(s,p.targetHex),owner=kingdomOf(s,p.decisionKingdom);
+      if(legal.choice==='control'){s.controls[h.id]=owner.id;owner.hasEverControlled=true;gainIncome(s,owner.id);s.newlyFriendly.push(h.id);log(s,`${owner.name} controls ${h.settlement?.name}.`);}else{if(!s.razed.includes(h.id))s.razed.push(h.id);log(s,`${h.settlement?.name} was razed.`);}
+      if(!Advanced.covensProtected(s))s.covens=s.covens.filter(id=>id!==h.id);s.pendingCombat=null;finishActivation(s);break;
     }
-    case 'recover': {const u=unitById(s,legal.unitId);startActivation(s,u);encounterCoven(s,u);k.gold-=defOf(s,u).recoveryCost;u.weakened=false;log(s,`${defOf(s,u).name} Recovers.`);finishActivation(s);break;}
+    case 'recover': {const u=unitById(s,legal.unitId);startActivation(s,u);if(!s.advanced)encounterCoven(s,u);k.gold-=defOf(s,u).recoveryCost;u.weakened=false;log(s,`${defOf(s,u).name} Recovers.`);finishActivation(s);break;}
     case 'regenerate': {const u=unitById(s,legal.unitId);kingdomOf(s,u.kingdom).gold-=defOf(s,u).recoveryCost;u.weakened=false;log(s,`${defOf(s,u).name} Regenerates.`);break;}
     case 'mine': {const u=unitById(s,legal.unitId);startActivation(s,u);k.gold++;log(s,'Oathborn Miners work a mine: +1 gold.');finishActivation(s);if(s.advanced)Advanced.queueAdvancedEvent(s,{type:'after-mining-action',unitId:u.id,kingdom:u.kingdom});break;}
     case 'pass':startActivation(s,unitById(s,legal.unitId));finishActivation(s);break;
     case 'build': {
       const d=s.unitDefinitions.find(d=>d.id===legal.defId)!,h=hexById(s,legal.hexId);k.gold-=d.cost;
       const ready=h.entry===k.id||(aliveSettlement(s,h)&&settlementController(s,h)===k.id);
-      const built:Unit={id:`unit-${s.serial++}`,defId:d.id,kingdom:k.id,hexId:h.id,weakened:false,activated:!ready};s.units.push(built);if(s.advanced){const hero=s.units.find(u=>u.hexId===h.id&&Advanced.isHero(s,u));if(hero){s.advanced.stacks[hero.id]=built.id;if(hero.activated)built.activated=true;}}log(s,`${k.name} builds ${d.name} (${d.cost} gold), ${ready?'ready':'finished'}.`);break;
+      const built:Unit={id:`unit-${s.serial++}`,defId:d.id,kingdom:k.id,hexId:h.id,weakened:false,activated:!ready||Advanced.builtFinishedByCoven(s,h.id)};s.units.push(built);if(s.advanced){const hero=s.units.find(u=>u.hexId===h.id&&Advanced.isHero(s,u));if(hero){s.advanced.stacks[hero.id]=built.id;if(hero.activated)built.activated=true;}}log(s,`${k.name} builds ${d.name} (${d.cost} gold), ${ready?'ready':'finished'}.`);break;
     }
     case 'coven': {
       const h=hexById(s,legal.hexId),dominia=s.advanced&&s.units.some(u=>u.defId==='hero-night-13'&&Math.max(Math.abs(h.q-hexById(s,u.hexId).q),Math.abs(h.r-hexById(s,u.hexId).r),Math.abs(h.q+h.r-hexById(s,u.hexId).q-hexById(s,u.hexId).r))<=5),raw=dominia?5:randomDie(s,6);let modifier=0;
@@ -517,7 +521,7 @@ export function applyAction(state:GameState,action:Action):GameState {
     case 'lay-waste':raze(s,hexById(s,legal.hexId),true);break;
     case 'remove-control': {
       const h=hexById(s,legal.hexId);loseIncome(s,k.id);delete s.controls[h.id];
-      if(!isWelcoming(s,h,k.id)){if(!s.razed.includes(h.id))s.razed.push(h.id);s.covens=s.covens.filter(id=>id!==h.id);}else if(h.settlement?.loyalty)gainIncome(s,h.settlement.loyalty);
+      if(!isWelcoming(s,h,k.id)){if(!s.razed.includes(h.id))s.razed.push(h.id);if(!Advanced.covensProtected(s))s.covens=s.covens.filter(id=>id!==h.id);}else if(h.settlement?.loyalty)gainIncome(s,h.settlement.loyalty);
       log(s,`${k.name} removes its control marker from ${h.settlement?.name}.`);break;
     }
     case 'remove-coven':s.covens=s.covens.filter(id=>id!==legal.hexId);log(s,`Army of the Night removes its Coven from ${hexById(s,legal.hexId).settlement?.name}.`);break;
@@ -624,7 +628,7 @@ export function validateState(value:unknown):string[] {
     if(k.collapsed&&s.units.some(u=>u.kingdom===k.id))issues.push(`Collapsed Kingdom ${k.id} has Armies.`);
   }
   let transit:any=null;
-  const findTransit=(p:any,depth=0):void=>{if(!p||depth>40)return;if(p.kind==='window'&&p.window==='movement'&&Array.isArray(p.event?.path)&&p.event.path.length)transit=p.event;findTransit(p.resume,depth+1);findTransit(p.immediateResume,depth+1);};
+  const findTransit=(p:any,depth=0):void=>{if(!p||depth>40)return;if(p.kind==='window'&&['movement','entry'].includes(p.window)&&!p.event?.advance&&!p.event?.bonus&&Array.isArray(p.event?.path)&&p.event.path.length)transit=p.event;findTransit(p.resume,depth+1);findTransit(p.immediateResume,depth+1);};
   findTransit(s.advanced?.pending);
   const movingIds=transit&&s.activeUnitId?Advanced.stackIds(s,s.activeUnitId):[];
   const inTransit=(u:Unit)=>!!transit&&movingIds.includes(u.id)&&u.hexId===transit.enteredHex;
@@ -635,7 +639,7 @@ export function validateState(value:unknown):string[] {
     const definition=s.unitDefinitions.find(d=>d.id===u.defId);if(definition?.kingdom!==u.kingdom&&!(s.advanced as any)?.enslaved?.[u.id])issues.push(`Army ${u.id} belongs to the wrong Kingdom.`);
     if(definition&&characteristic(definition,'fragile')&&u.weakened)issues.push(`Fragile Army ${u.id} cannot be weakened.`);
     const h=s.hexes.find(h=>h.id===u.hexId),passing=!!h&&inTransit(u)&&canPass(s,u,h,!!transit.ship);if(h&&(h.prohibited||!passing&&(h.terrain==='lair'||(h.terrain==='sea'&&h.entry!==u.kingdom)||(h.entry&&h.entry!==u.kingdom))))issues.push(`Army ${u.id} occupies prohibited terrain.`);
-    const occupants=s.units.filter(v=>v.hexId===u.hexId&&!(transit&&movingIds.includes(v.id)&&inTransit(v)));if(occupants.length>1&&!(s.advanced&&occupants.length===2&&occupants.filter(v=>Advanced.isHero(s,v)).length===1&&occupants.every(v=>v.kingdom===u.kingdom))){const active=occupants.find(v=>v.id===s.activeUnitId);if(occupants.length!==2||!active||active.activated||occupants.some(v=>v.kingdom!==active.kingdom)||!occupants.some(v=>v.id!==active.id&&v.activated))issues.push('Illegal Army stacking.');}
+    const occupants=s.units.filter(v=>v.hexId===u.hexId&&!(transit&&movingIds.includes(v.id)&&inTransit(v)));if(!passing&&occupants.length>1&&!(s.advanced&&occupants.length===2&&occupants.filter(v=>Advanced.isHero(s,v)).length===1&&occupants.every(v=>v.kingdom===u.kingdom))){const active=occupants.find(v=>v.id===s.activeUnitId);if(occupants.length!==2||!active||active.activated||occupants.some(v=>v.kingdom!==active.kingdom)||!occupants.some(v=>v.id!==active.id&&v.activated))issues.push('Illegal Army stacking.');}
   }
   for(const d of s.unitDefinitions)if(s.units.filter(u=>u.defId===d.id).length>d.count)issues.push(`Army supply exceeded for ${d.name}.`);
   for(const [id,k] of Object.entries(s.controls??{}))if(!hexIds.has(id)||!kingdomIds.has(k)||!s.hexes.find(h=>h.id===id)?.settlement)issues.push('Invalid control marker.');
@@ -643,9 +647,9 @@ export function validateState(value:unknown):string[] {
   for(const id of [...s.razed??[],...s.covens??[]])if(!hexIds.has(id)||!s.hexes.find(h=>h.id===id)?.settlement)issues.push('Invalid razed/Coven marker.');
   if(s.activeUnitId&&!unitIds.has(s.activeUnitId))issues.push('Active Army does not exist.');
   if(s.pendingCombat){const p=s.pendingCombat;if((!unitIds.has(p.attackerId)&&!s.advanced?.battle)||!hexIds.has(p.targetHex)||!['ambush','advance','settlement'].includes(p.stage)||!kingdomIds.has(p.decisionKingdom)||s.phase!=='activation'||(!s.advanced?.battle&&(!s.activeUnitId||!Advanced.stackIds(s,s.activeUnitId).includes(p.attackerId))))issues.push('Invalid pending combat.');}
-  if(s.activeUnitId&&(s.phase!=='activation'||s.units.find(u=>u.id===s.activeUnitId)?.kingdom!==s.currentKingdom||s.units.find(u=>u.id===s.activeUnitId)?.activated))issues.push('Invalid active Army status.');
+  if(s.activeUnitId&&(s.phase!=='activation'||s.units.find(u=>u.id===s.activeUnitId)?.kingdom!==s.currentKingdom&&s.advanced?.grant?.unitId!==s.activeUnitId||s.units.find(u=>u.id===s.activeUnitId)?.activated))issues.push('Invalid active Army status.');
   if(new Set(s.razed).size!==s.razed.length||new Set(s.covens).size!==s.covens.length)issues.push('Duplicate settlement markers.');
-  for(const id of s.razed)if(s.controls[id]||s.covens.includes(id))issues.push('Razed settlement has conflicting markers.');
+  for(const id of s.razed)if(s.controls[id]||s.covens.includes(id)&&!Advanced.covensProtected(s))issues.push('Razed settlement has conflicting markers.');
   const checkCombat=(r:CombatResult)=>{
     if(!r||typeof r!=='object'||!['attacker','defender','tie','draw','ambush'].includes(r.result)||!hexIds.has(r.targetHex)||!Array.isArray(r.attackerRolls)||!Array.isArray(r.defenderRolls))return false;
     for(const key of ['attackerSuccesses','defenderSuccesses','attackerHits','defenderHits'] as const)if(!integer(r[key],0,500))return false;
@@ -690,6 +694,11 @@ function moveAdvancedStep(s:GameState,id:string,toId:string,ship:boolean,join:bo
   }
   return true;
 }
-function advancedContext():AdvancedContext{return {log,die:randomDie,hex:hexById,unit:unitById,def:defOf,rawDef,sameSide,adjacent:adjacentHexes,welcoming:isWelcoming,controller:settlementController,besieged:isBesieged,canEnd,buildLocations,recoverable,finish:finishActivation,start:startActivation,hit:hitArmy,forecast:combatForecast,complete:completeCombat,advanceTurn,raze,moveStep:moveAdvancedStep,seaEdge:(s,from,to)=>!!edge(s,from,to).sea,seaCoastalEdge:(s,from,to)=>!!(edge(s,from,to).sea||edge(s,from,to).coastal)};}
+function advancedContext():AdvancedContext{return {log,die:randomDie,hex:hexById,unit:unitById,def:defOf,rawDef,sameSide,adjacent:adjacentHexes,welcoming:isWelcoming,controller:settlementController,besieged:isBesieged,canEnd,buildLocations,recoverable,finish:finishActivation,start:startActivation,hit:hitArmy,forecast:combatForecast,complete:completeCombat,advanceTurn,raze,moveStep:moveAdvancedStep,advance:(s,id,to)=>advanceInto(s,id,to,true),
+  attackTargets:(s,id)=>{const u=unitById(s,id);return adjacentHexes(s,u.hexId).filter(h=>canAttack(s,u,h,true)||!siege(defOf(s,u))&&s.advanced!.monsters.some(m=>m.hexId===h.id&&(!m.kingdom||!sameSide(s,m.kingdom,u.kingdom))));},
+  canAdvance:(s,id,to)=>{const u=unitById(s,id),h=hexById(s,to),group=Advanced.stackIds(s,id);return adjacent(s,u.hexId,to)&&canCross(s,u,u.hexId,to)&&!h.prohibited&&h.terrain!=='sea'&&h.terrain!=='lair'&&(!h.entry||h.entry===u.kingdom)&&!s.advanced?.monsters.some(m=>m.hexId===to)&&!s.units.some(v=>v.hexId===to&&!group.includes(v.id)&&(!Advanced.isHero(s,v)||sameSide(s,v.kingdom,u.kingdom)&&(v.kingdom!==u.kingdom||group.some(x=>Advanced.isHero(s,unitById(s,x))))))&&!(characteristic(defOf(s,u),'huge')&&isWelcoming(s,h,u.kingdom));},
+  bonusSteps:(s,id)=>{const u=unitById(s,id);return adjacentHexes(s,u.hexId).filter(h=>canCross(s,u,u.hexId,h.id)&&canEnd(s,u,h));},
+  bonusMove:(s,id,to)=>{const moving=unitById(s,id);for(const hero of s.units.filter(v=>v.hexId===to&&!sameSide(s,v.kingdom,moving.kingdom)&&Advanced.isHero(s,v)))hitArmy(s,hero.id,1);for(const member of Advanced.stackIds(s,id))unitById(s,member).hexId=to;log(s,`The Sacred Banner moves its stack one hex to ${hexById(s,to).settlement?.name??to}.`);},
+  attack:(s,id,to)=>{const u=unitById(s,id);startActivation(s,u);const f=combatForecast(s,id,to);s.pendingCombat={attackerId:id,targetHex:to,stage:'ambush',decisionKingdom:f.defenderCanAmbush?s.units.find(v=>v.id===f.defenderUnitId)?.kingdom??s.advanced!.monsters.find(m=>m.id===f.defenderUnitId)?.kingdom??u.kingdom:u.kingdom,...(f.defenderUnitId?{defenderUnitId:f.defenderUnitId}:{})};Advanced.startBattleMagic(s,advancedContext());},claimCoven:(s,id)=>{const h=hexById(s,id),owner=settlementController(s,h);loseIncome(s,owner);s.covens=s.covens.filter(x=>x!==id);s.controls[id]='night';gainIncome(s,'night');kingdomOf(s,'night').hasEverControlled=true;s.newlyFriendly.push(id);log(s,'Knives in the Dark: all enemies eliminated; flip the Coven to Night control.');},seaEdge:(s,from,to)=>!!edge(s,from,to).sea,seaCoastalEdge:(s,from,to)=>!!(edge(s,from,to).sea||edge(s,from,to).coastal)};}
 
 function canonicalizeAdvanced(s:GameState){if(s.advanced&&s.activeUnitId)s.remainingMP=Math.min(...Advanced.stackIds(s,s.activeUnitId).map(id=>s.advanced!.movement[id]??defOf(s,unitById(s,id)).movement));const clean=(v:any)=>{if(!v||typeof v!=='object')return;for(const key of Object.keys(v)){if(v[key]===undefined)delete v[key];else clean(v[key]);}};clean(s.advanced);clean(s.pendingCombat);}

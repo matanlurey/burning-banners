@@ -1,6 +1,6 @@
 # Campaign and map audit
 
-Completion update: the latest build adds Full tabletop, 169 automated effects, 17 human effects and attack probability/navigation aids. See [current verification](verification.md), [coverage](advanced-runtime-coverage.md) and the [table guide](full-tabletop.md). The earlier measurements below remain historical.
+Completion update: the latest build adds Full tabletop, 181 automated effects, 5 human effects and attack probability/navigation aids. See [current verification](verification.md), [coverage](advanced-runtime-coverage.md) and the [table guide](full-tabletop.md). The earlier measurements below remain historical.
 
 Research checked on October 5, 2026. The two factual catalogs added in this pass are `content/campaign-catalog.json` and `content/maps-catalog.json`. Neither is an executable official campaign pack. The application must not turn partial headers, a screenshot of someone’s purchased armies, or a contents list into invented official opening positions.
 

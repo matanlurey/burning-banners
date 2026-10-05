@@ -1,0 +1,93 @@
+[
+  {
+    "layout": "Desktop",
+    "attack": {
+      "height": 111.5,
+      "width": 247,
+      "x": 987,
+      "y": 472.390625
+    },
+    "forecast": "Attack E0.25 expected hits dealt · 0.58 returned21% defender cleared · 2% own stack lost",
+    "height": 800,
+    "scrollWidth": 1280,
+    "width": 1280
+  },
+  {
+    "layout": "Phone 390 × 844",
+    "attack": {
+      "height": 93.5,
+      "width": 306,
+      "x": 37,
+      "y": 397
+    },
+    "forecast": "Attack E0.25 expected hits dealt · 0.58 returned21% defender cleared · 2% own stack lost",
+    "height": 844,
+    "scrollWidth": 390,
+    "width": 390
+  },
+  {
+    "layout": "Small phone",
+    "attack": {
+      "height": 93.5,
+      "width": 276,
+      "x": 37,
+      "y": 391.796875
+    },
+    "forecast": "Attack E0.25 expected hits dealt · 0.58 returned21% defender cleared · 2% own stack lost",
+    "height": 740,
+    "scrollWidth": 360,
+    "width": 360
+  },
+  {
+    "layout": "Compact phone",
+    "attack": {
+      "height": 129.5,
+      "width": 236,
+      "x": 37,
+      "y": 427
+    },
+    "forecast": "Attack E0.25 expected hits dealt · 0.58 returned21% defender cleared · 2% own stack lost",
+    "height": 568,
+    "scrollWidth": 320,
+    "width": 320
+  },
+  {
+    "layout": "Tablet",
+    "attack": {
+      "height": 129.5,
+      "width": 223,
+      "x": 502,
+      "y": 480.390625
+    },
+    "forecast": "Attack E0.25 expected hits dealt · 0.58 returned21% defender cleared · 2% own stack lost",
+    "height": 1024,
+    "scrollWidth": 768,
+    "width": 768
+  },
+  {
+    "layout": "Landscape",
+    "attack": {
+      "height": 129.5,
+      "width": 223,
+      "x": 578,
+      "y": 480.390625
+    },
+    "forecast": "Attack E0.25 expected hits dealt · 0.58 returned21% defender cleared · 2% own stack lost",
+    "height": 390,
+    "scrollWidth": 844,
+    "width": 844
+  },
+  {
+    "layout": "Small landscape",
+    "attack": {
+      "height": 93.5,
+      "width": 256,
+      "x": 435,
+      "y": 410.390625
+    },
+    "forecast": "Attack E0.25 expected hits dealt · 0.58 returned21% defender cleared · 2% own stack lost",
+    "height": 414,
+    "scrollWidth": 736,
+    "width": 736
+  }
+]

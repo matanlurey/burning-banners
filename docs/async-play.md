@@ -1,6 +1,6 @@
 # Async campaign companion
 
-Completion update: the latest build adds Full tabletop, 169 automated effects, 17 human effects and attack probability/navigation aids. See [current verification](verification.md), [coverage](advanced-runtime-coverage.md) and the [table guide](full-tabletop.md). The earlier measurements below remain historical.
+Completion update: the latest build adds Full tabletop, 181 automated effects, 5 human effects and attack probability/navigation aids. See [current verification](verification.md), [coverage](advanced-runtime-coverage.md) and the [table guide](full-tabletop.md). The earlier measurements below remain historical.
 
 Implementation record: October 5, 2026 UTC. The campaign companion adds return briefings, observable history, temporary AI delegation, coordination messages, map pings and private planning notes to the existing **local game**. It works in pass-and-play or trusted campaign-file exchange. It is not a shared online room: there is no match server, account-secured seat, remote synchronization, push/email notification sender or AI worker that runs while the browser is closed.
 

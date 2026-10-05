@@ -5,14 +5,14 @@ Completion audit: October 5, 2026 UTC. **Advanced preview** uses automated decks
 | Content | Cataloged | Automated effects | Human table effects |
 | --- | ---: | ---: | ---: |
 | Spells | 52 | 52 | 0 |
-| Treasures | 36 | 34 | 2 |
-| Blessings | 60 | 51 | 9 |
-| Hero effects | 38 | 32 | 6 |
-| Total | 186 | 169 | 17 |
+| Treasures | 36 | 36 | 0 |
+| Blessings | 60 | 56 | 4 |
+| Hero effects | 38 | 37 | 1 |
+| Total | 186 | 181 | 5 |
 
-All 38 named Hero counters, all 44 Army types and all 36 Monsters are available. Supported Hero effects include passive/ongoing abilities, not only active buttons. Full tabletop additionally preserves the separate four Enslaved Hero markers. Six kingdom information cards bring the physical card inventory to 192.
+All 38 named Hero counters, all 44 Army types and all 36 Monsters are available. Supported Hero effects include passive/ongoing abilities, not only active buttons. Full tabletop also preserves the separate four Enslaved Hero markers. Six kingdom information cards bring the physical card inventory to 192.
 
-Unsellable-only Treasure excess in Winter requires an explicit human table ruling. AI pauses for it; retaining excess is logged and is not asserted as an official disposal exception. None of the 36 final Advanced balance games required this ruling. The four affected Treasures' ordinary effects are supported; this unresolved combined holding-limit case remains disclosed.
+Unsellable-only Treasure excess in Winter requires an explicit human table ruling. AI pauses for it; retaining excess is logged and is not asserted as an official disposal exception. The four affected Treasures' ordinary effects are supported.
 
 ## Effects requiring table adjudication
 
@@ -20,23 +20,15 @@ Generated from the compiled runtime's actual gate list. These are excluded from 
 
 | ID | Card / Hero | Remaining automatic decision flow |
 | --- | --- | --- |
-| blessing-goblins-05 | Spy Network | Returning the card to hand needs a combat result choice. |
 | blessing-night-02 | Enslave | Enslaved Heroes require their separate four-counter supply and release lifecycle. |
 | blessing-night-03 | Enslave | Enslaved Heroes require their separate four-counter supply and release lifecycle. |
 | blessing-night-04 | Enslave | Enslaved Heroes require their separate four-counter supply and release lifecycle. |
-| blessing-night-06 | Your True Rulers | Coven protection needs all build and discovery event hooks. |
-| blessing-night-08 | Knives in the Dark | Coven discovery needs a Strike replacement window. |
-| blessing-night-09 | Shapeshift | The Hero escape occurs after it is selected for elimination. |
-| blessing-oathborn-06 | Fury of the Ancestors | The winner chooses an extra advance and attack. |
 | blessing-orcs-01 | Whips of Grom | Movement must preserve a mandatory legal Attack action. |
-| hero-empire-13 | Princess Sofia | Post-advance movement and extra Attack need a new activation window. |
-| hero-fjordland-13 | Freyja | The save interrupts the chosen Hero’s elimination. |
 | hero-goblins-16 | Siskar | Reroll selection must include every d6 event, including outside combat. |
-| hero-night-12 | Luna, Mist Hunter | Assassination uses elimination instead of ordinary Strike hits. |
-| hero-oathborn-11 | Haga-Tor, the Red Eagle | The defender needs optional advance and counterattack choices. |
-| hero-orcs-12 | Spy-Master Kagash | The Power requires two separately chosen enemy targets. |
-| treasure-05 | Horn of Udun | Interception before enemy entry needs a placement window. |
-| treasure-12 | Ring of Invisibility | The Hero escape occurs after that Hero is chosen for a hit. |
+
+## Interrupt and extra-Attack expansion
+
+Ring, Horn, Freyja, Shapeshift, Knives, Your True Rulers, Spy Network, Luna, Kagash, Sofia, Haga-Tor and Fury now have automatic decision flows. Their legal targets, timing, saved continuations, declined choices and AI decisions are integrated into the existing engine. Extra-Attack choices show expected hits and loss chances without advancing the random stream. See [the source and interaction record](advanced-interrupts.md).
 
 ## Completion expansion
 

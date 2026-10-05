@@ -18,7 +18,7 @@ The capture table 4.9.2 presents an income increase for its hostile outcome; 4.9
 
 ## Full support vs diagnostic content
 
-Basic rule verification does not establish complete official content support. Six kingdom unit rosters and broad faction mechanics can be used in a clearly labeled original diagnostic scenario. A synthetic map, unverified victory condition, or fixed initial army must not be presented as an official campaign. Advanced preview now implements its core private decisions, stacks, Study, Monsters and Winter. Its 17 remaining automatic effects are excluded from preview decks/Powers and available through human Full tabletop resolution; cataloged printed facts alone do not establish complete Advanced fidelity. The two original fixtures and partial Wildlands graph remain diagnostic content. See [runtime coverage](../docs/advanced-runtime-coverage.md).
+Basic rule verification does not establish complete official content support. Six kingdom unit rosters and broad faction mechanics can be used in a clearly labeled original diagnostic scenario. A synthetic map, unverified victory condition, or fixed initial army must not be presented as an official campaign. Advanced preview now implements its core private decisions, stacks, Study, Monsters and Winter. Its 5 remaining automatic effects are excluded from preview decks/Powers and available through human Full tabletop resolution; cataloged printed facts alone do not establish complete Advanced fidelity. The two original fixtures and partial Wildlands graph remain diagnostic content. See [runtime coverage](../docs/advanced-runtime-coverage.md).
 
 ## Allied controller consent
 

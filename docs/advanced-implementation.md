@@ -1,6 +1,6 @@
 # Advanced preview implementation
 
-Release audit: October 5, 2026 UTC. **Advanced preview is enabled** for the two original digital fixtures. The rule systems below are executable; full official Advanced parity is not claimed. The complete catalog separates printed facts from runtime availability, and [45 effects remain reference-only](advanced-runtime-coverage.md).
+Release audit: October 5, 2026 UTC. **Advanced preview is enabled** for the two original digital fixtures. The rule systems below are executable; full official Advanced parity is not claimed. The complete catalog separates printed facts from runtime availability, and [5 effects remain reference-only](advanced-runtime-coverage.md).
 
 Primary authority is the publisher's [Undying Rules v1.1](https://compassgamesbucket.s3.us-east-2.amazonaws.com/downloads/Undying%20Rules%20v1.1.pdf), especially §§13–18 and its card corrections. Printed faces and counter values were visually inspected in the [VASSAL v1.7 reference module](https://vassalengine.org/library/projects/Burning_Banners). The community module witnesses components; it is not an independent rules authority or an art redistribution grant. The [content audit](advanced-content-audit.md) records normalization and corrections.
 
@@ -10,7 +10,7 @@ Cards belong to players, including players controlling several kingdoms. Startin
 
 The engine shuffles the finite Study-marker pool and assigns markers to live kingdom turns. Two kingdoms use two Glyphs/one Churn; three use three Glyphs/one Churn; larger games use four Glyphs/two Churns. Autumn adds a Churn; Winter removes it. Collapsed kingdoms receive no marker.
 
-Played Treasures become face-up owned cards and can later return to hand through Study. Selling gives two gold, with timing eligibility checked. Sales remain withheld until the Treasure deck empties or the final Winter step. Winter retains commanded Monsters, reopens defeated Lairs and requires each player's held-plus-owned Treasures to fit the limit: two normally, four with owned Endless Satchel. Each player resolves excess explicitly before the final shuffle and next Spring. Newly acquired Satchel has its immediate store/sell choice. Unsellable curse/fountain interactions remain gated pending verified Winter exceptions.
+Played Treasures become face-up owned cards and can later return to hand through Study. Selling gives two gold, with timing eligibility checked. Sales remain withheld until the Treasure deck empties or the final Winter step. Winter retains commanded Monsters, reopens defeated Lairs and requires each player's held-plus-owned Treasures to fit the limit: two normally, four with owned Endless Satchel. Each player resolves excess explicitly before the final shuffle and next Spring. Newly acquired Satchel has its immediate store/sell choice. Ordinary curse/fountain effects run automatically. An unsellable-only excess pauses for a logged human ruling because no official disposal exception was verified.
 
 ## Combat decisions and Magic
 
@@ -26,7 +26,7 @@ All 38 checked Hero counters enter their kingdom's randomized unbuilt pool. Hero
 
 Army/Hero members track movement separately. A fast Hero can pick up a fresh Army, and dropping a member finishes that member while preserving the moving member's remaining allowance. A ready Army must separate from an exhausted Hero before activating alone. Flying requires the whole stack to qualify. The selected stack's displayed movement reflects current bonuses and member budgets. Hits, advances and Army attacks preserve a Hero-led activation's identity.
 
-A lone Hero cannot attack or be attacked normally and is eliminated by enemy Army entry. A Hero in a Settlement can command its garrison. Applicable Hero abilities, Army/stack characteristics and Feral restrictions are included in legal actions and combat forecasts. Special entry placement choices and the eleven listed unsupported Hero effects remain outside complete parity.
+A lone Hero cannot attack or be attacked normally and is eliminated by enemy Army entry. A Hero in a Settlement can command its garrison. Applicable Hero abilities, Army/stack characteristics and Feral restrictions are included in legal actions and combat forecasts. The Siskar Power, Whips of Grom and three Enslave cards remain outside automatic parity; Full tabletop provides human resolution. The additional interrupt flows are documented in [advanced decisions](advanced-interrupts.md).
 
 ## Monsters and rewards
 

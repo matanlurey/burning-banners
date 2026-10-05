@@ -2,7 +2,7 @@ import type { Action, GameState, Hex, Unit, UnitDefinition } from './engine.js';
 import { adjacentHexes, combatForecast, isBesieged, isWelcoming, legalActions, settlementController } from './engine.js';
 import { visibleMessages } from './async-play.js';
 import type { CampaignMessage } from './async-play.js';
-import { advancedActor, adjustedDice, cardById, effectiveDefinition, isHero, monsterById, playerFor, stackIds } from './advanced.js';
+import { advancedActor, adjustedDice, cardById, effectiveDefinition, isHero, monsterById, playerFor, stackIds, magicUnit } from './advanced.js';
 export type AIDifficulty = 'easy' | 'normal' | 'hard';
 export const AI_DIFFICULTIES = [
     { id: 'easy' as const, name: 'Easy', description: 'A forgiving commander: conservative attacks, little Magic, simple expansion.' },
@@ -208,9 +208,13 @@ function cardScore(s: GameState, a: Extract<Action, {
     const c = cardById(a.cardId)!;
     if (!c)
         return -80;
-    const e = { ...c.effect, ...c.effect.choices?.[Number(a.choice ?? 0)] }, target = a.targetId ?? a.casterId, unit = uBy(s, target), caster = uBy(s, a.casterId), owner = publicTargetKingdom(s, target), friendly = !!owner && allied(s, actor, owner), sign = friendly ? 1 : -1;
+    const e = { ...c.effect, ...c.effect.choices?.[Number(a.choice ?? 0)] }, target = a.targetId ?? a.casterId, unit = magicUnit(s, target), caster = magicUnit(s, a.casterId), owner = magicUnit(s,target)?.kingdom??publicTargetKingdom(s, target), friendly = !!owner && allied(s, actor, owner), sign = friendly ? 1 : -1;
     const b = s.advanced?.battle, p = s.advanced?.pending, inBattle = !!b, buffTime = inBattle || !!s.activeUnitId;
     let value = 0;
+    if(e.cancelCasterHit||e.saveCasterHero||e.saveTargetHero)value+=unit&&friendly?20+material(s,unit):-20;
+    if(e.type==='prince-of-deception'&&unit){const victim=uBy(s,a.choice),d=def(s,unit),pool=adjustedDice(s,unit.id,{light:unit.weakened?d.weakenedLight??d.light:d.light,heavy:unit.weakened?d.weakenedHeavy??d.heavy:d.heavy});if(victim)value+=Math.min(.99,1-Math.pow(2/3,pool.light)*Math.pow(.5,pool.heavy))*(material(s,victim)+4);}
+    if(e.type==='fury-of-the-ancestors')value+=friendly?5:0;
+    if(e.type==='your-true-rulers')value+=s.covens.filter(id=>s.units.some(u=>!allied(s,actor,u.kingdom)&&distance(hBy(s,id)!,hBy(s,u.hexId)!)<=3)).length*3;
     if (e.light || e.heavy || e.convertLightToHeavy || e.multiplyLight || e.multiplyCombatRating) {
         const pool = unit ? ownPool(s, unit) : { light: 1, heavy: 0 };
         const added = diceValue(e.light ?? 0, e.heavy ?? 0) + Math.min(pool.light, e.convertLightToHeavy ?? 0) * 0.25 + (Math.max(0, (e.multiplyLight ?? 1) - 1) * pool.light / 3) + (Math.max(0, (e.multiplyCombatRating ?? 1) - 1) * diceValue(pool.light, pool.heavy));
@@ -400,7 +404,11 @@ function hardScore(s: GameState, a: Action, actor: string): number {
         case 'magic-choice': {
             const p=s.advanced?.pending;if(p?.kind!=='choice')return 2;
             if(p.flow==='discard'||p.flow==='book-discard')return -cardReserve(a.value);
-            if(p.flow==='return-card')return a.value==='keep'?8:0;
+            if(p.flow==='return-card'||p.flow==='spy-return')return a.value==='keep'?8:0;
+            if(p.flow==='assassin-failure')return a.value==='discard'?8:-20;
+            const grant=s.advanced?.grant;
+            if(grant&&p.flow==='grant-attack')return a.value==='finish'?0:hardScore(s,{type:'attack',unitId:grant.unitId,targetHex:a.value},actor);
+            if(grant&&(p.flow==='grant-move'||p.flow==='grant-advance')){const u=uBy(s,grant.unitId);if(!u||a.value==='finish')return 0;if(a.value==='stay')return 1;const h=hBy(s,a.value==='advance'?grant.advanceHex!:a.value);return h?3+potential(s,h,actor)-potential(s,hBy(s,u.hexId)!,actor)-exposedValue(s,u,h)*.5:0;}
             if(p.flow==='recover'){const u=uBy(s,a.value);return u?material(s,u):0;}
             if(p.flow==='hero'||p.flow==='build'){
                 const h=hBy(s,a.value),u=s.units.find(u=>u.hexId===a.value&&!isHero(s,u));return h?potential(s,h,actor)+(u?material(s,u)*.4:0):0;

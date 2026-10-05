@@ -92,7 +92,7 @@ function canEnd(s, u, h) {
         return false;
     if (aliveSettlement(s, h) && !isWelcoming(s, h, u.kingdom))
         return false;
-    if (characteristic(defOf(s, u), 'huge') && isWelcoming(s, h, u.kingdom))
+    if (group.some(id => characteristic(defOf(s, unitById(s, id)), 'huge')) && isWelcoming(s, h, u.kingdom))
         return false;
     return true;
 }
@@ -210,10 +210,10 @@ function diceFor(s, u) {
     return Advanced.adjustedDice(s, u.id, u.weakened ? { light: d.weakenedLight ?? d.light, heavy: d.weakenedHeavy ?? d.heavy } : { light: d.light, heavy: d.heavy });
 }
 const diceExpected = (light, heavy, penalty) => light * (Math.max(0, 7 - (5 + penalty)) / 6) + heavy * (Math.max(0, 9 - (5 + penalty)) / 8 + Math.max(0, 9 - (7 + penalty)) / 24);
-function canAttack(s, u, target) {
+function canAttack(s, u, target, granted = false) {
     if (Advanced.isHero(s, u))
         return false;
-    if (!unitMayAct(s, u) || !adjacent(s, u.hexId, target.id) || target.prohibited || target.terrain === 'sea' || target.terrain === 'lair' || !canCross(s, u, u.hexId, target.id))
+    if (!granted && !unitMayAct(s, u) || !adjacent(s, u.hexId, target.id) || target.prohibited || target.terrain === 'sea' || target.terrain === 'lair' || !canCross(s, u, u.hexId, target.id))
         return false;
     const enemy = s.units.find(v => v.hexId === target.id && !sameSide(s, v.kingdom, u.kingdom) && !Advanced.isHero(s, v));
     if (siege(defOf(s, u)) && !aliveSettlement(s, target))
@@ -318,12 +318,12 @@ export function legalActions(s) {
         }
         if (p.stage === 'advance')
             return [{ type: 'advance', accept: true }, { type: 'advance', accept: false }];
-        const k = kingdomOf(s, s.currentKingdom), controls = Object.values(s.controls).filter(id => id === k.id).length + (k.id === 'night' ? s.covens.filter(id => id !== p.targetHex).length : 0);
+        const k = kingdomOf(s, p.decisionKingdom), controls = Object.values(s.controls).filter(id => id === k.id).length + (k.id === 'night' ? s.covens.filter(id => id !== p.targetHex).length : 0);
         const choices = controls < controlCapacity(k) ? [{ type: 'settlement', choice: 'control' }, { type: 'settlement', choice: 'raze' }] : [{ type: 'settlement', choice: 'raze' }];
         for (const [id, owner] of Object.entries(s.controls))
             if (owner === k.id)
                 choices.push({ type: 'remove-control', hexId: id });
-        if (k.id === 'night')
+        if (k.id === 'night' && !Advanced.covensProtected(s))
             for (const id of s.covens)
                 choices.push({ type: 'remove-coven', hexId: id });
         return choices;
@@ -351,7 +351,7 @@ export function legalActions(s) {
         for (const u of s.units)
             if (u.kingdom === k.id && siege(defOf(s, u)))
                 actions.push({ type: 'disband-siege', unitId: u.id });
-        if (k.id === 'night')
+        if (k.id === 'night' && !Advanced.covensProtected(s))
             for (const id of s.covens)
                 actions.push({ type: 'remove-coven', hexId: id });
         return actions;
@@ -397,7 +397,7 @@ export function legalActions(s) {
     for (const h of s.hexes)
         if (s.controls[h.id] === k.id)
             actions.push({ type: 'remove-control', hexId: h.id });
-    if (k.id === 'night')
+    if (k.id === 'night' && !Advanced.covensProtected(s))
         for (const id of s.covens)
             actions.push({ type: 'remove-coven', hexId: id });
     if (k.id === 'empire' && (k.revolt ?? 0) > 0 && k.gold > 0 && !s.advanced?.effects.some(e => e.extra?.noSuppression))
@@ -464,12 +464,19 @@ function raze(s, h, loot = false) {
     delete s.controls[h.id];
     if (!s.razed.includes(h.id))
         s.razed.push(h.id);
-    s.covens = s.covens.filter(id => id !== h.id);
+    if (!Advanced.covensProtected(s))
+        s.covens = s.covens.filter(id => id !== h.id);
     log(s, `${h.settlement?.name ?? h.id} was razed${loot ? ' and looted' : ''}.`);
 }
 function encounterCoven(s, u) {
     if (u.kingdom === 'night' || sameSide(s, u.kingdom, 'night') || !s.covens.includes(u.hexId) || s.covenProtected.includes(u.hexId))
         return;
+    if (Advanced.covensProtected(s)) {
+        if (!s.covenProtected.includes(u.hexId))
+            s.covenProtected.push(u.hexId);
+        log(s, 'Your True Rulers protects this Coven.');
+        return;
+    }
     const result = randomDie(s, 6);
     if (result >= 5) {
         s.covenProtected.push(u.hexId);
@@ -495,11 +502,14 @@ function startActivation(s, u) {
     s.shipUsed = false;
 }
 function finishActivation(s) {
+    if (s.advanced && Advanced.afterAdvanceChoices(s, advancedContext()))
+        return;
     if (s.advanced)
         Advanced.finishAdvancedActivation(s, advancedContext());
     const u = s.units.find(u => u.id === s.activeUnitId);
     if (u) {
-        encounterCoven(s, u);
+        if (!s.advanced)
+            encounterCoven(s, u);
         u.activated = true;
         const h = hexById(s, u.hexId);
         if (aliveSettlement(s, h) && !s.controls[h.id] && !h.settlement?.loyalty) {
@@ -518,6 +528,8 @@ function finishActivation(s) {
     s.moved = false;
     s.allRoad = true;
     s.shipUsed = false;
+    if (s.advanced)
+        Advanced.finishGrant(s, advancedContext());
 }
 function hitArmy(s, id, hits) {
     if (!id || hits <= 0)
@@ -542,7 +554,11 @@ function hitArmy(s, id, hits) {
 function strikeDice(s, u, target) {
     return u ? diceFor(s, u) : { light: target.settlement?.city ? 3 : target.settlement ? 1 : 0, heavy: 0 };
 }
-function advanceInto(s, attackerId, targetHex) {
+function advanceInto(s, attackerId, targetHex, entryCleared = false) {
+    if (s.advanced && !entryCleared) {
+        Advanced.beforeAdvance(s, attackerId, targetHex, advancedContext());
+        return;
+    }
     const a = unitById(s, attackerId), h = hexById(s, targetHex), d = defOf(s, a);
     if (s.advanced)
         for (const hero of s.units.filter(u => u.hexId === targetHex && !sameSide(s, u.kingdom, a.kingdom) && Advanced.isHero(s, u)))
@@ -550,6 +566,8 @@ function advanceInto(s, attackerId, targetHex) {
     if (!aliveSettlement(s, h)) {
         for (const id of Advanced.stackIds(s, a.id))
             unitById(s, id).hexId = h.id;
+        if (s.advanced)
+            s.advanced.justAdvanced = a.id;
         s.pendingCombat = null;
         finishActivation(s);
         return;
@@ -570,10 +588,14 @@ function advanceInto(s, attackerId, targetHex) {
     if (welcoming) {
         if (!wasWelcoming)
             gainIncome(s, h.settlement?.loyalty ?? null);
-        if (!characteristic(d, 'huge'))
+        if (!characteristic(d, 'huge')) {
             for (const id of Advanced.stackIds(s, a.id))
                 unitById(s, id).hexId = h.id;
-        s.covens = s.covens.filter(id => id !== h.id);
+            if (s.advanced)
+                s.advanced.justAdvanced = a.id;
+        }
+        if (!Advanced.covensProtected(s))
+            s.covens = s.covens.filter(id => id !== h.id);
         s.newlyFriendly.push(h.id);
         s.pendingCombat = null;
         finishActivation(s);
@@ -581,10 +603,13 @@ function advanceInto(s, attackerId, targetHex) {
     }
     for (const id of Advanced.stackIds(s, a.id))
         unitById(s, id).hexId = h.id;
+    if (s.advanced)
+        s.advanced.justAdvanced = a.id;
     if (characteristic(d, 'feral') || characteristic(d, 'huge')) {
         if (!s.razed.includes(h.id))
             s.razed.push(h.id);
-        s.covens = s.covens.filter(id => id !== h.id);
+        if (!Advanced.covensProtected(s))
+            s.covens = s.covens.filter(id => id !== h.id);
         log(s, `${h.settlement?.name} razed by ${d.name}.`);
         s.pendingCombat = null;
         finishActivation(s);
@@ -914,7 +939,8 @@ export function applyAction(state, action) {
         case 'attack': {
             const u = unitById(s, legal.unitId);
             startActivation(s, u);
-            encounterCoven(s, u);
+            if (!s.advanced)
+                encounterCoven(s, u);
             const f = combatForecast(s, u.id, legal.targetHex);
             s.pendingCombat = { attackerId: u.id, targetHex: legal.targetHex, stage: 'ambush', decisionKingdom: f.defenderCanAmbush ? s.units.find(v => v.id === f.defenderUnitId).kingdom : u.kingdom, ...(f.defenderUnitId ? { defenderUnitId: f.defenderUnitId } : {}) };
             if (s.advanced)
@@ -940,20 +966,21 @@ export function applyAction(state, action) {
             break;
         }
         case 'settlement': {
-            const p = s.pendingCombat, h = hexById(s, p.targetHex);
+            const p = s.pendingCombat, h = hexById(s, p.targetHex), owner = kingdomOf(s, p.decisionKingdom);
             if (legal.choice === 'control') {
-                s.controls[h.id] = k.id;
-                k.hasEverControlled = true;
-                gainIncome(s, k.id);
+                s.controls[h.id] = owner.id;
+                owner.hasEverControlled = true;
+                gainIncome(s, owner.id);
                 s.newlyFriendly.push(h.id);
-                log(s, `${k.name} controls ${h.settlement?.name}.`);
+                log(s, `${owner.name} controls ${h.settlement?.name}.`);
             }
             else {
                 if (!s.razed.includes(h.id))
                     s.razed.push(h.id);
                 log(s, `${h.settlement?.name} was razed.`);
             }
-            s.covens = s.covens.filter(id => id !== h.id);
+            if (!Advanced.covensProtected(s))
+                s.covens = s.covens.filter(id => id !== h.id);
             s.pendingCombat = null;
             finishActivation(s);
             break;
@@ -961,7 +988,8 @@ export function applyAction(state, action) {
         case 'recover': {
             const u = unitById(s, legal.unitId);
             startActivation(s, u);
-            encounterCoven(s, u);
+            if (!s.advanced)
+                encounterCoven(s, u);
             k.gold -= defOf(s, u).recoveryCost;
             u.weakened = false;
             log(s, `${defOf(s, u).name} Recovers.`);
@@ -993,7 +1021,7 @@ export function applyAction(state, action) {
             const d = s.unitDefinitions.find(d => d.id === legal.defId), h = hexById(s, legal.hexId);
             k.gold -= d.cost;
             const ready = h.entry === k.id || (aliveSettlement(s, h) && settlementController(s, h) === k.id);
-            const built = { id: `unit-${s.serial++}`, defId: d.id, kingdom: k.id, hexId: h.id, weakened: false, activated: !ready };
+            const built = { id: `unit-${s.serial++}`, defId: d.id, kingdom: k.id, hexId: h.id, weakened: false, activated: !ready || Advanced.builtFinishedByCoven(s, h.id) };
             s.units.push(built);
             if (s.advanced) {
                 const hero = s.units.find(u => u.hexId === h.id && Advanced.isHero(s, u));
@@ -1031,7 +1059,8 @@ export function applyAction(state, action) {
             if (!isWelcoming(s, h, k.id)) {
                 if (!s.razed.includes(h.id))
                     s.razed.push(h.id);
-                s.covens = s.covens.filter(id => id !== h.id);
+                if (!Advanced.covensProtected(s))
+                    s.covens = s.covens.filter(id => id !== h.id);
             }
             else if (h.settlement?.loyalty)
                 gainIncome(s, h.settlement.loyalty);
@@ -1305,7 +1334,7 @@ export function validateState(value) {
     }
     let transit = null;
     const findTransit = (p, depth = 0) => { if (!p || depth > 40)
-        return; if (p.kind === 'window' && p.window === 'movement' && Array.isArray(p.event?.path) && p.event.path.length)
+        return; if (p.kind === 'window' && ['movement', 'entry'].includes(p.window) && !p.event?.advance && !p.event?.bonus && Array.isArray(p.event?.path) && p.event.path.length)
         transit = p.event; findTransit(p.resume, depth + 1); findTransit(p.immediateResume, depth + 1); };
     findTransit(s.advanced?.pending);
     const movingIds = transit && s.activeUnitId ? Advanced.stackIds(s, s.activeUnitId) : [];
@@ -1327,7 +1356,7 @@ export function validateState(value) {
         if (h && (h.prohibited || !passing && (h.terrain === 'lair' || (h.terrain === 'sea' && h.entry !== u.kingdom) || (h.entry && h.entry !== u.kingdom))))
             issues.push(`Army ${u.id} occupies prohibited terrain.`);
         const occupants = s.units.filter(v => v.hexId === u.hexId && !(transit && movingIds.includes(v.id) && inTransit(v)));
-        if (occupants.length > 1 && !(s.advanced && occupants.length === 2 && occupants.filter(v => Advanced.isHero(s, v)).length === 1 && occupants.every(v => v.kingdom === u.kingdom))) {
+        if (!passing && occupants.length > 1 && !(s.advanced && occupants.length === 2 && occupants.filter(v => Advanced.isHero(s, v)).length === 1 && occupants.every(v => v.kingdom === u.kingdom))) {
             const active = occupants.find(v => v.id === s.activeUnitId);
             if (occupants.length !== 2 || !active || active.activated || occupants.some(v => v.kingdom !== active.kingdom) || !occupants.some(v => v.id !== active.id && v.activated))
                 issues.push('Illegal Army stacking.');
@@ -1352,12 +1381,12 @@ export function validateState(value) {
         if ((!unitIds.has(p.attackerId) && !s.advanced?.battle) || !hexIds.has(p.targetHex) || !['ambush', 'advance', 'settlement'].includes(p.stage) || !kingdomIds.has(p.decisionKingdom) || s.phase !== 'activation' || (!s.advanced?.battle && (!s.activeUnitId || !Advanced.stackIds(s, s.activeUnitId).includes(p.attackerId))))
             issues.push('Invalid pending combat.');
     }
-    if (s.activeUnitId && (s.phase !== 'activation' || s.units.find(u => u.id === s.activeUnitId)?.kingdom !== s.currentKingdom || s.units.find(u => u.id === s.activeUnitId)?.activated))
+    if (s.activeUnitId && (s.phase !== 'activation' || s.units.find(u => u.id === s.activeUnitId)?.kingdom !== s.currentKingdom && s.advanced?.grant?.unitId !== s.activeUnitId || s.units.find(u => u.id === s.activeUnitId)?.activated))
         issues.push('Invalid active Army status.');
     if (new Set(s.razed).size !== s.razed.length || new Set(s.covens).size !== s.covens.length)
         issues.push('Duplicate settlement markers.');
     for (const id of s.razed)
-        if (s.controls[id] || s.covens.includes(id))
+        if (s.controls[id] || s.covens.includes(id) && !Advanced.covensProtected(s))
             issues.push('Razed settlement has conflicting markers.');
     const checkCombat = (r) => {
         if (!r || typeof r !== 'object' || !['attacker', 'defender', 'tie', 'draw', 'ambush'].includes(r.result) || !hexIds.has(r.targetHex) || !Array.isArray(r.attackerRolls) || !Array.isArray(r.defenderRolls))
@@ -1432,7 +1461,16 @@ function moveAdvancedStep(s, id, toId, ship, join) {
     }
     return true;
 }
-function advancedContext() { return { log, die: randomDie, hex: hexById, unit: unitById, def: defOf, rawDef, sameSide, adjacent: adjacentHexes, welcoming: isWelcoming, controller: settlementController, besieged: isBesieged, canEnd, buildLocations, recoverable, finish: finishActivation, start: startActivation, hit: hitArmy, forecast: combatForecast, complete: completeCombat, advanceTurn, raze, moveStep: moveAdvancedStep, seaEdge: (s, from, to) => !!edge(s, from, to).sea, seaCoastalEdge: (s, from, to) => !!(edge(s, from, to).sea || edge(s, from, to).coastal) }; }
+function advancedContext() {
+    return { log, die: randomDie, hex: hexById, unit: unitById, def: defOf, rawDef, sameSide, adjacent: adjacentHexes, welcoming: isWelcoming, controller: settlementController, besieged: isBesieged, canEnd, buildLocations, recoverable, finish: finishActivation, start: startActivation, hit: hitArmy, forecast: combatForecast, complete: completeCombat, advanceTurn, raze, moveStep: moveAdvancedStep, advance: (s, id, to) => advanceInto(s, id, to, true),
+        attackTargets: (s, id) => { const u = unitById(s, id); return adjacentHexes(s, u.hexId).filter(h => canAttack(s, u, h, true) || !siege(defOf(s, u)) && s.advanced.monsters.some(m => m.hexId === h.id && (!m.kingdom || !sameSide(s, m.kingdom, u.kingdom)))); },
+        canAdvance: (s, id, to) => { const u = unitById(s, id), h = hexById(s, to), group = Advanced.stackIds(s, id); return adjacent(s, u.hexId, to) && canCross(s, u, u.hexId, to) && !h.prohibited && h.terrain !== 'sea' && h.terrain !== 'lair' && (!h.entry || h.entry === u.kingdom) && !s.advanced?.monsters.some(m => m.hexId === to) && !s.units.some(v => v.hexId === to && !group.includes(v.id) && (!Advanced.isHero(s, v) || sameSide(s, v.kingdom, u.kingdom) && (v.kingdom !== u.kingdom || group.some(x => Advanced.isHero(s, unitById(s, x)))))) && !(characteristic(defOf(s, u), 'huge') && isWelcoming(s, h, u.kingdom)); },
+        bonusSteps: (s, id) => { const u = unitById(s, id); return adjacentHexes(s, u.hexId).filter(h => canCross(s, u, u.hexId, h.id) && canEnd(s, u, h)); },
+        bonusMove: (s, id, to) => { const moving = unitById(s, id); for (const hero of s.units.filter(v => v.hexId === to && !sameSide(s, v.kingdom, moving.kingdom) && Advanced.isHero(s, v)))
+            hitArmy(s, hero.id, 1); for (const member of Advanced.stackIds(s, id))
+            unitById(s, member).hexId = to; log(s, `The Sacred Banner moves its stack one hex to ${hexById(s, to).settlement?.name ?? to}.`); },
+        attack: (s, id, to) => { const u = unitById(s, id); startActivation(s, u); const f = combatForecast(s, id, to); s.pendingCombat = { attackerId: id, targetHex: to, stage: 'ambush', decisionKingdom: f.defenderCanAmbush ? s.units.find(v => v.id === f.defenderUnitId)?.kingdom ?? s.advanced.monsters.find(m => m.id === f.defenderUnitId)?.kingdom ?? u.kingdom : u.kingdom, ...(f.defenderUnitId ? { defenderUnitId: f.defenderUnitId } : {}) }; Advanced.startBattleMagic(s, advancedContext()); }, claimCoven: (s, id) => { const h = hexById(s, id), owner = settlementController(s, h); loseIncome(s, owner); s.covens = s.covens.filter(x => x !== id); s.controls[id] = 'night'; gainIncome(s, 'night'); kingdomOf(s, 'night').hasEverControlled = true; s.newlyFriendly.push(id); log(s, 'Knives in the Dark: all enemies eliminated; flip the Coven to Night control.'); }, seaEdge: (s, from, to) => !!edge(s, from, to).sea, seaCoastalEdge: (s, from, to) => !!(edge(s, from, to).sea || edge(s, from, to).coastal) };
+}
 function canonicalizeAdvanced(s) { if (s.advanced && s.activeUnitId)
     s.remainingMP = Math.min(...Advanced.stackIds(s, s.activeUnitId).map(id => s.advanced.movement[id] ?? defOf(s, unitById(s, id)).movement)); const clean = (v) => { if (!v || typeof v !== 'object')
     return; for (const key of Object.keys(v)) {
