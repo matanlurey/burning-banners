@@ -1,9 +1,10 @@
 import { monsterById } from './advanced.js';
+import { sourceLandmarkName } from './official-maps.js';
 /** Only board information; private hands, Covens and hidden piles are excluded. */
 export function findMap(s, query, filter = 'all') {
     const q = query.trim().toLocaleLowerCase(), out = [], objective = new Set(s.scenario.objective.hexIds);
     for (const h of s.hexes) {
-        const location = h.settlement?.name ?? h.id, units = s.units.filter(u => u.hexId === h.id);
+        const location = h.settlement?.name ?? sourceLandmarkName(h.id) ?? h.id, units = s.units.filter(u => u.hexId === h.id);
         const faction = (id) => s.kingdoms.find(k => k.id === id)?.name ?? id;
         if (filter === 'all' || filter === 'ready')
             for (const u of units) {
@@ -24,7 +25,7 @@ export function findMap(s, query, filter = 'all') {
                 out.push({ hexId: h.id, name: d?.name ?? m.defId, detail: `Monster · ${location}${m.kingdom ? ' · ' + faction(m.kingdom) : ''}`, kind: 'monster', priority: 3 });
             }
             if (q && !h.settlement && !objective.has(h.id))
-                out.push({ hexId: h.id, name: h.id, detail: `${h.terrain}${h.mine ? ' · Mine' : ''}${h.entry ? ' · ' + faction(h.entry) + ' entry' : ''}`, kind: 'hex', priority: 4 });
+                out.push({ hexId: h.id, name: location, detail: `${h.id} · ${h.terrain}${h.mine ? ' · Mine' : ''}${h.entry ? ' · ' + faction(h.entry) + ' entry' : ''}`, kind: 'hex', priority: 4 });
         }
     }
     return out.filter(item => !q || `${item.name} ${item.detail} ${item.hexId}`.toLocaleLowerCase().includes(q))

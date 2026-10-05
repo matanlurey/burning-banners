@@ -308,6 +308,7 @@ export interface AdvancedContext {
     complete(s: GameState, result: CombatResult): void;
     advanceTurn(s: GameState): void;
     raze(s: GameState, h: Hex, loot?: boolean): void;
+    entered(s:GameState,ids:string[],hexId:string):void;
     moveStep(s: GameState, id: string, to: string, ship: boolean, join: boolean): boolean;
     advance(s:GameState,id:string,to:string):void;
     claimCoven(s:GameState,hexId:string):void;
@@ -346,10 +347,10 @@ function randomIndex(s: GameState, n: number, ctx: AdvancedContext): number { if
     value = value * 6 + ctx.die(s, 6) - 1;
     space *= 6;
 } const limit = Math.floor(space / n) * n; return value >= limit ? randomIndex(s, n, ctx) : value % n; }
-export function assignStudyMarkers(s: GameState, ctx: AdvancedContext): void { const a = s.advanced!; const live = s.scenario.turnOrder.filter(k => !s.kingdoms.find(x => x.id === k)?.collapsed), n = s.scenario.turnOrder.length; const glyphs = n === 2 ? 2 : n === 3 ? 3 : 4, churns = n >= 4 ? 2 : 1; const pool: ('glyph' | 'churn')[] = [...Array(glyphs).fill('glyph'), ...Array(churns + (a.extraChurn ? 1 : 0)).fill('churn')]; shuffle(s, pool, ctx); a.studyMarkers = Object.fromEntries(live.map((k, i) => [k, pool[i]])); }
+export function assignStudyMarkers(s: GameState, ctx: AdvancedContext): void { const a = s.advanced!; const live = s.scenario.turnOrder.filter(k => !s.kingdoms.find(x => x.id === k)?.collapsed), n = s.scenario.turnOrder.length; const glyphs = s.scenario.sourceCampaign?.study?.glyphs??(n === 2 ? 2 : n === 3 ? 3 : 4), churns = s.scenario.sourceCampaign?.study?.churns??(n >= 4 ? 2 : 1); const pool: ('glyph' | 'churn')[] = [...Array(glyphs).fill('glyph'), ...Array(churns + (a.extraChurn ? 1 : 0)).fill('churn')]; shuffle(s, pool, ctx); a.studyMarkers = Object.fromEntries(live.map((k, i) => [k, pool[i]])); }
 export function initializeAdvanced(s: GameState, config: GameConfig, ctx: AdvancedContext): void {
     const players = config.players?.length ? structuredClone(config.players) : s.kingdoms.map(k => ({ id: `player-${k.id}`, name: k.name, kingdoms: [k.id] }));
-    const a: AdvancedState = { version: 1, players, hands: {}, owned: {}, decks: { spells: [], treasures: [] }, discards: { spells: [], blessings: [] }, eliminatedTreasures: [], removedCards:[], heroPools: {}, eliminatedHeroes: [], locked: [], stacks: {}, movement: {}, activationIds: [], effects: [], monsters: [], monsterPools: { land: [], sea: [] }, explored: [], defeatedMonsters: [], studyMarkers: {}, extraChurn: false, pending: null, battle: null, playedTreasures: {}, lastPlay: null, eventSerial: 0 };
+    const a: AdvancedState = { version: 1, players, hands: {}, owned: {}, decks: { spells: [], treasures: [] }, discards: { spells: [], blessings: [] }, eliminatedTreasures: [], removedCards:[], heroPools: {}, eliminatedHeroes: [], locked: [], stacks: {}, movement: {}, activationIds: [], effects: [], monsters: [], monsterPools: { land: [], sea: [] }, explored: [], defeatedMonsters: [], studyMarkers: {}, extraChurn: s.scenario.startSeason===2, pending: null, battle: null, playedTreasures: {}, lastPlay: null, eventSerial: 0 };
     s.advanced = a;
     for (const c of cards.filter(c => c.verified&&(c.kind==='hero'||config.tabletop||runtimePlayable(c)))) {
         if (c.kind === 'spell')
@@ -358,7 +359,7 @@ export function initializeAdvanced(s: GameState, config: GameConfig, ctx: Advanc
             a.decks.treasures.push(c.id);
         if (c.kind === 'blessing' && s.kingdoms.some(k => k.id === c.kingdom))
             (a.decks[`blessings-${c.kingdom}`] ??= []).push(c.id);
-        if (c.kind === 'hero' && s.kingdoms.some(k => k.id === c.kingdom))
+        if (c.kind === 'hero' && (s.kingdoms.some(k => k.id === c.kingdom)||s.scenario.sourceCampaign?.opening.some(o=>o.extraHeroes?.some(e=>e.kingdom===c.kingdom)))&&!s.scenario.sourceCampaign?.opening.some(o=>o.unavailableHeroIds?.includes(c.id)))
             (a.heroPools[c.kingdom!] ??= []).push(c.id);
     }
     for (const m of monsters)
@@ -441,7 +442,13 @@ function recycleHeroes(s: GameState, ctx: AdvancedContext): void { const a = s.a
 } a.eliminatedHeroes = []; for (const pool of Object.values(a.heroPools))
     shuffle(s, pool, ctx); }
 export function heroDefinitions(): UnitDefinition[] { return cards.filter(c => c.kind === 'hero' && c.verified && c.unitDefinition).map(c => ({ ...Object.fromEntries(Object.entries(c.unitDefinition).filter(([key]) => ['cost', 'recoveryCost', 'movement', 'light', 'heavy', 'weakenedLight', 'weakenedHeavy', 'abilities', 'characteristics'].includes(key))) as unknown as UnitDefinition, id: c.id, name: c.name, kingdom: c.kingdom!, kind: 'hero', heroCardId: c.id, count: 1 })); }
-function gainHero(s: GameState, k: string, hex: string, ctx: AdvancedContext,chosen?:string,gainedByMagic=false): Unit | undefined { if(s.kingdoms.find(v=>v.id===k)?.collapsed)return;const a = s.advanced!, id = chosen??a.heroPools[k]?.shift();if(chosen)a.heroPools[k]=a.heroPools[k].filter(id=>id!==chosen);const d = s.unitDefinitions.find(d => d.id === id); if (!id || !d)
+function heroGainStrandsHuge(s:GameState,k:string,hex:string,ctx:AdvancedContext,gainedByMagic:boolean):boolean {const h=ctx.hex(s,hex),army=s.units.find(u=>u.hexId===hex&&!isHero(s,u));if(!army||!ctx.def(s,army).characteristics.includes('huge')||!ctx.welcoming(s,h,k))return false;return builtFinishedByCoven(s,hex)||(gainedByMagic?army.activated:army.activated||!(h.entry===k||h.settlement&&ctx.controller(s,h)===k&&!s.razed.includes(hex)));}
+function canGainHeroAt(s:GameState,k:string,hex:string,ctx:AdvancedContext,gainedByMagic:boolean):boolean {
+    const occupants=s.units.filter(u=>u.hexId===hex);
+    if(occupants.some(u=>isHero(s,u)||u.kingdom!==k||!!s.scenario.sourceCampaign&&ctx.rawDef(s,u).kingdom!==k&&!(s.advanced as any)?.enslaved?.[u.id]))return false;
+    return !heroGainStrandsHuge(s,k,hex,ctx,gainedByMagic);
+}
+function gainHero(s: GameState, k: string, hex: string, ctx: AdvancedContext,chosen?:string,gainedByMagic=false): Unit | undefined { if(s.kingdoms.find(v=>v.id===k)?.collapsed||!canGainHeroAt(s,k,hex,ctx,gainedByMagic))return;const a = s.advanced!, id = chosen??a.heroPools[k]?.shift();if(chosen)a.heroPools[k]=a.heroPools[k].filter(id=>id!==chosen);const d = s.unitDefinitions.find(d => d.id === id); if (!id || !d)
     return; const h = ctx.hex(s, hex), army = s.units.find(u => u.hexId === hex && !isHero(s, u)); const u: Unit = { id: `unit-${s.serial++}`, defId: id, kingdom: k, hexId: hex, weakened: false, activated: builtFinishedByCoven(s,hex)|| (gainedByMagic&&army ? army.activated : !!army?.activated || !(h.entry === k || (h.settlement && ctx.controller(s, h) === k && !s.razed.includes(hex)))) }; s.units.push(u); if (army && army.kingdom === k)
     a.stacks[u.id] = army.id; ctx.log(s, `${d.name} joins ${s.kingdoms.find(x => x.id === k)!.name}${army ? ' with ' + ctx.rawDef(s, army).name : ''}.`); return u; }
 export function effectiveDefinition(s: GameState, u: Unit, base: UnitDefinition): UnitDefinition {
@@ -526,7 +533,7 @@ else
         if (a.stacks[h] === u.id)
             delete a.stacks[h]; a.activationIds = a.activationIds.filter(x => x !== u.id); }
 export function advancedCanBuild(s: GameState, d: UnitDefinition, h: Hex): boolean { const a = s.advanced; if (!a)
-    return !s.units.some(u => u.hexId === h.id); return !s.units.some(u => u.hexId === h.id && (u.kingdom !== d.kingdom || (d.kind === 'hero' ? isHero(s, u) : !isHero(s, u)))); }
+    return !s.units.some(u => u.hexId === h.id); return !s.units.some(u => u.hexId === h.id && (u.kingdom !== d.kingdom || (d.kind === 'hero' ? isHero(s, u) : !isHero(s, u))||!!s.scenario.sourceCampaign&&s.unitDefinitions.find(v=>v.id===d.id)?.kingdom!==s.unitDefinitions.find(v=>v.id===u.defId)?.kingdom&&!(s.advanced as any)?.enslaved?.[u.id])); }
 function hexFeatures(h:Hex):string[]{return unique([h.terrain,...(h.coastal?['coastal']:[]),...(h.settlement?.wilderness?[h.settlement.wilderness]:[]),...(Object.values(h.edges??{}).some(e=>e.river===2)?['major-river']:[])]);}
 function hexDistance(a: Hex, b: Hex): number { return Math.max(Math.abs(a.q - b.q), Math.abs(a.r - b.r), Math.abs(a.q + a.r - b.q - b.r)); }
 function pendingEvent(s:GameState,window?:string):Record<string,any>|undefined {
@@ -550,6 +557,7 @@ function placeSingleHero(s:GameState,u:Unit,to:string,ctx:AdvancedContext):void 
     const army=s.units.find(v=>v.id!==u.id&&v.hexId===to&&v.kingdom===u.kingdom&&!isHero(s,v));
     if(army){a.stacks[u.id]=army.id;if(u.activated||army.activated)u.activated=army.activated=true;}
     if(s.activeUnitId!==u.id)a.activationIds=a.activationIds.filter(id=>id!==u.id);
+    ctx.entered(s,[u.id],to);
     finishPlacedStack(s,u.id,ctx);
 }
 function finishPlacedStack(s:GameState,id:string,ctx:AdvancedContext):void {
@@ -566,6 +574,7 @@ function placeMagicStack(s:GameState,u:Unit,to:string,ctx:AdvancedContext,heroOn
     if(ids.length===1&&isHero(s,u)){placeSingleHero(s,u,to,ctx);return;}
     for(const id of ids)ctx.unit(s,id).hexId=to;
     if(ids.length===1){const hero=s.units.find(v=>v.id!==u.id&&v.hexId===to&&v.kingdom===u.kingdom&&isHero(s,v));if(hero)s.advanced!.stacks[hero.id]=u.id;}
+    ctx.entered(s,ids,to);
     finishPlacedStack(s,u.id,ctx);
 }
 function combatantKingdom(s: GameState, id: string | undefined): string { return s.units.find(u => u.id === id)?.kingdom ?? s.advanced!.monsters.find(m => m.id === id)?.kingdom ?? s.currentKingdom; }
@@ -775,8 +784,10 @@ function relevantTarget(s: GameState, c: CardDefinition, id: string, caster: str
     if(e.suppressionProhibitionApplies&&a.effects.some(e=>e.extra?.noSuppression)&&(e.suppressRevolts||e.suppressRevoltsPerGold))return false;
     if (e.suppressRevolts && !(s.kingdoms.find(k => k.id === c.kingdom)?.revolt ?? 0))
         return false;
-    if (e.gainHeroes && e.type!=='natural-selection' && (!a.heroPools[c.kingdom ?? s.currentKingdom]?.length||!s.units.some(v=>v.kingdom===(c.kingdom??s.currentKingdom)&&!isHero(s,v)&&!s.units.some(h=>h.hexId===v.hexId&&isHero(s,h)))))
-        return false;
+    if(e.gainHeroes&&e.type!=='natural-selection'){
+        const kid=c.kingdom??s.currentKingdom,d=s.unitDefinitions.find(d=>d.kind==='hero'&&d.kingdom===kid);
+        if(!a.heroPools[kid]?.length||!s.units.some(v=>v.kingdom===kid&&!isHero(s,v)&&canGainHeroAt(s,kid,v.hexId,ctx,true))&&!(e.heroMayBePlacedInAnyEligibleHex&&d&&ctx.buildLocations(s,d).some(h=>canGainHeroAt(s,kid,h.id,ctx,true))))return false;
+    }
     if (e.gainTreasures && !a.decks.treasures.length&&!a.eliminatedTreasures.length)
         return false;
     if (e.type === 'the-deep-paths' && (!u || u.activated || h?.terrain !== 'mountain'))
@@ -849,19 +860,20 @@ function cardChoices(s: GameState, c: CardDefinition): string[] { const e = c.ef
     return ['1', '2', '3', '4']; if (e.chooseHeavyDice)
     return ['1', '2', '3']; if (e.chooseGoldX)
     return Array.from({ length: Math.min(15, s.kingdoms.find(k => k.id === c.kingdom)?.gold ?? 0) }, (_, i) => String(i + 1)); return ['']; }
+function canPlaceMagicStack(s:GameState,u:Unit,h:Hex,ctx:AdvancedContext,heroOnly:boolean,forceFinish:boolean):boolean {const ids=heroOnly?[u.id]:stackIds(s,u.id),combined=[...ids.map(id=>magicUnit(s,id)!).filter(Boolean),...s.units.filter(v=>!ids.includes(v.id)&&v.hexId===h.id&&v.kingdom===u.kingdom)];if(ctx.welcoming(s,h,u.kingdom)&&combined.some(v=>ctx.def(s,v).characteristics.includes('huge'))&&(forceFinish||combined.some(v=>v.activated)))return false;return heroOnly?canPlaceHero(s,u,h,ctx):ctx.canEnd(s,u,h);}
 function placementOptions(s: GameState, c: CardDefinition, caster: string | undefined, target: string, ctx: AdvancedContext): string[] { const e = c.effect, u = magicUnit(s,target), ch = caster ? targetHex(s, caster, ctx) : undefined;
     if(e.type==='wings-of-valor')return u&&ch?ctx.adjacent(s,ch.id).filter(h=>h.id!==u.hexId&&canPlaceHero(s,u,h,ctx)).map(h=>h.id):[];
     if(e.type==='ring-of-invisibility')return u?s.hexes.filter(h=>hexDistance(ctx.hex(s,u.hexId),h)<=2&&canPlaceHero(s,u,h,ctx)).map(h=>h.id):[];
     if(e.type==='shapeshift')return u?s.hexes.filter(h=>s.controls[h.id]==='night'&&!!h.settlement&&!s.razed.includes(h.id)&&canPlaceHero(s,u,h,ctx)).map(h=>h.id):[];
     if (!u)
     return ['']; if (e.placeWithinHexes)
-    return s.hexes.filter(h => hexDistance(ctx.hex(s, u.hexId), h) <= e.placeWithinHexes && h.id !== u.hexId && ctx.canEnd(s, u, h)).map(h => h.id); if (e.place === 'caster-hex-or-adjacent' && ch)
-    return [ch, ...ctx.adjacent(s, ch.id)].filter(h => h.id !== u.hexId && ctx.canEnd(s, u, h)).map(h => h.id); if (e.type === 'paths-of-dread') {
+    return s.hexes.filter(h => hexDistance(ctx.hex(s, u.hexId), h) <= e.placeWithinHexes && h.id !== u.hexId && canPlaceMagicStack(s,u,h,ctx,!!e.armyDoesNotMove,!!e.finishStack)).map(h => h.id); if (e.place === 'caster-hex-or-adjacent' && ch)
+    return [ch, ...ctx.adjacent(s, ch.id)].filter(h => h.id !== u.hexId && canPlaceMagicStack(s,u,h,ctx,!!e.armyDoesNotMove,!!e.finishStack)).map(h => h.id); if (e.type === 'paths-of-dread') {
     if (!ch || !ctx.adjacent(s, ch.id).some(h => h.terrain === 'lair'))
         return [];
-    return s.hexes.filter(h => ctx.adjacent(s, h.id).some(l => l.terrain === 'lair') && h.id !== u.hexId && ctx.canEnd(s, u, h)).map(h => h.id);
+    return s.hexes.filter(h => ctx.adjacent(s, h.id).some(l => l.terrain === 'lair') && h.id !== u.hexId && canPlaceMagicStack(s,u,h,ctx,!!e.armyDoesNotMove,!!e.finishStack)).map(h => h.id);
 } if (e.type === 'shapeshift')
-    return s.hexes.filter(h => s.controls[h.id] === 'night' && ctx.canEnd(s, u, h)).map(h => h.id); return ['']; }
+    return s.hexes.filter(h => s.controls[h.id] === 'night' && canPlaceMagicStack(s,u,h,ctx,!!e.armyDoesNotMove,!!e.finishStack)).map(h => h.id); return ['']; }
 function cardCosts(s:GameState,player:string,c:CardDefinition,target:string): (string|undefined)[] {
     const e=c.effect,a=s.advanced!,unit=s.units.find(u=>u.id===target);
     const count=e.discardBlessings??e.discardSpells??0;if(!count)return [undefined];
@@ -1361,13 +1373,14 @@ function chooseBuild(s:GameState,play:MagicPlay,defId:string,count:number,resume
     const a=s.advanced!,d=s.unitDefinitions.find(d=>d.id===defId);
     if(!d||s.kingdoms.find(k=>k.id===d.kingdom)?.collapsed||count<=0||s.units.filter(u=>u.defId===defId).length>=d.count){a.pending=resume;return;}
     const places=near?[ctx.hex(s,near),...ctx.adjacent(s,near)].filter(h=>advancedCanBuild(s,d,h)&&ctx.canEnd(s,{id:'new-army',defId,kingdom:d.kingdom,hexId:near,weakened:false,activated:false},h)):ctx.buildLocations(s,d);
-    chooseEffect(s,play,play.playerId,'build',places.map(h=>({value:h.id,label:`Place ${d.name} at ${h.settlement?.name??h.id}`})),resume,{defId,count,...(near?{near}:{}),ready},`Place ${d.name} · ${count} remaining`);
+    const eligible=places.filter(h=>!d.characteristics.includes('huge')||!ctx.welcoming(s,h,d.kingdom)||!((!ready&&h.entry!==d.kingdom&&(!h.settlement||ctx.controller(s,h)!==d.kingdom||s.razed.includes(h.id)))||builtFinishedByCoven(s,h.id)||(!ready&&s.units.some(u=>u.hexId===h.id&&isHero(s,u)&&u.activated))));
+    chooseEffect(s,play,play.playerId,'build',eligible.map(h=>({value:h.id,label:`Place ${d.name} at ${h.settlement?.name??h.id}`})),resume,{defId,count,...(near?{near}:{}),ready},`Place ${d.name} · ${count} remaining`);
 }
 function chooseHeroPlacement(s:GameState,play:MagicPlay,kid:string,count:number,resume:Pending|null,ctx:AdvancedContext):void {
     const a=s.advanced!,d=s.unitDefinitions.find(d=>d.kingdom===kid&&d.kind==='hero');
     if(!d||s.kingdoms.find(k=>k.id===kid)?.collapsed||count<=0||!a.heroPools[kid]?.length){a.pending=resume;return;}
-    const places=s.units.filter(u=>u.kingdom===kid&&!isHero(s,u)&&!s.units.some(v=>v.hexId===u.hexId&&isHero(s,v))).map(u=>ctx.hex(s,u.hexId));
-    if(cardById(play.cardId)?.effect.heroMayBePlacedInAnyEligibleHex)places.push(...ctx.buildLocations(s,d));
+    const places=s.units.filter(u=>u.kingdom===kid&&!isHero(s,u)&&canGainHeroAt(s,kid,u.hexId,ctx,true)).map(u=>ctx.hex(s,u.hexId));
+    if(cardById(play.cardId)?.effect.heroMayBePlacedInAnyEligibleHex)places.push(...ctx.buildLocations(s,d).filter(h=>canGainHeroAt(s,kid,h.id,ctx,true)));
     const ids=unique(places.map(h=>h.id));
     if(ids.length===1){const hero=gainHero(s,kid,ids[0],ctx,cardById(play.cardId)?.effect.type==='kharks-chosen'?play.choice:undefined,true);if(hero&&cardById(play.cardId)?.effect.gainedHeroHeavy)addEffect(s,{...play,targetId:hero.id},{heavy:cardById(play.cardId)!.effect.gainedHeroHeavy});chooseHeroPlacement(s,play,kid,count-1,resume,ctx);return;}
     chooseEffect(s,play,play.playerId,'hero',ids.map(value=>({value,label:`Hero at ${ctx.hex(s,value).settlement?.name??value}`})),resume,{kid,count});
@@ -1888,13 +1901,13 @@ export function advancedLegalActions(s: GameState, ctx: AdvancedContext): {
                 actions.push({ type: 'recruit-hero', hexId: h.id });
         for (const u of s.units.filter(u => u.kingdom === k.id)) {
             if (isHero(s, u) && a.stacks[u.id] && (!u.activated||!s.units.find(v=>v.id===a.stacks[u.id])?.activated) && (!s.activeUnitId || stackIds(s, s.activeUnitId).includes(u.id)))
-                actions.push({type:'drop-hero',unitId:u.id},{type:'drop-army',unitId:u.id});
+                {actions.push({type:'drop-hero',unitId:u.id});const army=s.units.find(v=>v.id===a.stacks[u.id])!;if(!s.activeUnitId||ctx.canEnd(s,army,ctx.hex(s,army.hexId)))actions.push({type:'drop-army',unitId:u.id});}
             if (isHero(s, u) && !a.stacks[u.id])
-                for (const army of s.units.filter(v => v.kingdom === k.id && v.hexId === u.hexId && !isHero(s, v)&&(!s.activeUnitId||!u.activated&&!v.activated&&[u.id,v.id].includes(s.activeUnitId))))
+                for (const army of s.units.filter(v => v.kingdom === k.id && v.hexId === u.hexId && !isHero(s, v)&&(!s.scenario.sourceCampaign||ctx.rawDef(s,u).kingdom===ctx.rawDef(s,v).kingdom||(a as any).enslaved?.[v.id])&&(!(u.activated||v.activated)||ctx.canEnd(s,v,ctx.hex(s,v.hexId)))&&(!s.activeUnitId||!u.activated&&!v.activated&&[u.id,v.id].includes(s.activeUnitId))))
                     actions.push({ type: 'join-stack', unitId: u.id, armyId: army.id });
-            if (!u.activated && !stackIds(s,u.id).some(id=>s.units.find(v=>v.id===id)?.activated) && !isHero(s, u) && (!s.activeUnitId || stackIds(s, s.activeUnitId).includes(u.id)))
+            if (!u.activated && !stackIds(s,u.id).some(id=>s.units.find(v=>v.id===id)?.activated) && !isHero(s, u) && ctx.canEnd(s,u,ctx.hex(s,u.hexId)) && (!s.activeUnitId || stackIds(s, s.activeUnitId).includes(u.id)))
                 for (const h of ctx.adjacent(s, u.hexId)) {
-                    if (h.terrain === 'lair' && !a.explored.includes(h.id) && !a.monsters.some(m => m.hexId === h.id))
+                    if (h.terrain === 'lair' && (h.lairPool!=='sea'||ctx.hex(s,u.hexId).coastal||ctx.hex(s,u.hexId).terrain==='coastal')&& !a.explored.includes(h.id) && !s.campaignRuntime?.abandonedLairs?.includes(h.id)&& !a.monsters.some(m => m.hexId === h.id))
                         actions.push({ type: 'explore-lair', unitId: u.id, targetHex: h.id });
                     if (a.monsters.some(m => m.hexId === h.id))
                         actions.push({ type: 'attack-monster', unitId: u.id, targetHex: h.id });
@@ -2042,7 +2055,7 @@ export function applyAdvancedAction(s: GameState, action: AdvancedAction, ctx: A
             ctx.start(s, ctx.unit(s, action.unitId));
             let m = a.monsters.find(m => m.hexId === action.targetHex);
             if (!m)
-                m = revealMonster(s, action.targetHex, true, 'land', null, ctx);
+                m = revealMonster(s, action.targetHex, true, ctx.hex(s,action.targetHex).lairPool??'land', null, ctx);
             if (!m) {
                 ctx.log(s, 'The Monster pool is empty.');
                 ctx.finish(s);
@@ -2274,16 +2287,16 @@ export function validateAdvanced(s: GameState): string[] {
     if (inventory.some(id => !cardById(id) || cardById(id)?.kind === 'hero') || new Set(inventory).size !== inventory.length)
         issues.push('Invalid or duplicated Magic card inventory.');
     const heroInventory=[...Object.values(a.heroPools).flat(),...a.eliminatedHeroes,...s.units.filter(u=>isHero(s,u)).map(u=>u.defId)];
-    const expectedHeroes=cards.filter(c=>c.kind==='hero'&&s.kingdoms.some(k=>k.id===c.kingdom)).map(c=>c.id);
+    const expectedHeroes=cards.filter(c=>c.kind==='hero'&&(s.kingdoms.some(k=>k.id===c.kingdom)||s.scenario.sourceCampaign?.opening.some(o=>o.extraHeroes?.some(e=>e.kingdom===c.kingdom)))&&!s.scenario.sourceCampaign?.opening.some(o=>o.unavailableHeroIds?.includes(c.id))).map(c=>c.id);
     if(heroInventory.length!==expectedHeroes.length||new Set(heroInventory).size!==heroInventory.length||expectedHeroes.some(id=>!heroInventory.includes(id)))issues.push('Invalid or duplicated Hero inventory.');
-    const monsterInventory=[...a.monsterPools.land,...a.monsterPools.sea,...a.defeatedMonsters,...a.monsters.map(m=>m.defId)];
+    const monsterInventory=[...a.monsterPools.land,...a.monsterPools.sea,...a.defeatedMonsters,...a.monsters.map(m=>m.defId),...s.campaignRuntime?.reservedMonsters??[]];
     for(const m of monsters)if(monsterInventory.filter(id=>id===m.id).length!==(m.count??1))issues.push('Invalid Monster inventory.');
     if(monsterInventory.some(id=>!monsterById(id))||new Set(a.monsters.map(m=>m.id)).size!==a.monsters.length||a.monsters.some(m=>m.weakened))issues.push('Invalid Monster identity or damage.');
     const playerIds=new Set(a.players.map(p=>p.id));
     const checkPending=(p:Pending|null):void=>{if(!p)return;if(p.kind==='window'){if(p.players.some(id=>!playerIds.has(id)))issues.push('Unknown Magic decision player.');checkPending(p.resume??null);}else if(p.kind==='choice'||p.kind==='satchel'){if(!playerIds.has(p.playerId))issues.push('Unknown Magic decision player.');checkPending(p.resume);}else if(p.kind==='command'||p.kind==='hit')checkPending(p.resume);};checkPending(a.pending);
     for (const [hero, army] of Object.entries(a.stacks)) {
         const h = s.units.find(u => u.id === hero), ar = s.units.find(u => u.id === army);
-        if (!h || !ar || !isHero(s, h) || isHero(s, ar) || h.kingdom !== ar.kingdom || h.hexId !== ar.hexId)
+        if (!h || !ar || !isHero(s, h) || isHero(s, ar) || h.kingdom !== ar.kingdom || h.hexId !== ar.hexId||!!s.scenario.sourceCampaign&&s.unitDefinitions.find(d=>d.id===h.defId)?.kingdom!==s.unitDefinitions.find(d=>d.id===ar.defId)?.kingdom&&!(a as any).enslaved?.[ar.id])
             issues.push('Invalid Hero stack.');
     }
     if (new Set(Object.values(a.stacks)).size !== Object.values(a.stacks).length)

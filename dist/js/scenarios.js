@@ -1,3 +1,4 @@
+import { publishedCampaigns, compilePublishedCampaign, campaignSummary } from './published-campaigns.js';
 import { hexes, worldHexes, unitDefinitions, scenario } from './content.js';
 const directions = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
 function sixKingdomSandbox() {
@@ -65,5 +66,7 @@ export function getScenarioOptions() {
     return [
         { id: scenario.id, title: scenario.name, description: 'Oathborn versus Fjordland. Three seasons, a compact front, and the board game’s Basic rules. Original teaching setup; full official campaign data remains unverified.', config: { hexes: structuredClone(hexes), unitDefinitions: structuredClone(unitDefinitions), scenario: structuredClone(scenario) } },
         { id: 'six-banners-sandbox', title: 'Six banners at war · sandbox', description: 'All six kingdoms, two alliances, and any mix of human and AI commanders. Original setup on the reconstructed Wildlands board.', config: sixKingdomSandbox() },
+        ...publishedCampaigns.map(s => ({ id: `published-${s.id}`, title: s.series === 'scroll' ? `${s.number}. ${s.name}` : s.series === 'chronicle' ? `Chronicle ${s.chapter}: ${s.name}` : s.name, description: campaignSummary(s), config: compilePublishedCampaign(s.id) })),
+        { id: 'published-chronicle-full', title: 'Full Chronicle · 589–600 · 35 seasons', description: 'The complete war, from Out of the Shadows through Bitter End, preserving your position across the years.', config: compilePublishedCampaign('chronicle-1', { endingChapter: 10, bitterEnd: true }) },
     ];
 }

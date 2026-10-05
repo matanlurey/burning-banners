@@ -11,7 +11,7 @@ let decisionCache = null;
 const distance = (a, b) => Math.max(Math.abs(a.q - b.q), Math.abs(a.r - b.r), Math.abs(a.q + a.r - b.q - b.r));
 const ownSide = (s, kingdom) => s.kingdoms.find(k => k.id === kingdom)?.side;
 const allied = (s, a, b) => a === b || !!ownSide(s, a) && ownSide(s, a) === ownSide(s, b);
-const hBy = (s, id) => s.hexes.find(h => h.id === id);
+const hBy = (s, id) => decisionCache?.state === s ? decisionCache.hexById.get(id) : s.hexes.find(h => h.id === id);
 const uBy = (s, id) => s.units.find(u => u.id === id);
 const raw = (s, u) => s.unitDefinitions.find(d => d.id === u.defId);
 const def = (s, u) => effectiveDefinition(s, u, raw(s, u));
@@ -20,12 +20,104 @@ const diceValue = (light, heavy) => light / 3 + heavy * (7 / 12);
 function ownPool(s, u) { const d = def(s, u); return adjustedDice(s, u.id, { light: u.weakened ? d.weakenedLight ?? d.light : d.light, heavy: u.weakened ? d.weakenedHeavy ?? d.heavy : d.heavy }, false); }
 function material(s, u) { const d = def(s, u), p = ownPool(s, u); return isHero(s, u) ? 2.7 + d.heavy * 1.5 + (d.abilities.includes('mage') ? 0.5 : 0) : d.cost * 0.6 + diceValue(p.light, p.heavy) * 3 + (u.weakened ? 0 : 1.2); }
 function seasonsLeft(s) { return Math.max(0, (s.scenario.endYear - s.year) * 3 + s.scenario.endSeason - s.season); }
-function objectiveWeight(s, h) { return s.scenario.objective.hexIds.includes(h.id) ? 14 + 18 / (seasonsLeft(s) + 1) : 0; }
+function eligibleKingdoms(s, c) { return c.kingdoms ?? s.kingdoms.filter(k => !c.side || k.side === c.side).map(k => k.id); }
+function conditionHexes(s, c) { return s.hexes.filter(h => h.settlement && (!c.hexIds || c.hexIds.includes(h.id)) && (!c.loyalties || c.loyalties.includes(h.settlement.loyalty ?? null))); }
+/** Public campaign objectives, including occupation and denial. A kingdom may
+ * reinforce an allied claimant, but capturing under its own banner cannot meet
+ * a condition that explicitly requires the ally's markers. */
+function sourceGoals(s, actor) {
+    const cache = decisionCache?.state === s ? decisionCache.sourceGoals : undefined, cached = cache?.get(actor);
+    if (cached)
+        return cached;
+    const victory = s.scenario.sourceCampaign?.victory;
+    if (!victory)
+        return [];
+    const side = ownSide(s, actor), urgency = 18 + 20 / (seasonsLeft(s) + 1), out = [];
+    const push = (hex, weight, metric, eligible, achieved, pursue) => { if (!hex.prohibited && !hex.prohibitedFor?.includes(actor))
+        out.push({ hex, weight, metric, eligible, achieved, pursue }); };
+    const visit = (c, winner, weight = urgency) => {
+        if (c.type === 'all' || c.type === 'any') {
+            for (const part of c.conditions)
+                visit(part, winner, weight);
+            return;
+        }
+        if (c.type === 'count') {
+            if (c.atLeast > s.hexes.filter(h => h.settlement).length)
+                return; // A prevention-only deadline has no capture target.
+            const eligible = eligibleKingdoms(s, c), pursue = winner === side, claimant = eligible.includes(actor);
+            for (const h of conditionHexes(s, c)) {
+                const owner = s.razed.includes(h.id) ? undefined : settlementController(s, h), marker = !!s.controls[h.id] && eligible.includes(s.controls[h.id]);
+                const occupied = s.units.some(u => u.hexId === h.id && eligible.includes(u.kingdom) && (c.metric === 'presence' || army(s, u)));
+                const achieved = c.metric === 'controlled' ? !!owner && eligible.includes(owner) : c.metric === 'markers' ? marker : c.metric === 'controlled-or-razed' ? s.razed.includes(h.id) || !!owner && eligible.includes(owner) : c.metric === 'occupied' ? occupied : marker || occupied;
+                // Razing is irreversible in some scenarios; those already razed
+                // targets do not offer an opposing side a useful denial route.
+                if (s.razed.includes(h.id) && c.metric === 'controlled-or-razed' && !pursue)
+                    continue;
+                push(h, weight * (pursue && !claimant ? 0.45 : 1), c.metric, eligible, achieved, pursue);
+            }
+            return;
+        }
+        if (c.type === 'collapse') {
+            for (const k of c.kingdoms)
+                for (const h of s.hexes.filter(h => !s.razed.includes(h.id) && h.settlement && (h.settlement.city && h.settlement.loyalty === k || ['orcs', 'goblins'].includes(k) && s.controls[h.id] === k))) {
+                    const enemy = ownSide(s, k) !== side, owner = settlementController(s, h), eligible = s.kingdoms.filter(k => k.side === (enemy ? side : side === 'invader' ? 'resistance' : 'invader')).map(k => k.id);
+                    push(h, weight + 8 + Number(['orcs', 'goblins'].includes(k) && Object.values(s.controls).filter(v => v === k).length === 1) * 14, 'collapse', eligible, !!owner && eligible.includes(owner), enemy);
+                }
+            return;
+        }
+        if (c.type === 'income') {
+            const enemy = ownSide(s, c.kingdom) !== side, eligible = s.kingdoms.filter(k => k.side === (enemy ? side : side === 'invader' ? 'resistance' : 'invader')).map(k => k.id);
+            for (const h of s.hexes.filter(h => h.settlement && !s.razed.includes(h.id) && (settlementController(s, h) === c.kingdom || h.settlement.loyalty === c.kingdom)))
+                push(h, weight, 'income', eligible, eligible.includes(settlementController(s, h) ?? ''), enemy);
+            return;
+        }
+        const claimant = s.kingdoms.find(k => k.side === c.side)?.id;
+        for (const h of s.hexes.filter(h => h.settlement?.city && !s.razed.includes(h.id) && claimant && !isWelcoming(s, h, claimant, true)))
+            push(h, weight + 12, 'occupied', eligibleKingdoms(s, c), s.units.some(u => u.hexId === h.id && army(s, u) && ownSide(s, u.kingdom) === c.side), winner === side);
+    };
+    for (const r of victory.immediate ?? [])
+        visit(r.condition, r.winner, urgency + (r.check === 'action' ? 8 : 3));
+    const d = victory.deadline;
+    if (d.type === 'condition')
+        visit(d.condition, d.winner);
+    else {
+        const eligible = s.kingdoms.filter(k => k.side === side).map(k => k.id);
+        for (const h of s.hexes.filter(h => h.settlement && !s.razed.includes(h.id) && (!d.hexIds || d.hexIds.includes(h.id)))) {
+            const achieved = d.metric === 'markers' ? !!s.controls[h.id] && eligible.includes(s.controls[h.id]) : eligible.includes(settlementController(s, h) ?? '');
+            // A printed loyal settlement already welcoming to its own kingdom
+            // cannot earn another marker merely by stationing an army there.
+            if (d.metric === 'markers' && eligible.includes(h.settlement.loyalty ?? '') && !s.controls[h.id])
+                continue;
+            push(h, urgency, d.metric, eligible, achieved, true);
+        }
+    }
+    cache?.set(actor, out);
+    return out;
+}
+function objectiveWeight(s, h, actor = advancedActor(s)) {
+    if (s.scenario.sourceCampaign)
+        return Math.max(0, ...sourceGoals(s, actor).filter(g => g.hex.id === h.id).map(g => g.weight));
+    return s.scenario.objective.hexIds.includes(h.id) ? 14 + 18 / (seasonsLeft(s) + 1) : 0;
+}
+function requiresControl(s, h, actor) {
+    if (!s.scenario.sourceCampaign)
+        return s.scenario.objective.type === 'control' && !!objectiveWeight(s, h, actor);
+    return sourceGoals(s, actor).some(g => g.hex.id === h.id && g.pursue && g.eligible.includes(actor) && ['controlled', 'markers', 'presence', 'settlements', 'income'].includes(g.metric));
+}
+function alliedClaim(s, h, actor) { return sourceGoals(s, actor).some(g => g.hex.id === h.id && g.pursue && !g.eligible.includes(actor) && g.eligible.some(k => allied(s, k, actor)) && ['controlled', 'markers'].includes(g.metric)); }
 function settlementValue(s, h, k) {
     if (!h.settlement || s.razed.includes(h.id))
         return 0;
     const shashka = k === 'orcs' || k === 'goblins', owner = settlementController(s, h);
     let value = 4 + Number(h.settlement.city) * 3 + objectiveWeight(s, h) + (shashka ? 0 : Math.min(6, seasonsLeft(s) * 1.2));
+    const rivalry = s.scenario.sourceCampaign?.competitiveInvaders;
+    if (rivalry && ownSide(s, k) === 'invader') {
+        const markers = (id) => Object.values(s.controls).filter(owner => owner === id).length;
+        const lead = markers(rivalry.leadKingdom) - markers(rivalry.otherKingdom);
+        // A bounded personal-race bonus follows the shared campaign reward.
+        if (k === rivalry.leadKingdom && lead < rivalry.requiredMarkerLead || k === rivalry.otherKingdom && lead >= rivalry.requiredMarkerLead - 1)
+            value += 5;
+    }
     const original = s.hexes.filter(t => t.settlement?.city && t.settlement.loyalty === owner && s.advanced?.khazud !== t.id);
     if (owner && !allied(s, owner, k) && h.settlement.city && original.length) {
         const remaining = original.filter(t => !s.razed.includes(t.id) && isWelcoming(s, t, owner));
@@ -41,7 +133,20 @@ function targetGoals(s, k) {
     const objective = s.scenario.objective;
     const invader = ownSide(s, k) === 'invader';
     const out = [];
-    if (objective.type === 'control')
+    if (s.scenario.sourceCampaign) {
+        const enemies = s.units.filter(u => army(s, u) && !allied(s, k, u.kingdom));
+        for (const g of sourceGoals(s, k)) {
+            const desired = g.pursue ? g.achieved : !g.achieved;
+            if (!desired)
+                out.push({ hex: g.hex, weight: g.weight });
+            else {
+                const threat = Math.min(...enemies.map(u => distance(g.hex, hBy(s, u.hexId))), 99);
+                if (threat <= 5)
+                    out.push({ hex: g.hex, weight: g.weight * (6 - threat) / 6 });
+            }
+        }
+    }
+    else if (objective.type === 'control')
         for (const id of objective.hexIds) {
             const h = hBy(s, id);
             if (!h || s.razed.includes(id))
@@ -57,7 +162,7 @@ function targetGoals(s, k) {
                     out.push({ hex: h, weight: objectiveWeight(s, h) * (6 - threat) / 6 });
             }
         }
-    if (objective.type === 'survival' && invader) {
+    if (!s.scenario.sourceCampaign && objective.type === 'survival' && invader) {
         const survivor = objective.kingdom ?? k;
         for (const h of s.hexes.filter(h => h.settlement?.city && h.settlement.loyalty === survivor && !s.razed.includes(h.id)))
             out.push({ hex: h, weight: 24 });
@@ -332,9 +437,123 @@ function cardScore(s, a, actor) {
     // Save actual cards when the projected gain does not justify consuming them.
     return value - (a.type === 'hero-power' ? 0.2 : 1.5);
 }
+function constrainedOpeningPriority(s, kingdom) {
+    const spec = s.scenario.sourceCampaign.opening.find(v => v.kingdom === kingdom);
+    const saved = kingdom === s.currentKingdom ? s.opening : s.opening?.deployments[kingdom];
+    const free = saved ? saved.remainingFreeUnits : (spec.freeUnits ?? []).flatMap(v => Array.from({ length: v.count }, () => v));
+    let priority = free.filter(v => !v.optional && v.hexIds?.length).reduce((n, v) => n + 1 / v.hexIds.length, 0);
+    if (saved)
+        for (const id of saved.remainingHeroes) {
+            const locations = saved.heroLocations[id];
+            if (locations?.length)
+                priority += .5 / locations.length;
+        }
+    else
+        for (const hero of spec.extraHeroes ?? [])
+            if (hero.hexIds?.length)
+                priority += hero.count * .5 / hero.hexIds.length;
+    return priority;
+}
+function openingScore(s, a, actor, difficulty) {
+    const k = s.kingdoms.find(k => k.id === actor), at = 'hexId' in a ? hBy(s, a.hexId) : undefined;
+    const spec = s.scenario.sourceCampaign.opening.find(v => v.kingdom === actor);
+    const location = at ? potential(s, at, actor) * 0.16 : 0;
+    if (a.type === 'opening-choice')
+        return -1000;
+    if (a.type === 'opening-switch') {
+        const priority = constrainedOpeningPriority(s, a.kingdom);
+        // Allied setup is simultaneous. Place restricted free contingents before
+        // another ally fills their few legal hexes with ordinary recruitment.
+        return priority > constrainedOpeningPriority(s, actor) + .00001 ? 200 + priority : -100;
+    }
+    if (a.type === 'opening-done')
+        return 0;
+    if (a.type === 'opening-control') {
+        const opponents = s.kingdoms.filter(enemy => !allied(s, actor, enemy.id));
+        // These markers precede the opponent's recruitment. An enemy can deploy
+        // next to another welcoming town and besiege this one before our free
+        // Heroes are placed. Keep the opening anchor beyond that build reach.
+        const recruitThreat = at ? s.hexes.filter(h => h.id !== at.id && h.settlement && opponents.some(enemy => isWelcoming(s, h, enemy.id)) && distance(at, h) <= 2).reduce((n, h) => n + 20 - distance(at, h) * 4, 0) : 0;
+        const occupied = at ? s.units.some(u => u.hexId === at.id) : false;
+        return 25 + location + Number(at?.settlement?.fortified) * 1.5 - recruitThreat - Number(occupied) * 20;
+    }
+    if (a.type === 'opening-exchange-coven')
+        return sourceGoals(s, actor).some(g => g.pursue && g.metric === 'markers') ? -10 : s.covens.length === 0 ? 1 : -10;
+    if (a.type === 'opening-coven')
+        return 90 + location + Number(at && ['forest', 'mountain', 'swamp'].includes(at.terrain)) * 2 - Number(at?.settlement?.fortified) * 2;
+    if (a.type === 'opening-hero') {
+        const companion = s.units.find(u => u.hexId === a.hexId && army(s, u)), d = s.unitDefinitions.find(d => d.id === a.defId);
+        return 70 + location + (companion ? 5 + material(s, companion) * .25 : 0) + Number(d.abilities.includes('mage')) * .5;
+    }
+    if (a.type === 'suppress')
+        return (k.revolt ?? 0) >= 10 ? 100 : (k.revolt ?? 0) > 2 && k.gold > 4 ? 4 : -1;
+    if (a.type !== 'opening-build')
+        return -100;
+    const d = s.unitDefinitions.find(d => d.id === a.defId), free = s.opening?.remainingFreeUnits.find(u => u.defId === d.id), count = s.units.filter(u => u.kingdom === actor && army(s, u)).length;
+    const due = ['orcs', 'goblins'].includes(actor) ? Object.values(s.controls).filter(id => id === actor).length : 0;
+    const reserve = spec.discardUnspent ? 0 : due;
+    if (!free && k.gold - d.cost < reserve && count > 0)
+        return -25;
+    const controlNeeded = sourceGoals(s, actor).some(g => g.pursue && g.eligible.includes(actor) && ['controlled', 'markers', 'presence', 'settlements', 'income'].includes(g.metric));
+    const cannotClaim = d.characteristics.some(c => c === 'feral' || c === 'huge');
+    const siege = d.characteristics.some(c => c === 'siege' || c === 'siege-engine');
+    const forts = targetGoals(s, actor).filter(g => g.hex.settlement?.fortified && !isWelcoming(s, g.hex, actor));
+    const hasSiege = s.units.some(u => u.kingdom === actor && def(s, u).characteristics.some(c => c === 'siege' || c === 'siege-engine'));
+    const efficiency = (diceValue(d.light, d.heavy) * 3 + d.movement * .3) / Math.max(1, d.cost);
+    let value = (free && !free.optional ? 110 : 9) + location + efficiency - (difficulty === 'easy' ? d.cost * .4 : d.cost * .12) - count * .35;
+    if (difficulty === 'hard') {
+        // Pure hits-per-gold buys only Miners/fragile scouts. A viable opening
+        // also needs units that can survive an exchange and take fortified towns.
+        value += diceValue(d.light, d.heavy) * 1.8 - Number(d.characteristics.includes('fragile')) * .8;
+        const copies = s.units.filter(u => u.kingdom === actor && u.defId === d.id).length;
+        value -= copies * .7;
+        if (d.abilities.includes('ranged'))
+            value += .7;
+        if (d.abilities.includes('flying'))
+            value += .6;
+        if (d.abilities.includes('regenerate'))
+            value += .6;
+        if (d.abilities.includes('mining') && s.units.filter(u => u.kingdom === actor && def(s, u).abilities.includes('mining')).length >= 2)
+            value -= 3;
+    }
+    if (controlNeeded && cannotClaim)
+        value -= difficulty === 'hard' ? 4 : 2;
+    if (siege)
+        value += difficulty === 'hard' && forts.some(g => at && distance(at, g.hex) <= 6) && !hasSiege ? 4 : -5;
+    if (d.abilities.includes('mining') && at?.mine)
+        value += difficulty === 'hard' ? 4 : 2;
+    if (at && s.units.some(u => u.hexId === at.id && isHero(s, u)))
+        value += 3;
+    if (difficulty === 'hard' && count >= 2 && k.gold - d.cost < reserve + 2 && !spec.discardUnspent)
+        value -= 4;
+    return value;
+}
 function hardScore(s, a, actor) {
+    if (s.phase === 'opening')
+        return openingScore(s, a, actor, 'hard');
     const k = s.kingdoms.find(k => k.id === actor);
     switch (a.type) {
+        case 'campaign-abandon': {
+            const at = hBy(s, a.hexId), friendly = s.units.filter(u => allied(s, actor, u.kingdom)), enemy = s.units.filter(u => !allied(s, actor, u.kingdom));
+            const ownDistance = Math.min(...friendly.map(u => distance(at, hBy(s, u.hexId))), 30), enemyDistance = Math.min(...enemy.map(u => distance(at, hBy(s, u.hexId))), 30);
+            return (ownDistance - enemyDistance) * .7 - potential(s, at, actor) * .1;
+        }
+        case 'campaign-displace': {
+            const u = uBy(s, s.campaignRuntime?.pendingBitterDisplacement), to = hBy(s, a.toHex);
+            return u ? potential(s, to, actor) - exposedValue(s, u, to) : 0;
+        }
+        case 'opening-choice': return -1000;
+        case 'opening-switch': return -1;
+        case 'opening-control': return settlementValue(s, hBy(s, a.hexId), actor);
+        case 'opening-exchange-coven': return 2;
+        case 'opening-coven': return 30;
+        case 'opening-hero': return 100;
+        case 'opening-build': {
+            const d = s.unitDefinitions.find(d => d.id === a.defId);
+            const required = s.opening?.remainingFreeUnits.some(u => u.defId === d.id);
+            return (required ? 100 : 8) + (d.light + d.heavy * 1.3) / Math.max(1, d.cost) + d.movement * .3 - Number(d.characteristics.includes('siege')) * 2;
+        }
+        case 'opening-done': return 0;
         case 'collect-income': return 9;
         case 'end-turn': return 0;
         case 'magic-pass':
@@ -366,13 +585,16 @@ function hardScore(s, a, actor) {
                 return -1;
             if (a.treasureId)
                 n = cardReserve(a.treasureId) * 1.6 + (a.secondTreasureId ? cardReserve(a.secondTreasureId) * 1.5 : 0);
+            if (a.treasureId && s.scenario.sourceCampaign?.victory.deadline.type === 'score' && s.scenario.sourceCampaign.victory.deadline.treasureMajorityPoint)
+                n += 3 / (seasonsLeft(s) + 1);
             if (a.payKingdomId)
                 n -= 1;
             return n;
         }
         case 'sell-treasure': {
             const p = s.advanced.pending;
-            return p?.kind === 'winter' ? 9 - cardReserve(a.cardId) + (a.cardId === 'treasure-02' ? -12 : 0) : p?.kind === 'satchel' ? -5 : k.gold < 2 ? 2 - cardReserve(a.cardId) : -20;
+            const point = s.scenario.sourceCampaign?.victory.deadline.type === 'score' && s.scenario.sourceCampaign.victory.deadline.treasureMajorityPoint ? 3 / (seasonsLeft(s) + 1) : 0;
+            return p?.kind === 'winter' ? 9 - cardReserve(a.cardId) + (a.cardId === 'treasure-02' ? -12 : 0) : p?.kind === 'satchel' ? -5 : k.gold < 2 ? 2 - cardReserve(a.cardId) - point : -20;
         }
         case 'remove-curse': return k.gold > 5 ? 3 : -5;
         case 'command-monster': return s.kingdoms.find(k => k.id === a.kingdomId)?.collapsed ? -90 : 8 - s.advanced.monsters.filter(m => m.kingdom === a.kingdomId).length;
@@ -444,7 +666,9 @@ function hardScore(s, a, actor) {
             const shashka = actor === 'orcs' || actor === 'goblins';
             if (a.choice === 'control')
                 return settlementValue(s, h, actor) + (shashka && k.hasEverControlled && !Object.values(s.controls).includes(actor) ? 40 : 0);
-            return objectiveWeight(s, h) ? -25 : shashka && k.gold < 3 ? 6 : -10;
+            if (shashka && !requiresControl(s, h, actor) && sourceGoals(s, actor).some(g => g.hex.id === h.id && g.pursue && g.eligible.includes(actor) && g.metric === 'controlled-or-razed'))
+                return settlementValue(s, h, actor) + (k.gold < 3 ? 4 : -4);
+            return requiresControl(s, h, actor) ? -25 : shashka && k.gold < 3 ? 6 : -10;
         }
         case 'advance': {
             if (!a.accept)
@@ -469,6 +693,9 @@ function hardScore(s, a, actor) {
         }
         case 'suppress': {
             const revolt = k.revolt ?? 0;
+            const score = s.scenario.sourceCampaign?.victory.deadline;
+            if (revolt && score?.type === 'score' && score.metric === 'income' && score.deductRevolts)
+                return 10 + 8 / (seasonsLeft(s) + 1);
             return revolt >= 16 ? 35 : revolt >= 10 ? 12 : revolt > 2 ? 3 : -2;
         }
         case 'mine': return k.gold < 8 ? 8 : 4;
@@ -511,7 +738,7 @@ function hardScore(s, a, actor) {
                 value -= 1;
             if (d.characteristics.includes('feral') || d.characteristics.includes('huge'))
                 value -= s.scenario.objective.type === 'control' ? 1.5 : 0;
-            if (d.abilities.includes('siege') || d.characteristics.includes('siege-engine')) {
+            if (d.abilities.includes('siege') || d.characteristics.some(c => c === 'siege' || c === 'siege-engine')) {
                 const forts = s.hexes.filter(h => h.settlement?.fortified && !isWelcoming(s, h, actor));
                 value += forts.some(h => distance(at, h) <= 3) ? 3 : -3;
             }
@@ -541,7 +768,9 @@ function hardScore(s, a, actor) {
                 return -60;
             const f = combatForecast(s, a.unitId, a.targetHex), u = uBy(s, a.unitId), target = uBy(s, f.defenderUnitId), h = hBy(s, a.targetHex), monster = a.type === 'attack-monster';
             const margin = f.attackerExpected - f.defenderExpected;
-            if (objectiveWeight(s, h) && def(s, u).characteristics.some(c => c === 'feral' || c === 'huge'))
+            if (alliedClaim(s, h, actor))
+                return -60;
+            if (requiresControl(s, h, actor) && def(s, u).characteristics.some(c => c === 'feral' || c === 'huge'))
                 return -60;
             if (monster) {
                 const success = Math.min(0.9, 1 - Math.pow(2 / 3, f.attackerLight) * Math.pow(1 / 2, f.attackerHeavy));
@@ -564,6 +793,8 @@ function hardScore(s, a, actor) {
             let value = progress * 2.2 + tacticalFollowup(s, u, to, cost) + exposedValue(s, u, from) * 0.5 - exposedValue(s, u, to) * 0.8 - 0.2;
             if (objectiveWeight(s, from) && isWelcoming(s, from, actor) && s.units.some(v => !allied(s, actor, v.kingdom) && distance(hBy(s, v.hexId), from) <= 3))
                 value -= objectiveWeight(s, from) * 0.35;
+            if (s.scenario.sourceCampaign && sourceGoals(s, actor).some(g => g.hex.id === from.id && g.pursue && g.achieved && ['occupied', 'presence'].includes(g.metric)) && !s.units.some(v => v.id !== u.id && v.hexId === from.id && army(s, v) && allied(s, v.kingdom, actor)))
+                value -= objectiveWeight(s, from, actor) * .75;
             if (to.mine && actor === 'oathborn' && /miner/i.test(def(s, u).name))
                 value += k.gold < 8 ? 5 : 2;
             if (a.type === 'ship' && actor !== 'fjordland')
@@ -627,16 +858,37 @@ function easyAction(s, actions, fallback) {
         return build[0];
     return actions.find(a => a.type === 'end-turn') ?? actions[0];
 }
+function normalCampaignScore(s, a, actor, fallback) {
+    if (a.type === 'collect-income')
+        return 20;
+    if (a.type === 'end-turn' || a.type === 'pass')
+        return 0;
+    if (a.type === 'move' || a.type === 'ship') {
+        const u = uBy(s, a.unitId), from = hBy(s, u.hexId), to = hBy(s, a.toHex);
+        let value = (potential(s, to, actor) - potential(s, from, actor)) * 1.8 - .1;
+        if (sourceGoals(s, actor).some(g => g.hex.id === from.id && g.pursue && g.achieved && ['occupied', 'presence'].includes(g.metric)))
+            value -= objectiveWeight(s, from, actor) * .5;
+        return value;
+    }
+    if (a.type === 'attack') {
+        const h = hBy(s, a.targetHex), u = uBy(s, a.unitId);
+        if (alliedClaim(s, h, actor) || requiresControl(s, h, actor) && def(s, u).characteristics.some(c => c === 'feral' || c === 'huge'))
+            return -60;
+        const f = combatForecast(s, a.unitId, a.targetHex), margin = f.attackerExpected - f.defenderExpected;
+        return margin >= 0 ? 2 + settlementValue(s, h, actor) * .2 + margin : margin * 3;
+    }
+    return fallback && JSON.stringify(fallback) === JSON.stringify(a) ? 3 : -1;
+}
 /** Chooses among engine-enumerated legal actions. The current rng value, decks and
  * opposing hand contents are deliberately absent from every scoring function.
  * Normal keeps the pre-existing policy. Hard uses expected values, not actual rolls. */
 export function chooseDifficultyAction(s, difficulty, fallbackAction) {
-    decisionCache = { state: s, goals: new Map(), potential: new Map(), exposure: new Map() };
+    decisionCache = { state: s, goals: new Map(), potential: new Map(), exposure: new Map(), sourceGoals: new Map(), hexById: new Map(s.hexes.map(h => [h.id, h])) };
     const all = legalActions(s);
-    if (!all.length || all.some(a => a.type === 'winter-ruling'))
+    if (!all.length || all.some(a => a.type === 'winter-ruling' || a.type === 'table-ruling' || a.type === 'opening-choice'))
         return null; // Unverified printed-rule exceptions require a human table ruling.
     const fallback = fallbackAction ? all.find(a => a.type === fallbackAction.type && Object.entries(fallbackAction).filter(([key]) => key !== 'path').every(([key, value]) => a[key] === value)) ?? null : null;
-    if (difficulty === 'normal')
+    if (difficulty === 'normal' && !s.scenario.sourceCampaign)
         return fallback ?? all[0];
     const actor = advancedActor(s), player = playerFor(s, actor);
     const actions = all.filter(a => !('playerId' in a) || !player || a.playerId === player.id);
@@ -644,7 +896,31 @@ export function chooseDifficultyAction(s, difficulty, fallbackAction) {
         return fallback ?? all[0];
     const ping = visibleMessages(s, actor).filter(message => message.author !== actor && allied(s, actor, message.author) && s.turnSerial - message.turn >= 0 && s.turnSerial - message.turn <= s.kingdoms.length && ['attack', 'defend', 'support', 'need-gold'].includes(message.template ?? '')).at(-1);
     const planning = { ...s, rng: 1, companion: undefined, covens: actor === 'night' || player?.kingdoms.includes('night') ? s.covens : [], advanced: s.advanced ? { ...s.advanced, hands: player ? { [player.id]: s.advanced.hands[player.id] } : {}, owned: player ? { [player.id]: s.advanced.owned[player.id] } : {}, decks: {} } : undefined };
-    decisionCache = { state: planning, goals: new Map(), potential: new Map(), exposure: new Map() };
+    decisionCache = { state: planning, goals: new Map(), potential: new Map(), exposure: new Map(), sourceGoals: new Map(), hexById: new Map(planning.hexes.map(h => [h.id, h])) };
+    if (s.phase === 'opening') {
+        let best = actions[0], score = -Infinity;
+        for (const a of actions) {
+            const v = openingScore(planning, a, actor, difficulty);
+            if (v > score) {
+                score = v;
+                best = a;
+            }
+        }
+        return best;
+    }
+    if (difficulty === 'normal') {
+        if (s.advanced?.pending || s.pendingCombat)
+            return fallback ?? actions[0];
+        let best = actions[0], score = -Infinity;
+        for (const a of actions) {
+            const v = normalCampaignScore(planning, a, actor, fallback);
+            if (v > score) {
+                score = v;
+                best = a;
+            }
+        }
+        return best;
+    }
     if (difficulty === 'easy')
         return easyAction(planning, actions, fallback);
     let best = actions[0], bestScore = -Infinity;

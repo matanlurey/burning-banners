@@ -1,4 +1,6 @@
 import type { Controller, GameConfig, Hex, HexEdge, ScenarioDefinition, ScenarioKingdom, Settlement, Terrain, UnitDefinition } from './engine.js';
+import {validatePublishedCampaignRules} from './campaign-runtime.js';
+import type {PublishedCampaignRules} from './campaign-runtime.js';
 
 export interface ContentValidationIssue { path: string; message: string }
 export class ContentValidationError extends Error {
@@ -84,10 +86,13 @@ export function validateContentPack(input: unknown): GameConfig {
   const top = obj(input, '$', ['version', 'hexes', 'unitDefinitions', 'scenario', 'controllers', 'seed']);
   if (top.version !== 1) fail('$.version', 'Supported content version is 1');
   const hexes: Hex[] = arr(top.hexes, '$.hexes', 5000, 1).map((v, i) => {
-    const p = `$.hexes[${i}]`, o = obj(v, p, ['id', 'q', 'r', 'terrain', 'coastal', 'settlement', 'mine', 'entry', 'edges', 'prohibited']);
+    const p = `$.hexes[${i}]`, o = obj(v, p, ['id', 'q', 'r', 'terrain', 'coastal', 'majorRiver', 'lairPool', 'settlement', 'mine', 'entry', 'edges', 'prohibited','prohibitedFor']);
     const h: Hex = { id: id(o.id, `${p}.id`), q: num(o.q, `${p}.q`, -10000, 10000), r: num(o.r, `${p}.r`, -10000, 10000), terrain: one(o.terrain, `${p}.terrain`, TERRAIN) as Terrain };
     if (o.mine !== undefined) h.mine = bool(o.mine, `${p}.mine`);
     if (o.coastal !== undefined) h.coastal = bool(o.coastal, `${p}.coastal`);
+    if (o.majorRiver !== undefined) h.majorRiver = bool(o.majorRiver, `${p}.majorRiver`);
+    if(o.lairPool!==undefined)h.lairPool=one(o.lairPool,`${p}.lairPool`,['land','sea'] as const);
+    if(o.prohibitedFor!==undefined)h.prohibitedFor=ids(o.prohibitedFor,`${p}.prohibitedFor`,6);
     if (o.prohibited !== undefined) h.prohibited = bool(o.prohibited, `${p}.prohibited`);
     if (o.entry !== undefined) h.entry = id(o.entry, `${p}.entry`);
     if (o.settlement !== undefined) {
@@ -104,8 +109,8 @@ export function validateContentPack(input: unknown): GameConfig {
       h.edges = {};
       for (const [neighbor, edge] of Object.entries(e)) {
         id(neighbor, `${p}.edges key`);
-        const x = obj(edge, `${p}.edges.${neighbor}`, ['road', 'river', 'sea', 'coastal']); const out: HexEdge = {};
-        for (const flag of ['road', 'sea', 'coastal'] as const) if (x[flag] !== undefined) out[flag] = bool(x[flag], `${p}.edges.${neighbor}.${flag}`);
+        const x = obj(edge, `${p}.edges.${neighbor}`, ['road', 'river', 'sea', 'coastal', 'waterway']); const out: HexEdge = {};
+        for (const flag of ['road', 'sea', 'coastal', 'waterway'] as const) if (x[flag] !== undefined) out[flag] = bool(x[flag], `${p}.edges.${neighbor}.${flag}`);
         if (x.river !== undefined) out.river = num(x.river, `${p}.edges.${neighbor}.river`, 1, 2) as 1 | 2;
         if (out.sea && out.coastal) fail(`${p}.edges.${neighbor}`, 'Edge cannot be both Sea and Coastal');
         h.edges[neighbor] = out;
@@ -128,7 +133,7 @@ export function validateContentPack(input: unknown): GameConfig {
     }
     return d;
   });
-  const s = obj(top.scenario, '$.scenario', ['id', 'name', 'official', 'source', 'startYear', 'startSeason', 'endYear', 'endSeason', 'turnOrder', 'kingdoms', 'initialUnits', 'initialControls', 'initialRazed', 'initialCovens', 'objective', 'notes', 'empireRevoltModifier']);
+  const s = obj(top.scenario, '$.scenario', ['id', 'name', 'official', 'source', 'startYear', 'startSeason', 'endYear', 'endSeason', 'turnOrder', 'kingdoms', 'initialUnits', 'initialControls', 'initialRazed', 'initialCovens', 'objective', 'notes', 'empireRevoltModifier','sourceCampaign']);
   const kingdoms: ScenarioKingdom[] = arr(s.kingdoms, '$.scenario.kingdoms', 6, 2).map((v, i) => {
     const p = `$.scenario.kingdoms[${i}]`, o = obj(v, p, ['id', 'name', 'side', 'gold', 'income', 'revolt', 'controlLimit', 'cityCollapseThreshold']);
     const k: ScenarioKingdom = { id: id(o.id, `${p}.id`), name: str(o.name, `${p}.name`), side: one(o.side, `${p}.side`, ['invader', 'resistance']), gold: num(o.gold, `${p}.gold`, 0, 10000), income: num(o.income, `${p}.income`, 0, 1000) };
@@ -147,6 +152,7 @@ export function validateContentPack(input: unknown): GameConfig {
   if (s.notes !== undefined) scenario.notes = arr(s.notes, '$.scenario.notes', 100).map((v, i) => str(v, `$.scenario.notes[${i}]`, 2000));
   if (s.empireRevoltModifier !== undefined) scenario.empireRevoltModifier = num(s.empireRevoltModifier, '$.scenario.empireRevoltModifier', -6, 6);
   const hexMap = new Map(hexes.map(h => [h.id, h])), defMap = new Map(unitDefinitions.map(d => [d.id, d])), kingdomMap = new Map(kingdoms.map(k => [k.id, k]));
+  if(s.sourceCampaign!==undefined){for(const message of validatePublishedCampaignRules(s.sourceCampaign,{hexIds:new Set(hexMap.keys()),defIds:new Set(defMap.keys()),kingdomIds:new Set(kingdomMap.keys())}))fail('$.scenario.sourceCampaign',message);scenario.sourceCampaign=structuredClone(s.sourceCampaign) as PublishedCampaignRules;}
   if (hexMap.size !== hexes.length) fail('$.hexes', 'Duplicate hex ID');
   if (new Set(hexes.map(h => `${h.q},${h.r}`)).size !== hexes.length) fail('$.hexes', 'Duplicate axial coordinate');
   if (defMap.size !== unitDefinitions.length) fail('$.unitDefinitions', 'Duplicate unit definition ID');
@@ -160,7 +166,7 @@ export function validateContentPack(input: unknown): GameConfig {
     if (!DIRECTIONS.has(`${n.q - h.q},${n.r - h.r}`)) fail(p, 'Edge must join adjacent axial coordinates');
     const reverse = n.edges?.[h.id];
     if (!reverse) fail(p, 'Neighbor must declare reciprocal edge');
-    else if ((!!e.road !== !!reverse.road) || ((e.river ?? 0) !== (reverse.river ?? 0)) || (!!e.sea !== !!reverse.sea) || (!!e.coastal !== !!reverse.coastal)) fail(p, 'Reciprocal edge properties disagree');
+    else if ((!!e.road !== !!reverse.road) || ((e.river ?? 0) !== (reverse.river ?? 0)) || (!!e.sea !== !!reverse.sea) || (!!e.coastal !== !!reverse.coastal) || (!!e.waterway !== !!reverse.waterway)) fail(p, 'Reciprocal edge properties disagree');
   }
   const occupied = new Set<string>(), supply = new Map<string, number>();
   scenario.initialUnits.forEach((u, i) => {
@@ -171,12 +177,12 @@ export function validateContentPack(input: unknown): GameConfig {
     else if (h.prohibited || h.terrain === 'sea' || h.terrain === 'lair' || (d && h.entry && h.entry !== d.kingdom)) fail(`${p}.hexId`, 'Illegal opening hex for unit');
     if (occupied.has(u.hexId)) fail(`${p}.hexId`, 'Basic game allows only one Army per hex'); occupied.add(u.hexId);
   });
-  for (const [h, k] of Object.entries(scenario.initialControls ?? {})) { if (!hexMap.get(h)?.settlement) fail(`$.scenario.initialControls.${h}`, 'Control marker must reference a Settlement'); if (!kingdomMap.has(k)) fail(`$.scenario.initialControls.${h}`, 'Unknown controlling kingdom'); }
+  for (const [h, k] of Object.entries(scenario.initialControls ?? {})) { if (!hexMap.get(h)?.settlement) fail(`$.scenario.initialControls.${h}`, 'Control marker must reference a Settlement'); if (!kingdomMap.has(k)&&!(scenario.sourceCampaign&&unitDefinitions.some(d=>d.kingdom===k))) fail(`$.scenario.initialControls.${h}`, 'Unknown controlling kingdom'); }
   for (const h of scenario.initialRazed ?? []) { if (!hexMap.get(h)?.settlement) fail('$.scenario.initialRazed', `Unknown Settlement ${h}`); if (scenario.initialControls?.[h]) fail('$.scenario.initialRazed', `Settlement ${h} cannot have Razed and Control markers together`); }
   for (const h of scenario.initialCovens ?? []) if (!hexMap.get(h)?.settlement) fail('$.scenario.initialCovens', `Unknown Settlement ${h}`);
   if (scenario.objective.kingdom && !kingdomMap.has(scenario.objective.kingdom)) fail('$.scenario.objective.kingdom', 'Unknown objective kingdom');
   for (const h of scenario.objective.hexIds) { if (!hexMap.has(h)) fail('$.scenario.objective.hexIds', `Unknown hex ${h}`); if (scenario.objective.type === 'control' && !hexMap.get(h)?.settlement) fail('$.scenario.objective.hexIds', `Control target ${h} must be a Settlement`); }
-  if (scenario.objective.type === 'control' && (scenario.objective.count < 1 || scenario.objective.count > scenario.objective.hexIds.length)) fail('$.scenario.objective.count', 'Control count must be 1 through number of targets');
+  if (!scenario.sourceCampaign&&scenario.objective.type === 'control' && (scenario.objective.count < 1 || scenario.objective.count > scenario.objective.hexIds.length)) fail('$.scenario.objective.count', 'Control count must be 1 through number of targets');
   if (scenario.objective.type === 'survival') {
     if (scenario.objective.hexIds.length || scenario.objective.count !== 0) fail('$.scenario.objective', 'Survival uses no hex targets and count zero');
     if (scenario.objective.kingdom && kingdomMap.get(scenario.objective.kingdom)?.side !== 'invader') fail('$.scenario.objective.kingdom', 'Survival target must be an Invader kingdom');

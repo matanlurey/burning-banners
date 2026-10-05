@@ -1,0 +1,57 @@
+{
+  "checkedAt": "2026-10-05T16:50:50.416258+00:00",
+  "inputs": {
+    "content/published-campaigns.json": "2d930d4589752d1bd3d15fca7f45b573965768c5bf919f4ed8e75290a8b5069a",
+    "content/maps-reviewed.json": "471e3312f66d9180ab3f351b571a20df9222c70be8fc7edd34703d1f70a61a1c",
+    "src/published-campaigns.ts": "5a4d07b8d367765ce97ee8a4804ad0e59412e020f7ff735eb779bd09e293b3d9",
+    "src/engine.ts": "3c4a2a34b4e558791cf630829e647adad817839363d088668d573f9a78ac6e79",
+    "src/campaign-runtime.ts": "5aa984fdb33224bc657d6d26a7b7e68ff85142c04518b2d95ff0a9063e4484f4",
+    "src/advanced.ts": "5c4cff786d2aa8285fd17276ce7cf00f040a0b7cc470bf5f3d229ebfc109b3f3",
+    "tests/published-campaigns.test.mjs": "3f4f1c8c26f47d3b3357d133fac870c3a6ff5d749b84def638b70903a2e9dbdd"
+  },
+  "source": {
+    "namedStarts": 28,
+    "standaloneScrolls": 17,
+    "chronicleStarts": 10,
+    "introductoryStarts": 1,
+    "publisherPages": 60
+  },
+  "additionalDirectObjectiveAssertions": {
+    "passed": 24,
+    "scope": [
+      "Chronicle2 needs10 Resistance-loyal settlements including1 City",
+      "Night collapse wins Resistance in all10 Chronicle chapters",
+      "No extra deadline objective in Chronicle3,4,7,8",
+      "Collapse targets in standalone9,10,11,12",
+      "Both collapse sides in standalone1",
+      "Both hostile-City occupation sides in standalone17"
+    ]
+  },
+  "nativeTestRun": {
+    "command": "node --test tests/published-campaigns.test.mjs",
+    "tests": 99,
+    "passed": 99,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "durationMs": 251479.485462,
+    "sourceSetupCases": 56,
+    "otherCases": 43
+  },
+  "timelineValidation": {
+    "mode": "Basic Bitter End",
+    "seasons": 35,
+    "method": "legal turn and calendar actions with starting gold raised to isolate calendar progression",
+    "scope": "Opening Army identities survive chapter transitions; Treaty, Fjord return, Winter 598 defender, and first Spring after 598 exercised",
+    "balanceEvidence": false
+  },
+  "sourceQualifications": [
+    "The complete public Spanish publisher review copy is pre-production and may contain errors.",
+    "The 28 named starts consist of the introduction, 17 standalone Scrolls, and 10 Chronicles; a publisher claim of 29 campaigns does not identify a distinct 29th named entry.",
+    "Unresolved Chronicle duplicate controls and Oronar/Zarinar map references require explicit player rulings; automated tests select a documented option for reproducibility.",
+    "Scenario 15 review-copy map wording conflicts with its western-entry description; only source-verified entries are enabled automatically.",
+    "Source map tracing and functional integration do not certify every visual terrain edge or every Advanced card effect.",
+    "This run tests local pass-and-play mechanics; hosted async multiplayer is deferred."
+  ]
+}

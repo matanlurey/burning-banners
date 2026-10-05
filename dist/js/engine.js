@@ -2,6 +2,7 @@ import * as Advanced from './advanced.js';
 import { validateContentPack } from './content-validation.js';
 import { validateTabletop } from './tabletop.js';
 import { validateCompanionShape } from './async-play.js';
+import { actingKingdom, canCollapse, campaignRules, campaignVictory, campaignRevoltModifier, fixedUnit, repairCost, validatePublishedCampaignRules } from './campaign-runtime.js';
 const DIRECTIONS = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
 const BOARD_CACHE = new WeakMap();
 function boardIndex(s) { let index = BOARD_CACHE.get(s); if (!index) {
@@ -19,13 +20,14 @@ const rawDef = (s, u) => { const d = boardIndex(s).definitions.get(u.defId); if 
 const defOf = (s, u) => Advanced.effectiveDefinition(s, u, rawDef(s, u));
 const kingdomOf = (s, id) => { const k = s.kingdoms.find(k => k.id === id); if (!k)
     throw new Error(`Unknown Kingdom ${id}`); return k; };
-const controlCapacity = (k) => k.controlLimit ?? (k.id === 'night' ? 5 : 100);
+const controlCapacity = (k) => k.controlLimit ?? (isShashka(k.id) ? 12 : 10);
 const ability = (d, name) => d.abilities.some(a => a.toLowerCase() === name.toLowerCase());
 const characteristic = (d, name) => d.characteristics.some(a => a.toLowerCase() === name.toLowerCase());
 const siege = (d) => ability(d, 'siege') || characteristic(d, 'siege') || characteristic(d, 'siege-engine') || /siege engine/i.test(d.name);
 const ranger = (d) => d.kingdom === 'fjordland' && /ranger/i.test(d.name);
 const wilderness = (h) => h.settlement?.wilderness ?? (h.terrain === 'forest' || h.terrain === 'mountain' || h.terrain === 'swamp' ? h.terrain : null);
 const aliveSettlement = (s, h) => !!h.settlement && !s.razed.includes(h.id);
+const anchoredDefender = (s, u) => campaignRules(s).some(r => (r.type === 'fixed-defender' || r.type === 'fragile-defender') && r.defId === u.defId && r.hexId === u.hexId);
 export const settlementController = (s, h) => aliveSettlement(s, h) ? s.controls[h.id] ?? h.settlement?.loyalty ?? null : null;
 export function isWelcoming(s, h, kingdom, underlying = false) {
     if (!h.settlement || (!underlying && !aliveSettlement(s, h)))
@@ -33,6 +35,11 @@ export function isWelcoming(s, h, kingdom, underlying = false) {
     const controller = underlying ? h.settlement.loyalty : settlementController(s, h);
     if (controller && s.kingdoms.some(k => k.id === controller))
         return sameSide(s, controller, kingdom);
+    const allies = controller ? s.scenario.sourceCampaign?.nonplayerAllies?.[controller] : undefined;
+    if (allies)
+        return allies.some(k => sameSide(s, k, kingdom));
+    if (!underlying && s.controls[h.id])
+        return false;
     return (h.settlement.neutralFriendlyTo ?? []).some(k => sameSide(s, k, kingdom));
 }
 export function adjacentHexes(s, hexId) {
@@ -51,7 +58,7 @@ function canCross(s, u, a, b, ship = false) {
     return true;
 }
 function canPass(s, u, h, ship = false) {
-    if (h.prohibited || s.advanced?.monsters.some(m => m.hexId === h.id))
+    if (h.prohibited || h.prohibitedFor?.includes(u.kingdom) || s.advanced?.monsters.some(m => m.hexId === h.id))
         return false;
     const deep = s.advanced?.effects.some(e => Advanced.stackIds(s, u.id).includes(e.target) && e.extra?.deepPaths);
     if (h.terrain === 'lair' && !deep)
@@ -71,6 +78,8 @@ function canPass(s, u, h, ship = false) {
     return true;
 }
 function canEnd(s, u, h) {
+    if (h.id !== u.hexId && campaignRules(s).some(r => (r.type === 'fixed-defender' || r.type === 'fragile-defender') && r.defId === u.defId && r.hexId === u.hexId))
+        return false;
     if (!canPass(s, u, h) || h.terrain === 'sea' || h.terrain === 'lair')
         return false;
     const group = Advanced.stackIds(s, u.id), movingArmy = group.some(id => !Advanced.isHero(s, unitById(s, id))), others = s.units.filter(v => !group.includes(v.id) && v.hexId === h.id && !(s.advanced && movingArmy && Advanced.isHero(s, v) && !sameSide(s, v.kingdom, u.kingdom)));
@@ -78,7 +87,7 @@ function canEnd(s, u, h) {
         if (others.some(v => v.kingdom !== u.kingdom))
             return false;
         const moving = group.map(id => unitById(s, id));
-        if (others.some(v => moving.some(m => Advanced.isHero(s, m) === Advanced.isHero(s, v))))
+        if (others.some(v => moving.some(m => Advanced.isHero(s, m) === Advanced.isHero(s, v) || !!s.scenario.sourceCampaign && rawDef(s, m).kingdom !== rawDef(s, v).kingdom && !s.advanced?.enslaved?.[m.id] && !s.advanced?.enslaved?.[v.id])))
             return false;
         if (others.length + moving.length > 2)
             return false;
@@ -93,6 +102,9 @@ function canEnd(s, u, h) {
     if (aliveSettlement(s, h) && !isWelcoming(s, h, u.kingdom))
         return false;
     if (group.some(id => characteristic(defOf(s, unitById(s, id)), 'huge')) && isWelcoming(s, h, u.kingdom))
+        return false;
+    const joining = [...group.map(id => unitById(s, id)), ...others];
+    if (isWelcoming(s, h, u.kingdom) && joining.some(v => v.activated) && joining.some(v => characteristic(defOf(s, v), 'huge')))
         return false;
     return true;
 }
@@ -119,13 +131,18 @@ export function isBesieged(s, hexId) {
     return besiegers.length >= (horne ? 3 : h.settlement?.port ? 2 : 1);
 }
 function unitMayAct(s, u) {
+    if (fixedUnit(s, u.defId, u.hexId) || s.campaignRuntime?.withdrawn.includes(u.kingdom))
+        return false;
     if (s.tabletop?.enslaved?.some(x => x.armyId === u.id))
         return false;
     return s.phase === 'activation' && !s.pendingCombat && u.kingdom === s.currentKingdom && !u.activated && !Advanced.stackIds(s, u.id).some(id => s.units.find(v => v.id === id)?.activated) && !s.advanced?.pending && (!s.activeUnitId || Advanced.stackIds(s, s.activeUnitId).includes(u.id));
 }
+function stackMustLeave(s, u) { return Advanced.stackIds(s, u.id).some(id => { const member = unitById(s, id); return characteristic(defOf(s, member), 'huge') && isWelcoming(s, hexById(s, member.hexId), member.kingdom); }); }
 export function moveOptions(s, unitId) {
     const u = unitById(s, unitId);
     if (!unitMayAct(s, u))
+        return [];
+    if (campaignRules(s).some(r => r.type === 'fragile-defender' && r.defId === u.defId && r.hexId === u.hexId))
         return [];
     const d = defOf(s, u), group = Advanced.stackIds(s, u.id), active = !!s.activeUnitId && group.includes(s.activeUnitId);
     const budgets = group.map(id => active && s.advanced ? s.advanced.movement[id] ?? defOf(s, unitById(s, id)).movement : active ? s.remainingMP : defOf(s, unitById(s, id)).movement);
@@ -170,11 +187,13 @@ export function shipOptions(s, unitId) {
     const u = unitById(s, unitId);
     if (!unitMayAct(s, u) || s.advanced?.shipsThisTurn?.some(id => Advanced.stackIds(s, u.id).includes(id)) || (s.activeUnitId !== null && Advanced.stackIds(s, u.id).includes(s.activeUnitId) && s.shipUsed))
         return [];
+    if (campaignRules(s).some(r => r.type === 'fragile-defender' && r.defId === u.defId && r.hexId === u.hexId))
+        return [];
     const d = defOf(s, u), wave = s.advanced?.effects.some(e => Advanced.stackIds(s, u.id).includes(e.target) && e.extra?.waveStrider);
     if (!wave && Advanced.stackIds(s, u.id).some(id => { const d = defOf(s, unitById(s, id)); return characteristic(d, 'feral') || characteristic(d, 'huge'); }))
         return [];
     const start = hexById(s, u.hexId), port = aliveSettlement(s, start) && start.settlement?.port && isWelcoming(s, start, u.kingdom);
-    const budget = (port || start.entry === u.kingdom ? 6 : 3) + (u.kingdom === 'fjordland' ? 2 : 0);
+    const budget = (port || start.entry === u.kingdom ? 6 : 3) + (rawDef(s, u).kingdom === 'fjordland' ? 2 : 0);
     const records = new Map(), seen = new Set();
     const queue = [{ id: u.hexId, path: [] }];
     while (queue.length) {
@@ -186,9 +205,16 @@ export function shipOptions(s, unitId) {
             continue;
         for (const to of adjacentHexes(s, node.id)) {
             const e = edge(s, node.id, to.id), from = hexById(s, node.id);
-            const channel = to.terrain === 'sea' || to.terrain === 'coastal' || to.coastal || to.terrain === 'major-river';
-            const riverCross = !!e.river;
-            if (!e.sea && !e.coastal && !riverCross && !(from.terrain === 'major-river' && to.terrain === 'major-river'))
+            const channel = to.terrain === 'sea' || to.terrain === 'coastal' || to.coastal || to.majorRiver || to.terrain === 'major-river';
+            // §8.1.2: crossing a River or Major River side ends this Ship Move,
+            // even when the landing hex is Coastal or a Major River. A Sea side
+            // is sailed across rather than used as a river-crossing landing.
+            const riverCross = !!e.river && !e.sea && !e.waterway;
+            // §8.1.5: source-traced waterways follow the river's course while
+            // preserving the land terrain in the hex. Legacy Major River terrain
+            // remains supported for existing saved games and calibrated packs.
+            const riverCourse = !!e.waterway || (from.terrain === 'major-river' && to.terrain === 'major-river');
+            if (!e.sea && !e.coastal && !riverCross && !riverCourse)
                 continue;
             if (!channel && !riverCross)
                 continue;
@@ -197,7 +223,7 @@ export function shipOptions(s, unitId) {
             const path = [...node.path, to.id];
             if (to.id !== u.hexId && to.terrain !== 'sea' && canEnd(s, u, to) && (!records.has(to.id) || records.get(to.id).cost > path.length))
                 records.set(to.id, { hexId: to.id, cost: path.length, path, roadOnly: false });
-            if (channel)
+            if (channel && !riverCross)
                 queue.push({ id: to.id, path });
         }
     }
@@ -213,9 +239,15 @@ const diceExpected = (light, heavy, penalty) => light * (Math.max(0, 7 - (5 + pe
 function canAttack(s, u, target, granted = false) {
     if (Advanced.isHero(s, u))
         return false;
-    if (!granted && !unitMayAct(s, u) || !adjacent(s, u.hexId, target.id) || target.prohibited || target.terrain === 'sea' || target.terrain === 'lair' || !canCross(s, u, u.hexId, target.id))
+    if (stackMustLeave(s, u))
+        return false;
+    if (!granted && !unitMayAct(s, u) || !adjacent(s, u.hexId, target.id) || target.prohibited || target.prohibitedFor?.includes(u.kingdom) || target.terrain === 'sea' || target.terrain === 'lair' || !canCross(s, u, u.hexId, target.id))
         return false;
     const enemy = s.units.find(v => v.hexId === target.id && !sameSide(s, v.kingdom, u.kingdom) && !Advanced.isHero(s, v));
+    // A hostile Settlement requires advancing after victory; an anchored source
+    // defender cannot choose an attack that would force it to leave its station.
+    if (anchoredDefender(s, u) && aliveSettlement(s, target) && !isWelcoming(s, target, u.kingdom))
+        return false;
     if (siege(defOf(s, u)) && !aliveSettlement(s, target))
         return false;
     return !!enemy || (aliveSettlement(s, target) && !isWelcoming(s, target, u.kingdom));
@@ -282,9 +314,13 @@ function recoverable(s, u) {
     return u.kingdom === 'night' && characteristic(defOf(s, u), 'feral') && !!wilderness(h) && adjacentHexes(s, h.id).some(t => (aliveSettlement(s, t) && settlementController(s, t) === 'night') || s.covens.includes(t.id));
 }
 function buildLocations(s, d) {
+    if (s.campaignRuntime?.withdrawn.includes(d.kingdom) || campaignRules(s).some(r => r.type === 'allied-contingent' && r.kingdom === d.kingdom && r.noRebuild && !s.kingdoms.some(k => k.id === r.kingdom)) || campaignRules(s).some(r => r.type === 'fragile-defender' && r.defId === d.id) || s.scenario.sourceCampaign?.chronicle?.bitterDefender?.defId === d.id)
+        return [];
     const friendly = s.hexes.filter(h => aliveSettlement(s, h) && settlementController(s, h) === d.kingdom && (!isBesieged(s, h.id) || s.advanced?.effects.some(e => e.extra?.secretWays && d.kingdom === 'oathborn') || d.id === 'hero-oathborn-14'));
     return s.hexes.filter(h => {
-        if (h.prohibited || h.terrain === 'lair' || !Advanced.advancedCanBuild(s, d, h) || (h.terrain === 'sea' && h.entry !== d.kingdom))
+        if (h.prohibited || h.prohibitedFor?.includes(d.kingdom) || h.terrain === 'lair' || !Advanced.advancedCanBuild(s, d, h) || (h.terrain === 'sea' && h.entry !== d.kingdom))
+            return false;
+        if (d.kind === 'hero' && s.phase !== 'opening' && isWelcoming(s, h, d.kingdom) && buildWouldFinish(s, d, h) && s.units.some(u => u.hexId === h.id && characteristic(defOf(s, u), 'huge')))
             return false;
         if (h.entry && h.entry !== d.kingdom)
             return false;
@@ -299,9 +335,443 @@ function buildLocations(s, d) {
         return d.kingdom === 'night' && characteristic(d, 'feral') && !!wilderness(h) && adjacentHexes(s, h.id).some(t => (aliveSettlement(s, t) && settlementController(s, t) === 'night') || s.covens.includes(t.id));
     });
 }
+function buildReady(s, d, h) { return h.entry === d.kingdom || (aliveSettlement(s, h) && settlementController(s, h) === d.kingdom) || campaignRules(s).some(r => r.type === 'fragile-defender' && r.readyAdjacentBuilds && r.kingdom === d.kingdom && adjacent(s, h.id, r.hexId) && s.units.some(u => u.defId === r.defId && u.hexId === r.hexId)); }
+function buildWouldFinish(s, d, h) { return !buildReady(s, d, h) || Advanced.builtFinishedByCoven(s, h.id) || !!s.units.find(u => u.hexId === h.id && Advanced.isHero(s, u))?.activated; }
+function openingDefinition(s) { return s.scenario.sourceCampaign.opening.find(k => k.kingdom === s.currentKingdom); }
+function openingPlacement(s, d, explicit) {
+    const k = s.currentKingdom, o = openingDefinition(s), acting = { ...d, kingdom: k };
+    const normal = buildLocations(s, acting), allowed = new Set(normal.map(h => h.id));
+    if (d.kind !== 'hero' && d.kingdom === 'oathborn' && /miner/i.test(d.name))
+        for (const id of o.minerHexIds ?? [])
+            allowed.add(id);
+    if (explicit)
+        for (const id of explicit)
+            allowed.add(id);
+    return s.hexes.filter(h => allowed.has(h.id) && (!explicit || explicit.includes(h.id)) && (!o.deploymentHexIds || o.deploymentHexIds.includes(h.id)) && !h.prohibited && !h.prohibitedFor?.includes(k) && h.terrain !== 'lair' && (h.terrain !== 'sea' || h.entry === k) && (!h.entry || h.entry === k)).filter(h => {
+        const occupants = s.units.filter(u => u.hexId === h.id);
+        if (h.terrain !== 'sea' && !canPass(s, { id: 'opening', defId: d.id, kingdom: k, hexId: h.id, weakened: false, activated: false }, h))
+            return false;
+        if (!occupants.length)
+            return true;
+        return !!s.advanced && occupants.length === 1 && occupants[0].kingdom === k && (d.kind === 'hero') !== Advanced.isHero(s, occupants[0]) && (!s.scenario.sourceCampaign || d.kingdom === rawDef(s, occupants[0]).kingdom);
+    });
+}
+function prepareOpeningKingdom(s) {
+    const o = s.opening, rules = s.scenario.sourceCampaign, id = o.order[o.index];
+    s.currentKingdom = id;
+    s.turnIndex = s.scenario.turnOrder.indexOf(id);
+    const saved = o.deployments[id];
+    if (saved) {
+        Object.assign(o, structuredClone(saved));
+        return;
+    }
+    const spec = rules.opening.find(v => v.kingdom === id);
+    o.remainingFreeUnits = (spec.freeUnits ?? []).flatMap(v => Array.from({ length: v.count }, () => ({ defId: v.defId, ...(v.weakened === undefined ? {} : { weakened: v.weakened }), ...(v.hexIds ? { hexIds: [...v.hexIds] } : {}), ...(v.optional === undefined ? {} : { optional: v.optional }) })));
+    o.remainingHeroes = [];
+    o.heroLocations = {};
+    o.remainingCovens = spec.covens ?? 0;
+    o.spentByHex = {};
+    if (s.advanced) {
+        const excluded = new Set(spec.unavailableHeroIds ?? []), selected = new Set(Object.entries(o.deployments).filter(([k]) => k !== id).flatMap(([, v]) => v.remainingHeroes));
+        const add = (hero, hexIds) => { if (!hero || selected.has(hero))
+            return; selected.add(hero); o.remainingHeroes.push(hero); if (hexIds)
+            o.heroLocations[hero] = [...hexIds]; };
+        for (const hero of spec.heroIds ?? [])
+            add(hero);
+        for (const hero of (s.advanced.heroPools[id] ?? []).filter(h => !excluded.has(h) && !selected.has(h)).slice(0, spec.heroes ?? 0))
+            add(hero);
+        for (const extra of spec.extraHeroes ?? [])
+            for (const hero of (s.advanced.heroPools[extra.kingdom] ?? []).filter(h => !selected.has(h)).slice(0, extra.count))
+                add(hero, extra.hexIds);
+    }
+    log(s, `${kingdomOf(s, id).name} opening deployment: ${kingdomOf(s, id).gold} gold; place listed free units${s.advanced ? ', Heroes and Covens' : ''}, then finish setup.`);
+}
+function initializeOpening(s) {
+    const rules = s.scenario.sourceCampaign;
+    s.campaignRuntime = { withdrawn: [] };
+    s.phase = 'opening';
+    Object.assign(s.controls, rules.nonplayerControls ?? {});
+    s.opening = { order: rules.deploymentOrder.flat(), index: 0, remainingHeroes: [], remainingCovens: 0, remainingFreeUnits: [], heroLocations: {}, preControlsIndex: 0, preControlsPlaced: 0, preChoicesIndex: 0, choices: {}, spentByHex: {}, exchanged: [], groupIndex: 0, done: [], deployments: {} };
+    for (const spec of rules.opening)
+        kingdomOf(s, spec.kingdom).gold = spec.gold;
+    for (const rule of campaignRules(s))
+        if (rule.type === 'fixed-defender' || rule.type === 'fragile-defender') {
+            const d = s.unitDefinitions.find(d => d.id === rule.defId);
+            if (!d)
+                throw new Error(`Unknown campaign defender ${rule.defId}`);
+            const kingdom = rule.type === 'fragile-defender' ? rule.kingdom : rule.actingKingdom ?? actingKingdom(s, d.kingdom);
+            const owner = s.kingdoms.some(k => k.id === kingdom) ? kingdom : s.kingdoms.find(k => k.side === 'resistance').id;
+            if (!s.units.some(u => u.defId === d.id && u.hexId === rule.hexId))
+                s.units.push({ id: `unit-${s.serial++}`, defId: d.id, kingdom: owner, hexId: rule.hexId, weakened: false, activated: true });
+            if (rule.type === 'fragile-defender')
+                reserveOsterlich(s);
+        }
+    s.campaignRuntime.abandonedLairs = [...rules.abandonedLairs ?? []];
+    if (rules.chronicle?.bitterDefender)
+        reserveOsterlich(s);
+    prepareOpeningKingdom(s);
+    const first = rules.preControls?.[0];
+    if (!(rules.preChoices?.length) && first) {
+        s.currentKingdom = first.kingdom;
+        s.turnIndex = s.scenario.turnOrder.indexOf(first.kingdom);
+    }
+}
+function openingActions(s) {
+    const o = s.opening, rules = s.scenario.sourceCampaign, choice = rules.preChoices?.[o.preChoicesIndex];
+    if (choice)
+        return choice.options.map(v => ({ type: 'opening-choice', choiceId: choice.id, value: v.value }));
+    const pre = rules.preControls?.[o.preControlsIndex];
+    if (pre)
+        return pre.hexIds.filter(id => !s.razed.includes(id) && s.controls[id] !== pre.kingdom && (!pre.excludeOtherControls || !s.controls[id]) && hexById(s, id).settlement).map(hexId => ({ type: 'opening-control', hexId }));
+    const spec = openingDefinition(s), k = kingdomOf(s, s.currentKingdom), actions = [];
+    for (const kingdom of rules.deploymentOrder[o.groupIndex])
+        if (kingdom !== k.id && !o.done.includes(kingdom))
+            actions.push({ type: 'opening-switch', kingdom });
+    for (const free of o.remainingFreeUnits) {
+        const d = s.unitDefinitions.find(d => d.id === free.defId);
+        if (s.units.filter(u => u.defId === d.id).length >= d.count)
+            continue;
+        for (const h of openingPlacement(s, d, free.hexIds))
+            if (!actions.some(a => a.type === 'opening-build' && a.defId === d.id && a.hexId === h.id))
+                actions.push({ type: 'opening-build', defId: d.id, hexId: h.id });
+    }
+    for (const d of s.unitDefinitions)
+        if (d.kind !== 'hero' && d.kingdom === k.id && !campaignRules(s).some(r => r.type === 'fragile-defender' && r.defId === d.id) && s.scenario.sourceCampaign?.chronicle?.bitterDefender?.defId !== d.id && d.cost <= k.gold && s.units.filter(u => u.defId === d.id).length < d.count) {
+            for (const h of openingPlacement(s, d))
+                if ((spec.spendLimits ?? []).every(limit => !limit.hexIds.includes(h.id) || limit.hexIds.reduce((n, id) => n + (o.spentByHex[id] ?? 0), 0) + d.cost <= limit.max) && !actions.some(a => a.type === 'opening-build' && a.defId === d.id && a.hexId === h.id))
+                    actions.push({ type: 'opening-build', defId: d.id, hexId: h.id });
+        }
+    for (const defId of o.remainingHeroes) {
+        const d = s.unitDefinitions.find(d => d.id === defId);
+        for (const h of openingPlacement(s, d, o.heroLocations[defId]))
+            actions.push({ type: 'opening-hero', defId, hexId: h.id });
+    }
+    if (o.remainingCovens > 0 && Object.values(s.controls).filter(id => id === 'night').length + s.covens.length < controlCapacity(k))
+        for (const h of s.hexes)
+            if (aliveSettlement(s, h) && !h.prohibited && !h.prohibitedFor?.includes(k.id) && !isWelcoming(s, h, k.id) && !s.covens.includes(h.id))
+                actions.push({ type: 'opening-coven', hexId: h.id });
+    if (s.advanced && spec.exchangeControlForCoven && !o.exchanged.includes(k.id))
+        for (const [hexId, owner] of Object.entries(s.controls))
+            if (owner === k.id)
+                actions.push({ type: 'opening-exchange-coven', hexId });
+    if (k.id === 'empire' && (k.revolt ?? 0) > 0 && k.gold > 0)
+        actions.push({ type: 'suppress', amount: 1 });
+    if (!o.remainingHeroes.length && !o.remainingCovens && o.remainingFreeUnits.every(v => v.optional))
+        actions.push({ type: 'opening-done' });
+    return actions;
+}
+function applyOpening(s, action) {
+    const o = s.opening, rules = s.scenario.sourceCampaign, k = kingdomOf(s, s.currentKingdom);
+    const save = () => { o.deployments[k.id] = structuredClone({ remainingHeroes: o.remainingHeroes, remainingCovens: o.remainingCovens, remainingFreeUnits: o.remainingFreeUnits, heroLocations: o.heroLocations, spentByHex: o.spentByHex }); };
+    if (action.type === 'opening-switch') {
+        save();
+        o.index = o.order.indexOf(action.kingdom);
+        prepareOpeningKingdom(s);
+        return;
+    }
+    if (action.type === 'opening-choice') {
+        const choice = rules.preChoices[o.preChoicesIndex], option = choice.options.find(v => v.value === action.value);
+        for (const [hex, owner] of Object.entries(option.controls ?? {})) {
+            s.controls[hex] = owner;
+            s.razed = s.razed.filter(id => id !== hex);
+        }
+        for (const id of option.razed ?? []) {
+            delete s.controls[id];
+            if (!s.razed.includes(id))
+                s.razed.push(id);
+        }
+        for (const [id, kingdom] of Object.entries(option.entries ?? {}))
+            hexById(s, id).entry = kingdom;
+        o.choices[choice.id] = option.value;
+        o.preChoicesIndex++;
+        log(s, `Source ruling: ${choice.label} ${option.label}`);
+        if (!rules.preChoices?.[o.preChoicesIndex] && rules.preControls?.[0]) {
+            s.currentKingdom = rules.preControls[0].kingdom;
+            s.turnIndex = s.scenario.turnOrder.indexOf(s.currentKingdom);
+        }
+        return;
+    }
+    if (action.type === 'opening-control') {
+        const pre = rules.preControls[o.preControlsIndex], previous = settlementController(s, hexById(s, action.hexId));
+        if (previous && previous !== pre.kingdom)
+            loseIncome(s, previous);
+        s.controls[action.hexId] = pre.kingdom;
+        k.hasEverControlled = true;
+        o.preControlsPlaced++;
+        log(s, `${k.name} places its opening Control at ${hexById(s, action.hexId).settlement.name}.`);
+        if (o.preControlsPlaced === pre.count) {
+            o.preControlsPlaced = 0;
+            o.preControlsIndex++;
+            const next = rules.preControls?.[o.preControlsIndex];
+            if (next) {
+                s.currentKingdom = next.kingdom;
+                s.turnIndex = s.scenario.turnOrder.indexOf(next.kingdom);
+            }
+            else
+                prepareOpeningKingdom(s);
+        }
+        return;
+    }
+    if (action.type === 'opening-coven') {
+        s.covens.push(action.hexId);
+        o.remainingCovens--;
+        log(s, `Opening Coven placed at ${hexById(s, action.hexId).settlement.name}; no roll required.`);
+        return;
+    }
+    if (action.type === 'opening-exchange-coven') {
+        delete s.controls[action.hexId];
+        s.razed.push(action.hexId);
+        loseIncome(s, k.id);
+        o.remainingCovens++;
+        o.exchanged.push(k.id);
+        log(s, `${k.name} replaces an opening Control with Razed to receive a Coven.`);
+        return;
+    }
+    if (action.type === 'opening-done') {
+        if (openingDefinition(s).discardUnspent) {
+            log(s, `${k.name} discards ${k.gold} unspent opening gold.`);
+            k.gold = 0;
+        }
+        if (s.campaignRuntime?.resumeOpeningTurn) {
+            const resume = s.campaignRuntime.resumeOpeningTurn;
+            delete s.campaignRuntime.resumeOpeningTurn;
+            delete s.opening;
+            s.turnIndex = s.scenario.turnOrder.indexOf(resume.kingdom);
+            beginTurn(s);
+            return;
+        }
+        save();
+        o.done.push(k.id);
+        let next = rules.deploymentOrder[o.groupIndex].find(id => !o.done.includes(id));
+        if (!next) {
+            o.groupIndex++;
+            next = rules.deploymentOrder[o.groupIndex]?.[0];
+        }
+        if (next) {
+            o.index = o.order.indexOf(next);
+            prepareOpeningKingdom(s);
+        }
+        else {
+            delete s.opening;
+            const resume = s.campaignRuntime?.resumeOpeningTurn;
+            if (resume) {
+                s.turnIndex = s.scenario.turnOrder.indexOf(resume.kingdom);
+                delete s.campaignRuntime.resumeOpeningTurn;
+            }
+            else
+                s.turnIndex = 0;
+            beginTurn(s);
+        }
+        return;
+    }
+    const d = s.unitDefinitions.find(d => d.id === action.defId), freeIndex = action.type === 'opening-build' ? o.remainingFreeUnits.findIndex(v => v.defId === d.id) : -1, free = freeIndex >= 0 ? o.remainingFreeUnits[freeIndex] : undefined;
+    const built = { id: `unit-${s.serial++}`, defId: d.id, kingdom: k.id, hexId: action.hexId, weakened: free?.weakened ?? false, activated: false };
+    s.units.push(built);
+    if (action.type === 'opening-hero') {
+        o.remainingHeroes = o.remainingHeroes.filter(id => id !== d.id);
+        if (s.advanced)
+            s.advanced.heroPools[d.kingdom] = (s.advanced.heroPools[d.kingdom] ?? []).filter(id => id !== d.id);
+    }
+    else if (free)
+        o.remainingFreeUnits.splice(freeIndex, 1);
+    else {
+        k.gold -= d.cost;
+        o.spentByHex[action.hexId] = (o.spentByHex[action.hexId] ?? 0) + d.cost;
+    }
+    if (s.advanced) {
+        const other = s.units.find(u => u.id !== built.id && u.hexId === built.hexId && Advanced.isHero(s, u) !== Advanced.isHero(s, built));
+        if (other)
+            s.advanced.stacks[Advanced.isHero(s, built) ? built.id : other.id] = Advanced.isHero(s, built) ? other.id : built.id;
+    }
+    log(s, `${k.name} deploys ${d.name}${built.weakened ? ' weakened' : ''}${action.type === 'opening-hero' || free ? ' at no gold cost' : ` (${d.cost} gold)`}.`);
+}
+function reserveOsterlich(s) {
+    if (!s.advanced)
+        return;
+    const m = Advanced.monsterById('monster-osterlich');
+    if (!m)
+        return;
+    s.campaignRuntime ??= { withdrawn: [] };
+    s.campaignRuntime.reservedMonsters ??= [];
+    if (s.campaignRuntime.reservedMonsters.includes(m.id))
+        return;
+    const pool = s.advanced.monsterPools[m.pool], index = pool.indexOf(m.id);
+    if (index >= 0) {
+        pool.splice(index, 1);
+        s.campaignRuntime.reservedMonsters.push(m.id);
+    }
+}
+function historicalYear(s) { return (s.scenario.sourceCampaign?.chronicle?.historicalStartYear ?? s.scenario.startYear) + (s.year - s.scenario.startYear); }
+function setCampaignActor(s, side) {
+    const id = s.scenario.turnOrder.find(id => s.kingdoms.find(k => k.id === id)?.side === side && !s.kingdoms.find(k => k.id === id)?.collapsed);
+    if (id) {
+        s.currentKingdom = id;
+        s.turnIndex = s.scenario.turnOrder.indexOf(id);
+    }
+}
+function restoreEventTurn(s) { const r = s.campaignRuntime?.resumeEventTurn; if (r) {
+    s.currentKingdom = r.kingdom;
+    s.turnIndex = s.scenario.turnOrder.indexOf(r.kingdom);
+    delete s.campaignRuntime.resumeEventTurn;
+} if (s.campaignRuntime?.beginTurnAfterEvent) {
+    delete s.campaignRuntime.beginTurnAfterEvent;
+    beginTurn(s);
+} }
+function campaignActions(s) {
+    const r = s.campaignRuntime;
+    if (!r)
+        return null;
+    if (r.pendingBitterDisplacement) {
+        const u = s.units.find(u => u.id === r.pendingBitterDisplacement);
+        if (u)
+            return adjacentHexes(s, u.hexId).filter(h => canEnd(s, u, h)).map(h => ({ type: 'campaign-displace', toHex: h.id }));
+        delete r.pendingBitterDisplacement;
+    }
+    if (r.pendingAbandon?.length) {
+        const eligible = s.hexes.filter(h => h.terrain === 'lair' && !r.abandonedLairs?.includes(h.id) && !s.advanced?.monsters.some(m => m.hexId === h.id && m.kingdom !== null));
+        if (eligible.length)
+            return eligible.map(h => ({ type: 'campaign-abandon', hexId: h.id }));
+        r.pendingAbandon = [];
+        restoreEventTurn(s);
+        log(s, 'All eligible lairs are already abandoned.');
+    }
+    return null;
+}
+function placeBitterDefender(s) {
+    const rule = s.scenario.sourceCampaign?.chronicle?.bitterDefender;
+    if (!rule || s.campaignRuntime?.bitterPlaced)
+        return;
+    const occupant = s.units.find(u => u.hexId === rule.hexId && !Advanced.isHero(s, u)) ?? s.units.find(u => u.hexId === rule.hexId);
+    if (occupant) {
+        s.campaignRuntime.pendingBitterDisplacement = occupant.id;
+        s.currentKingdom = occupant.kingdom;
+        s.turnIndex = s.scenario.turnOrder.indexOf(occupant.kingdom);
+        log(s, 'Make room at the Spire for the Bitter End defender. Choose an adjacent legal hex.');
+        return;
+    }
+    const d = s.unitDefinitions.find(d => d.id === rule.defId);
+    if (!d)
+        throw new Error('Missing Bitter End defender definition.');
+    s.units.push({ id: `unit-${s.serial++}`, defId: d.id, kingdom: rule.kingdom, hexId: rule.hexId, weakened: false, activated: false });
+    s.scenario.sourceCampaign.specialRules.push({ type: 'fragile-defender', defId: d.id, hexId: rule.hexId, kingdom: rule.kingdom, readyAdjacentBuilds: true });
+    s.campaignRuntime.bitterPlaced = true;
+    log(s, 'Osterlich guards the Spire for the Bitter End.');
+}
+function chronicleWinter(s) {
+    const c = s.scenario.sourceCampaign?.chronicle;
+    if (!c)
+        return;
+    const winter = historicalYear(s) - 1, r = s.campaignRuntime;
+    if (c.bitterDefender && winter >= c.bitterDefender.winterYear && !r.bitterPlaced) {
+        r.resumeEventTurn ??= { kingdom: s.currentKingdom, turnIndex: s.turnIndex };
+        placeBitterDefender(s);
+    }
+    if (s.advanced && c.abandonFromYear !== undefined && winter >= c.abandonFromYear && r.winterAbandonYear !== winter) {
+        r.winterAbandonYear = winter;
+        r.abandonedLairs ??= [];
+        r.pendingAbandon = ['invader', 'resistance'];
+        r.resumeEventTurn ??= { kingdom: s.currentKingdom, turnIndex: s.turnIndex };
+        if (!r.pendingBitterDisplacement)
+            setCampaignActor(s, 'invader');
+        log(s, `Winter ${winter}: each side chooses one lair to abandon.`);
+    }
+}
+function chronicleBeginTurn(s) {
+    const c = s.scenario.sourceCampaign?.chronicle;
+    if (!c)
+        return false;
+    const year = historicalYear(s), r = s.campaignRuntime;
+    if (c.treatyYear !== undefined && year >= c.treatyYear)
+        for (const h of s.hexes)
+            if (h.settlement?.loyalty === 'mara-mitai')
+                h.settlement.neutralFriendlyTo = s.kingdoms.filter(k => k.side === 'resistance').map(k => k.id);
+    const returning = c.returnFjord, firstLive = s.scenario.turnOrder.findIndex(id => !s.kingdoms.find(k => k.id === id)?.collapsed);
+    if (!returning || r.fjordReturned || s.turnIndex !== firstLive)
+        return false;
+    const fj = s.kingdoms.find(k => k.id === returning.kingdom.id), due = r.fjordCollapsedAt ? { year: r.fjordCollapsedAt.year + returning.afterCollapseYears, season: r.fjordCollapsedAt.season } : { year: returning.year, season: 0 };
+    if (fj && !fj.collapsed || year * 3 + s.season < due.year * 3 + due.season)
+        return false;
+    const id = returning.kingdom.id;
+    r.fjordReturned = true;
+    if (fj)
+        Object.assign(fj, returning.kingdom, { collapsed: false, hasEverControlled: false });
+    else {
+        s.kingdoms.push({ ...returning.kingdom, controller: 'human', collapsed: false, hasEverControlled: false });
+        s.scenario.kingdoms.push(structuredClone(returning.kingdom));
+        s.scenario.sourceCampaign.opening.push(structuredClone(returning.opening));
+        s.scenario.sourceCampaign.deploymentOrder.push([id]);
+    }
+    const kingdom = kingdomOf(s, id);
+    kingdom.gold = returning.opening.gold;
+    const order = returning.turnOrder.filter(k => s.kingdoms.some(v => v.id === k));
+    for (const k of s.scenario.turnOrder)
+        if (!order.includes(k))
+            order.push(k);
+    s.scenario.turnOrder = order;
+    s.scenario.sourceCampaign.specialRules.push({ type: 'no-collapse', kingdoms: [id] });
+    const previous = s.scenario.sourceCampaign.opening.find(o => o.kingdom === id);
+    Object.assign(previous, structuredClone(returning.opening));
+    for (const d of Advanced.heroDefinitions().filter(d => d.kingdom === id))
+        if (!s.unitDefinitions.some(v => v.id === d.id))
+            s.unitDefinitions.push(d);
+    BOARD_CACHE.delete(s);
+    if (s.advanced) {
+        const a = s.advanced;
+        if (!a.players.some(p => p.kingdoms.includes(id))) {
+            const player = { id: `player-${id}`, name: kingdom.name, kingdoms: [id] };
+            a.players.push(player);
+            a.hands[player.id] = [];
+            a.owned[player.id] = [];
+        }
+        a.heroPools[id] ??= Advanced.heroDefinitions().filter(d => d.kingdom === id && !s.units.some(u => u.defId === d.id)).map(d => d.id);
+        a.decks[`blessings-${id}`] ??= Advanced.cards.filter(card => card.kind === 'blessing' && card.kingdom === id && card.verified).map(card => card.id);
+        Advanced.assignStudyMarkers(s, advancedContext());
+    }
+    r.resumeOpeningTurn = { kingdom: order[0], turnIndex: 0 };
+    s.phase = 'opening';
+    s.currentKingdom = id;
+    s.turnIndex = order.indexOf(id);
+    s.opening = { order: [id], index: 0, remainingHeroes: [], remainingCovens: 0, remainingFreeUnits: [], heroLocations: {}, preControlsIndex: s.scenario.sourceCampaign.preControls?.length ?? 0, preControlsPlaced: 0, preChoicesIndex: s.scenario.sourceCampaign.preChoices?.length ?? 0, choices: {}, spentByHex: {}, exchanged: [], groupIndex: s.scenario.sourceCampaign.deploymentOrder.findIndex(group => group.includes(id)), done: [], deployments: {} };
+    // A return is an opening for one kingdom; the original groups stay in the
+    // campaign definition for audit/import. Mark their other kingdoms complete.
+    s.opening.done = s.kingdoms.filter(k => k.id !== id).map(k => k.id);
+    prepareOpeningKingdom(s);
+    log(s, `${kingdom.name} returns in ${['Spring', 'Summer', 'Autumn'][s.season]} ${year}; deploy its returning forces.`);
+    return true;
+}
+function applyCampaign(s, a) {
+    const r = s.campaignRuntime;
+    if (a.type === 'campaign-abandon') {
+        r.abandonedLairs ??= [];
+        r.abandonedLairs.push(a.hexId);
+        log(s, `${r.pendingAbandon[0]} abandons the lair at ${a.hexId}.`);
+        r.pendingAbandon.shift();
+        if (r.pendingAbandon.length)
+            setCampaignActor(s, r.pendingAbandon[0]);
+        else
+            restoreEventTurn(s);
+        return;
+    }
+    const u = unitById(s, r.pendingBitterDisplacement);
+    for (const id of Advanced.stackIds(s, u.id))
+        unitById(s, id).hexId = a.toHex;
+    delete r.pendingBitterDisplacement;
+    placeBitterDefender(s);
+    if (!r.pendingBitterDisplacement) {
+        if (r.pendingAbandon?.length)
+            setCampaignActor(s, r.pendingAbandon[0]);
+        else
+            restoreEventTurn(s);
+    }
+}
 export function legalActions(s) {
     if (s.phase === 'game-over' || s.tabletop?.review)
         return [];
+    const pendingCampaign = campaignActions(s);
+    if (pendingCampaign)
+        return pendingCampaign;
+    if (s.phase === 'opening')
+        return openingActions(s);
     const extra = s.advanced ? Advanced.advancedLegalActions(s, advancedContext()) : { actions: [], exclusive: false };
     if (extra.exclusive)
         return extra.actions;
@@ -331,18 +801,21 @@ export function legalActions(s) {
     const k = kingdomOf(s, s.currentKingdom), actions = [...extra.actions];
     for (const u of s.units) {
         const d = defOf(s, u), owner = kingdomOf(s, u.kingdom);
-        if (u.weakened && ability(d, 'regenerate') && d.recoveryCost <= owner.gold && !(aliveSettlement(s, hexById(s, u.hexId)) && isBesieged(s, u.hexId)))
+        if (!fixedUnit(s, u.defId, u.hexId) && u.weakened && ability(d, 'regenerate') && d.recoveryCost <= owner.gold && !(aliveSettlement(s, hexById(s, u.hexId)) && isBesieged(s, u.hexId)))
             actions.push({ type: 'regenerate', unitId: u.id });
     }
     if (k.gold >= 2)
         for (const ally of s.kingdoms)
-            if (ally.id !== k.id && !ally.collapsed && ally.side === k.side)
+            if (ally.id !== k.id && !ally.collapsed && ally.side === k.side && !campaignRules(s).some(r => r.type === 'no-gold-transfer' && r.fromKingdom === k.id && r.toKingdom === ally.id))
                 actions.push({ type: 'transfer-gold', toKingdom: ally.id, amount: 2 });
     if (s.phase === 'income-actions') {
         actions.push({ type: 'collect-income' });
-        if (k.id === 'night' && !s.incomeActionsUsed.includes('coven') && Object.values(s.controls).filter(id => id === 'night').length + s.covens.length < (k.controlLimit ?? 5))
+        for (const [id, owner] of Object.entries(s.controls))
+            if (owner === k.id)
+                actions.push({ type: 'remove-control', hexId: id });
+        if (k.id === 'night' && !s.incomeActionsUsed.includes('coven') && Object.values(s.controls).filter(id => id === 'night').length + s.covens.length < controlCapacity(k))
             for (const h of s.hexes)
-                if (aliveSettlement(s, h) && !isWelcoming(s, h, k.id) && !s.covens.includes(h.id))
+                if (aliveSettlement(s, h) && !h.prohibited && !h.prohibitedFor?.includes(k.id) && !isWelcoming(s, h, k.id) && !s.covens.includes(h.id))
                     actions.push({ type: 'coven', hexId: h.id });
         if (isShashka(k.id))
             for (const h of s.hexes)
@@ -360,7 +833,8 @@ export function legalActions(s) {
         for (const d of s.unitDefinitions)
             if (d.kind !== 'hero' && d.kingdom === k.id && d.cost <= k.gold && s.units.filter(u => u.defId === d.id).length < d.count)
                 for (const h of buildLocations(s, d))
-                    actions.push({ type: 'build', defId: d.id, hexId: h.id });
+                    if (!(characteristic(d, 'huge') && isWelcoming(s, h, k.id) && buildWouldFinish(s, d, h)))
+                        actions.push({ type: 'build', defId: d.id, hexId: h.id });
         for (const u of s.units)
             if (unitMayAct(s, u))
                 actions.push({ type: 'activate', unitId: u.id });
@@ -372,7 +846,7 @@ export function legalActions(s) {
                 actions.push({ type: 'move', unitId: u.id, toHex: m.hexId, path: m.path });
             for (const m of shipOptions(s, u.id))
                 actions.push({ type: 'ship', unitId: u.id, toHex: m.hexId, path: m.path });
-            if (!s.units.some(v => v.id !== u.id && v.hexId === u.hexId && !Advanced.stackIds(s, u.id).includes(v.id))) {
+            if (!stackMustLeave(s, u) && !s.units.some(v => v.id !== u.id && v.hexId === u.hexId && !Advanced.stackIds(s, u.id).includes(v.id))) {
                 for (const h of adjacentHexes(s, u.hexId))
                     if (canAttack(s, u, h))
                         actions.push({ type: 'attack', unitId: u.id, targetHex: h.id });
@@ -380,18 +854,17 @@ export function legalActions(s) {
                     actions.push({ type: 'recover', unitId: u.id });
                 if (u.kingdom === 'oathborn' && /miner/i.test(d.name) && hexById(s, u.hexId).mine)
                     actions.push({ type: 'mine', unitId: u.id });
-                if (!(characteristic(d, 'huge') && isWelcoming(s, hexById(s, u.hexId), u.kingdom)))
-                    actions.push({ type: 'pass', unitId: u.id });
+                actions.push({ type: 'pass', unitId: u.id });
             }
         }
-        if (u.kingdom === k.id && s.razed.includes(u.hexId) && isWelcoming(s, hexById(s, u.hexId), u.kingdom, true) && !characteristic(d, 'huge') && k.gold >= 2 && (hexById(s, u.hexId).settlement?.loyalty || Object.values(s.controls).filter(id => id === k.id).length + (k.id === 'night' ? s.covens.length : 0) < controlCapacity(k)))
+        if (u.kingdom === k.id && s.razed.includes(u.hexId) && isWelcoming(s, hexById(s, u.hexId), u.kingdom, true) && !s.units.some(v => v.hexId === u.hexId && characteristic(defOf(s, v), 'huge')) && k.gold >= repairCost(s, k.id) && (hexById(s, u.hexId).settlement?.loyalty || Object.values(s.controls).filter(id => id === k.id).length + (k.id === 'night' ? s.covens.length : 0) < controlCapacity(k)))
             actions.push({ type: 'recolonize', hexId: u.hexId });
     }
     // An already-active valid stack may always finish, including legacy saves
     // where a newly gained finished Hero blocks further movement/actions.
     if (s.activeUnitId) {
-        const u = unitById(s, s.activeUnitId), d = defOf(s, u);
-        if (u.kingdom === k.id && !u.activated && !s.units.some(v => v.id !== u.id && v.hexId === u.hexId && !Advanced.stackIds(s, u.id).includes(v.id)) && !(characteristic(d, 'huge') && isWelcoming(s, hexById(s, u.hexId), u.kingdom)) && !actions.some(a => a.type === 'pass' && a.unitId === u.id))
+        const u = unitById(s, s.activeUnitId);
+        if (u.kingdom === k.id && !u.activated && !stackMustLeave(s, u) && !s.units.some(v => v.id !== u.id && v.hexId === u.hexId && !Advanced.stackIds(s, u.id).includes(v.id)) && !actions.some(a => a.type === 'pass' && a.unitId === u.id))
             actions.push({ type: 'pass', unitId: u.id });
     }
     for (const h of s.hexes)
@@ -467,6 +940,21 @@ function raze(s, h, loot = false) {
     if (!Advanced.covensProtected(s))
         s.covens = s.covens.filter(id => id !== h.id);
     log(s, `${h.settlement?.name ?? h.id} was razed${loot ? ' and looted' : ''}.`);
+}
+function razeMagicOccupancy(s, ids, hexId, incomeRemoved = false) {
+    const h = hexById(s, hexId);
+    if (!aliveSettlement(s, h) || !s.advanced?.effects.some(e => ids.includes(e.target) && e.expires >= s.turnSerial && Advanced.cardById(e.cardId)?.effect.razeOccupiedSettlement && s.units.some(u => u.id === e.target && u.hexId === hexId)))
+        return false;
+    if (incomeRemoved) {
+        delete s.controls[h.id];
+        s.razed.push(h.id);
+        if (!Advanced.covensProtected(s))
+            s.covens = s.covens.filter(id => id !== h.id);
+        log(s, `${h.settlement.name} was razed by the Storm Giant's Amulet.`);
+    }
+    else
+        raze(s, h);
+    return true;
 }
 function encounterCoven(s, u) {
     if (u.kingdom === 'night' || sameSide(s, u.kingdom, 'night') || !s.covens.includes(u.hexId) || s.covenProtected.includes(u.hexId))
@@ -555,6 +1043,12 @@ function strikeDice(s, u, target) {
     return u ? diceFor(s, u) : { light: target.settlement?.city ? 3 : target.settlement ? 1 : 0, heavy: 0 };
 }
 function advanceInto(s, attackerId, targetHex, entryCleared = false) {
+    const sourceAttacker = unitById(s, attackerId);
+    if (targetHex !== sourceAttacker.hexId && anchoredDefender(s, sourceAttacker)) {
+        s.pendingCombat = null;
+        finishActivation(s);
+        return;
+    }
     if (s.advanced && !entryCleared) {
         Advanced.beforeAdvance(s, attackerId, targetHex, advancedContext());
         return;
@@ -594,6 +1088,9 @@ function advanceInto(s, attackerId, targetHex, entryCleared = false) {
             if (s.advanced)
                 s.advanced.justAdvanced = a.id;
         }
+        if (freshCityOccupationVictory(s, h))
+            return;
+        razeMagicOccupancy(s, Advanced.stackIds(s, a.id), h.id);
         if (!Advanced.covensProtected(s))
             s.covens = s.covens.filter(id => id !== h.id);
         s.newlyFriendly.push(h.id);
@@ -605,6 +1102,13 @@ function advanceInto(s, attackerId, targetHex, entryCleared = false) {
         unitById(s, id).hexId = h.id;
     if (s.advanced)
         s.advanced.justAdvanced = a.id;
+    if (freshCityOccupationVictory(s, h))
+        return;
+    if (razeMagicOccupancy(s, Advanced.stackIds(s, a.id), h.id, true)) {
+        s.pendingCombat = null;
+        finishActivation(s);
+        return;
+    }
     if (characteristic(d, 'feral') || characteristic(d, 'huge')) {
         if (!s.razed.includes(h.id))
             s.razed.push(h.id);
@@ -616,6 +1120,15 @@ function advanceInto(s, attackerId, targetHex, entryCleared = false) {
         return;
     }
     s.pendingCombat = { attackerId, targetHex, stage: 'settlement', decisionKingdom: a.kingdom, result: s.lastCombat ?? undefined };
+}
+function freshCityOccupationVictory(s, h) {
+    // Capture sequence §4.9.2: advance (step 3) precedes Control/Razed (step 4).
+    // An instant hostile-City occupation goal therefore fires on live arrival;
+    // §4.10.1 removes the City symbol from already-Razed former City hexes.
+    const hasCityGoal = (c) => c.type === 'enemy-city-occupied' || (c.type === 'all' || c.type === 'any') && c.conditions.some(hasCityGoal);
+    if (aliveSettlement(s, h) && h.settlement?.city && s.scenario.sourceCampaign?.victory.immediate?.some(r => (r.check ?? 'action') === 'action' && hasCityGoal(r.condition)))
+        evaluateVictory(s);
+    return s.phase === 'game-over';
 }
 function completeCombat(s, result) {
     const p = s.pendingCombat, a = s.units.find(u => u.id === p.attackerId), h = hexById(s, p.targetHex);
@@ -700,9 +1213,17 @@ function resolveCombat(s, ambush) {
     completeCombat(s, { attackerId: a.id, targetHex: h.id, attackerRolls: ar.rolls, defenderRolls: dr.rolls, attackerSuccesses: ar.successes, defenderSuccesses: dr.successes, attackerHits, defenderHits, result, ...(ambush ? { ambush } : {}) });
 }
 function collapse(s, k, reason) {
+    if (!canCollapse(s, k.id)) {
+        log(s, `${k.name} is protected from collapse by this campaign.`);
+        return;
+    }
     if (k.collapsed)
         return;
     k.collapsed = true;
+    if (k.id === 'fjordland' && s.scenario.sourceCampaign?.chronicle?.returnFjord) {
+        s.campaignRuntime ??= { withdrawn: [] };
+        s.campaignRuntime.fjordCollapsedAt = { year: historicalYear(s), season: s.season };
+    }
     if (s.advanced) {
         for (const u of s.units.filter(u => u.kingdom === k.id))
             Advanced.recordElimination(s, u, advancedContext());
@@ -718,9 +1239,29 @@ function collapse(s, k, reason) {
         s.covens = [];
     log(s, `${k.name} collapses: ${reason}.`);
 }
-function evaluateVictory(s, atDeadline = false) {
+function evaluateVictory(s, atDeadline = false, check = 'action', afterKingdom) {
     if (s.phase === 'game-over' || s.tabletop?.manualVictory)
         return;
+    if (s.scenario.sourceCampaign) {
+        const result = campaignVictory(s, atDeadline ? 'deadline' : check, afterKingdom);
+        if (!result)
+            return;
+        s.winner = result.winner;
+        s.victoryReason = result.reason;
+        s.phase = 'game-over';
+        s.pendingCombat = null;
+        s.activeUnitId = null;
+        if (s.advanced) {
+            s.advanced.pending = null;
+            s.advanced.battle = null;
+        }
+        if (s.scenario.sourceCampaign.chronicle?.nextScenarioId) {
+            s.campaignRuntime ??= { withdrawn: [] };
+            s.campaignRuntime.nextScenarioId = s.scenario.sourceCampaign.chronicle.nextScenarioId;
+        }
+        log(s, `${s.winner === 'invader' ? 'Invader' : 'Resistance'} victory. ${s.victoryReason}`);
+        return;
+    }
     const invaderAlive = s.kingdoms.some(k => k.side === 'invader' && !k.collapsed), resistanceAlive = s.kingdoms.some(k => k.side === 'resistance' && !k.collapsed);
     if (!invaderAlive || !resistanceAlive) {
         s.winner = invaderAlive ? 'invader' : 'resistance';
@@ -757,6 +1298,8 @@ function evaluateVictory(s, atDeadline = false) {
     }
 }
 function beginTurn(s) {
+    if (chronicleBeginTurn(s))
+        return;
     s.currentKingdom = s.scenario.turnOrder[s.turnIndex];
     s.turnSerial++;
     s.phase = 'income-actions';
@@ -771,13 +1314,46 @@ function beginTurn(s) {
     s.allRoad = true;
     const k = kingdomOf(s, s.currentKingdom);
     log(s, `${['Spring', 'Summer', 'Autumn'][s.season]}, Year ${s.year}: ${k.name} Income Actions.`);
+    for (const r of campaignRules(s))
+        if (r.type === 'withdraw' && s.year * 3 + s.season >= r.year * 3 + r.season && !s.campaignRuntime?.withdrawn.includes(r.kingdom)) {
+            s.campaignRuntime ??= { withdrawn: [] };
+            s.campaignRuntime.withdrawn.push(r.kingdom);
+            const departing = s.kingdoms.find(v => v.id === r.kingdom);
+            if (departing) {
+                departing.collapsed = true;
+                departing.gold = 0;
+                departing.income = 0;
+            }
+            for (const id of Object.keys(s.controls))
+                if (s.controls[id] === r.kingdom) {
+                    delete s.controls[id];
+                    if (r.razeControls && !s.razed.includes(id))
+                        s.razed.push(id);
+                }
+            if (r.kingdom === 'night')
+                s.covens = [];
+            for (const u of s.units.filter(u => u.kingdom === r.kingdom))
+                if (s.advanced)
+                    Advanced.recordElimination(s, u, advancedContext());
+            s.units = s.units.filter(u => u.kingdom !== r.kingdom);
+            log(s, `${departing?.name ?? r.kingdom} withdraws under the campaign rules.`);
+        }
+    for (const r of campaignRules(s))
+        if (r.type === 'fixed-defender' && r.covenCheckTurn === k.id && s.covens.includes(r.hexId) && s.units.some(u => u.defId === r.defId && u.hexId === r.hexId)) {
+            const die = randomDie(s, 6);
+            if (die < 5)
+                s.covens = s.covens.filter(id => id !== r.hexId);
+            else
+                s.covenProtected.push(r.hexId);
+            log(s, `Coven at the fixed defender settlement ${die >= 5 ? 'hides' : 'is discovered'} (${die}).`);
+        }
     if (k.id === 'empire') {
         if (s.advanced)
             s.advanced.effects = s.advanced.effects.filter(e => !e.extra?.noSuppression);
-        const die = randomDie(s, 6) + (s.scenario.empireRevoltModifier ?? 0), revolts = die >= 6 ? 0 : die >= 4 ? 1 : 5 - die;
+        const die = randomDie(s, 6) + campaignRevoltModifier(s), revolts = die >= 6 ? 0 : die >= 4 ? 1 : 5 - die;
         k.revolt = (k.revolt ?? 0) + revolts;
         log(s, `Imperial revolt roll ${die}: +${revolts} revolts (${k.revolt} total).`);
-        if (k.revolt >= 20) {
+        if (k.revolt >= 20 && canCollapse(s, k.id)) {
             collapse(s, k, 'twentieth revolt');
             advanceTurn(s);
         }
@@ -795,6 +1371,9 @@ function advanceTurn(s) {
     for (let guard = 0; guard < 20; guard++) {
         s.turnIndex++;
         if (s.turnIndex >= s.scenario.turnOrder.length) {
+            evaluateVictory(s, false, 'season-end', s.currentKingdom);
+            if (s.phase === 'game-over')
+                return;
             if (s.year === s.scenario.endYear && s.season === s.scenario.endSeason) {
                 s.turnIndex = s.scenario.turnOrder.indexOf(s.currentKingdom);
                 evaluateVictory(s, true);
@@ -809,8 +1388,17 @@ function advanceTurn(s) {
                     s.currentKingdom = s.scenario.turnOrder[s.turnIndex];
                     s.advanced.winterStart = true;
                     Advanced.beginWinter(s, advancedContext());
+                    chronicleWinter(s);
                     return;
                 }
+                s.turnIndex = s.scenario.turnOrder.findIndex(id => !kingdomOf(s, id).collapsed);
+                s.currentKingdom = s.scenario.turnOrder[s.turnIndex];
+                chronicleWinter(s);
+                if (s.campaignRuntime?.pendingBitterDisplacement) {
+                    s.campaignRuntime.beginTurnAfterEvent = true;
+                    return;
+                }
+                restoreEventTurn(s);
                 log(s, 'Winter is skipped in the Basic Game.');
             }
             else {
@@ -831,20 +1419,23 @@ function advanceTurn(s) {
 }
 export function createGame(config) {
     const c = structuredClone(config), scenario = c.scenario;
-    if (c.profile === 'advanced')
-        for (const d of Advanced.heroDefinitions().filter(d => scenario.kingdoms.some(k => k.id === d.kingdom)))
+    if (c.profile === 'advanced' || scenario.sourceCampaign)
+        for (const d of Advanced.heroDefinitions().filter(d => scenario.kingdoms.some(k => k.id === d.kingdom) || scenario.sourceCampaign?.opening.some(o => o.extraHeroes?.some(e => e.kingdom === d.kingdom))))
             if (!c.unitDefinitions.some(x => x.id === d.id))
                 c.unitDefinitions.push(d);
     const s = { version: 1, hexes: c.hexes, unitDefinitions: c.unitDefinitions, scenario, kingdoms: scenario.kingdoms.map(k => ({ ...k, controller: c.controllers?.[k.id] ?? 'human', collapsed: false, hasEverControlled: Object.values(scenario.initialControls ?? {}).includes(k.id) })), units: scenario.initialUnits.map((u, i) => { const d = c.unitDefinitions.find(d => d.id === u.defId); if (!d)
             throw new Error(`Unknown opening Army ${u.defId}`); return { ...u, id: `unit-${i + 1}`, kingdom: d.kingdom, weakened: u.weakened ?? false, activated: false }; }), controls: { ...scenario.initialControls }, razed: [...scenario.initialRazed ?? []], covens: [...scenario.initialCovens ?? []], covenProtected: [], year: scenario.startYear, season: scenario.startSeason, phase: 'income-actions', turnIndex: 0, currentKingdom: scenario.turnOrder[0], activeUnitId: null, remainingMP: 0, allRoad: true, moved: false, shipUsed: false, pendingCombat: null, lastCombat: null, rng: (c.seed ?? 29051994) >>> 0 || 1, serial: scenario.initialUnits.length + 1, turnSerial: 0, newlyFriendly: [], incomeActionsUsed: [], winner: null, victoryReason: '', log: [] };
     if (c.tabletop)
-        s.tabletop = { version: 1, review: null, rulings: [], manualVictory: true, setupSource: c.scenario.source };
+        s.tabletop = { version: 1, review: null, rulings: [], manualVictory: !scenario.sourceCampaign, setupSource: c.scenario.source };
     if (c.profile === 'advanced')
         Advanced.initializeAdvanced(s, c, advancedContext());
+    if (scenario.sourceCampaign)
+        initializeOpening(s);
     const issues = validateState(s);
     if (issues.length)
         throw new Error(issues.join('; '));
-    beginTurn(s);
+    if (!scenario.sourceCampaign)
+        beginTurn(s);
     return s;
 }
 const sameAction = (a, b) => {
@@ -867,10 +1458,18 @@ export function applyAction(state, action) {
     if (!legal)
         throw new Error(`Illegal action ${action.type} during ${state.phase}${state.pendingCombat ? ' / ' + state.pendingCombat.stage : ''}.`);
     const s = structuredClone(state), k = kingdomOf(s, s.currentKingdom);
+    if (legal.type.startsWith('campaign-')) {
+        applyCampaign(s, legal);
+        return s;
+    }
+    if (legal.type.startsWith('opening-')) {
+        applyOpening(s, legal);
+        return s;
+    }
     if (s.advanced && ADVANCED_ACTIONS.has(legal.type)) {
         Advanced.applyAdvancedAction(s, legal, advancedContext());
         const empire = s.kingdoms.find(k => k.id === 'empire');
-        if (empire && (empire.revolt ?? 0) >= 20 && !empire.collapsed) {
+        if (empire && (empire.revolt ?? 0) >= 20 && !empire.collapsed && canCollapse(s, empire.id)) {
             collapse(s, empire, 'twentieth revolt');
             if (s.currentKingdom === 'empire') {
                 s.advanced.pending = null;
@@ -883,6 +1482,7 @@ export function applyAction(state, action) {
         }
         Advanced.resolveImmediateTreasures(s);
         Advanced.flushAdvancedEvents(s, advancedContext());
+        evaluateVictory(s);
         canonicalizeAdvanced(s);
         return s;
     }
@@ -900,6 +1500,7 @@ export function applyAction(state, action) {
                 Advanced.beginMovement(s, u.id, option.path, false, advancedContext());
                 break;
             }
+            restoreCampaignLoyalty(s, u, legal.toHex);
             u.hexId = legal.toHex;
             s.remainingMP -= option.cost;
             s.allRoad = option.roadOnly;
@@ -922,6 +1523,7 @@ export function applyAction(state, action) {
             if (s.advanced)
                 Advanced.beginMovement(s, u.id, path, true, advancedContext());
             else {
+                restoreCampaignLoyalty(s, u, legal.toHex);
                 u.hexId = legal.toHex;
                 encounterCoven(s, u);
                 log(s, `${defOf(s, u).name} completes Ship Movement.`);
@@ -931,7 +1533,7 @@ export function applyAction(state, action) {
                     startActivation(s, swap);
                     log(s, `${defOf(s, u).name} switches positions; ${defOf(s, swap).name} must leave next.`);
                 }
-                else if (u.kingdom !== 'fjordland')
+                else if (rawDef(s, u).kingdom !== 'fjordland')
                     finishActivation(s);
             }
             break;
@@ -1020,18 +1622,15 @@ export function applyAction(state, action) {
         case 'build': {
             const d = s.unitDefinitions.find(d => d.id === legal.defId), h = hexById(s, legal.hexId);
             k.gold -= d.cost;
-            const ready = h.entry === k.id || (aliveSettlement(s, h) && settlementController(s, h) === k.id);
-            const built = { id: `unit-${s.serial++}`, defId: d.id, kingdom: k.id, hexId: h.id, weakened: false, activated: !ready || Advanced.builtFinishedByCoven(s, h.id) };
+            const finished = buildWouldFinish(s, d, h);
+            const built = { id: `unit-${s.serial++}`, defId: d.id, kingdom: k.id, hexId: h.id, weakened: false, activated: finished };
             s.units.push(built);
             if (s.advanced) {
                 const hero = s.units.find(u => u.hexId === h.id && Advanced.isHero(s, u));
-                if (hero) {
+                if (hero)
                     s.advanced.stacks[hero.id] = built.id;
-                    if (hero.activated)
-                        built.activated = true;
-                }
             }
-            log(s, `${k.name} builds ${d.name} (${d.cost} gold), ${ready ? 'ready' : 'finished'}.`);
+            log(s, `${k.name} builds ${d.name} (${d.cost} gold), ${!finished ? 'ready' : 'finished'}.`);
             break;
         }
         case 'coven': {
@@ -1072,8 +1671,8 @@ export function applyAction(state, action) {
             log(s, `Army of the Night removes its Coven from ${hexById(s, legal.hexId).settlement?.name}.`);
             break;
         case 'recolonize': {
-            const h = hexById(s, legal.hexId);
-            k.gold -= 2;
+            const h = hexById(s, legal.hexId), cost = repairCost(s, k.id);
+            k.gold -= cost;
             s.razed = s.razed.filter(id => id !== h.id);
             gainIncome(s, h.settlement?.loyalty ?? k.id);
             if (!h.settlement?.loyalty) {
@@ -1081,7 +1680,7 @@ export function applyAction(state, action) {
                 k.hasEverControlled = true;
             }
             s.newlyFriendly.push(h.id);
-            log(s, `${h.settlement?.name} rebuilt for 2 gold.`);
+            log(s, `${h.settlement?.name} rebuilt for ${cost} gold.`);
             break;
         }
         case 'disband-siege':
@@ -1101,12 +1700,12 @@ export function applyAction(state, action) {
         case 'collect-income': {
             if (isShashka(k.id)) {
                 const dues = Object.values(s.controls).filter(id => id === k.id).length;
-                if (k.gold < dues) {
+                if (k.gold < dues && canCollapse(s, k.id)) {
                     collapse(s, k, 'cannot pay 1 gold per controlled Settlement');
                     advanceTurn(s);
                     break;
                 }
-                k.gold -= dues;
+                k.gold = Math.max(0, k.gold - dues);
                 log(s, `Shashka maintenance: −${dues} gold; no ordinary income.`);
             }
             else {
@@ -1118,7 +1717,7 @@ export function applyAction(state, action) {
                     k.gold -= paid;
                     k.revolt = (k.revolt ?? 0) + (dues - paid);
                     log(s, `Empire pays ${paid} revolt gold${dues > paid ? `, +${dues - paid} unpaid revolts` : ''}.`);
-                    if ((k.revolt ?? 0) >= 20) {
+                    if ((k.revolt ?? 0) >= 20 && canCollapse(s, k.id)) {
                         collapse(s, k, 'twentieth revolt');
                         advanceTurn(s);
                         break;
@@ -1143,7 +1742,7 @@ export function applyAction(state, action) {
             const cities = s.hexes.filter(h => h.settlement?.city && h.settlement.loyalty === k.id && h.id !== s.advanced?.khazud), threshold = k.cityCollapseThreshold ?? (k.id === 'empire' ? 2 : k.id === 'oathborn' ? 3 : 1);
             if (cities.length >= threshold && cities.length > 0 && cities.every(h => s.razed.includes(h.id) || !isWelcoming(s, h, k.id)))
                 collapse(s, k, 'all Cities razed or enemy controlled');
-            evaluateVictory(s);
+            evaluateVictory(s, false, 'turn-end', k.id);
             if (s.phase !== 'game-over') {
                 if (s.advanced)
                     Advanced.beginStudy(s, advancedContext());
@@ -1157,6 +1756,8 @@ export function applyAction(state, action) {
         Advanced.resolveImmediateTreasures(s);
         Advanced.flushAdvancedEvents(s, advancedContext());
     }
+    if (s.phase !== 'opening')
+        evaluateVictory(s);
     canonicalizeAdvanced(s);
     return s;
 }
@@ -1164,6 +1765,19 @@ export function botAction(s) {
     const actions = legalActions(s);
     if (!actions.length)
         return null;
+    if (s.phase === 'opening') {
+        const o = s.opening;
+        const free = actions.find(a => a.type === 'opening-build' && o.remainingFreeUnits.some(v => v.defId === a.defId));
+        if (free)
+            return free;
+        const coven = actions.find(a => a.type === 'opening-coven');
+        if (coven)
+            return coven;
+        const army = actions.filter((a) => a.type === 'opening-build').sort((a, b) => { const da = s.unitDefinitions.find(d => d.id === a.defId), db = s.unitDefinitions.find(d => d.id === b.defId); return (db.light + db.heavy * 1.6) / (db.cost || 1) - (da.light + da.heavy * 1.6) / (da.cost || 1); });
+        if (army.length && s.units.filter(u => u.kingdom === s.currentKingdom).length < 8)
+            return army[0];
+        return actions.find(a => a.type === 'opening-hero') ?? actions.find(a => a.type === 'opening-done') ?? actions[0];
+    }
     if (s.advanced?.pending) {
         const p = s.advanced.pending;
         if (p.kind === 'study')
@@ -1291,13 +1905,27 @@ export function validateState(value) {
         issues.push('Duplicate Army definition IDs.');
     if (!kingdomIds.has(s.currentKingdom))
         issues.push('Unknown current Kingdom.');
-    if (!['income-actions', 'activation', 'game-over'].includes(s.phase))
+    if (!['opening', 'income-actions', 'activation', 'game-over'].includes(s.phase))
         issues.push('Unknown phase.');
     if (!Number.isInteger(s.year) || s.year < 1 || ![0, 1, 2].includes(s.season) || s.year * 3 + s.season < s.scenario.startYear * 3 + s.scenario.startSeason || s.year * 3 + s.season > s.scenario.endYear * 3 + s.scenario.endSeason)
         issues.push('Invalid campaign date.');
     if (!Number.isInteger(s.rng) || s.rng < 1 || s.rng > 0xffffffff)
         issues.push('Invalid deterministic random state.');
     const integer = (v, min, max) => typeof v === 'number' && Number.isSafeInteger(v) && v >= min && v <= max;
+    if (s.scenario.sourceCampaign) {
+        const sourceIssues = validatePublishedCampaignRules(s.scenario.sourceCampaign, { hexIds, defIds, kingdomIds });
+        if (sourceIssues.length)
+            return [...issues, ...sourceIssues];
+    }
+    if (s.phase === 'opening') {
+        const o = s.opening;
+        if (!o || !s.scenario.sourceCampaign || !Array.isArray(o.order) || o.order.some(id => !kingdomIds.has(id)) || !integer(o.index, 0, o.order.length - 1) || !integer(o.groupIndex, 0, s.scenario.sourceCampaign.deploymentOrder.length - 1) || !integer(o.preControlsIndex, 0, s.scenario.sourceCampaign.preControls?.length ?? 0) || !integer(o.preChoicesIndex, 0, s.scenario.sourceCampaign.preChoices?.length ?? 0) || !integer(o.preControlsPlaced, 0, 20) || !integer(o.remainingCovens, 0, 20) || !Array.isArray(o.remainingHeroes) || o.remainingHeroes.some(id => !defIds.has(id)) || !Array.isArray(o.remainingFreeUnits) || o.remainingFreeUnits.some(v => !v || !defIds.has(v.defId) || v.weakened !== undefined && typeof v.weakened !== 'boolean' || v.optional !== undefined && typeof v.optional !== 'boolean') || !Array.isArray(o.done) || !Array.isArray(o.exchanged) || !o.deployments || !o.choices || !o.heroLocations || !o.spentByHex)
+            issues.push('Invalid opening deployment state.');
+    }
+    else if (s.opening)
+        issues.push('Opening deployment state outside opening phase.');
+    if (s.campaignRuntime && (!Array.isArray(s.campaignRuntime.withdrawn) || s.campaignRuntime.withdrawn.some(id => !kingdomIds.has(id)) || s.campaignRuntime.reservedMonsters !== undefined && (!Array.isArray(s.campaignRuntime.reservedMonsters) || s.campaignRuntime.reservedMonsters.some(id => !Advanced.monsterById(id))) || s.campaignRuntime.abandonedLairs !== undefined && (!Array.isArray(s.campaignRuntime.abandonedLairs) || s.campaignRuntime.abandonedLairs.some(id => !hexIds.has(id))) || s.campaignRuntime.pendingAbandon !== undefined && (!Array.isArray(s.campaignRuntime.pendingAbandon) || s.campaignRuntime.pendingAbandon.some(side => !['invader', 'resistance'].includes(side)))))
+        return [...issues, 'Invalid campaign runtime state.'];
     if (!integer(s.turnIndex, 0, s.scenario.turnOrder.length - 1) || s.currentKingdom !== s.scenario.turnOrder[s.turnIndex])
         issues.push('Current Kingdom and turn order disagree.');
     if (!integer(s.serial, 1, 10000000) || !integer(s.turnSerial, 0, 10000000) || !integer(s.remainingMP, -100, 100))
@@ -1324,7 +1952,7 @@ export function validateState(value) {
         if (!Number.isFinite(h.q) || !Number.isFinite(h.r) || typeof h.id !== 'string')
             issues.push('Invalid board coordinates.');
     for (const k of s.kingdoms) {
-        if (!integer(k.gold, 0, 1000000) || !integer(k.income, 0, 10000) || !['human', 'ai'].includes(k.controller) || (k.revolt !== undefined && !integer(k.revolt, 0, k.collapsed ? 10000 : 19)) || typeof k.collapsed !== 'boolean' || typeof k.hasEverControlled !== 'boolean')
+        if (!integer(k.gold, 0, 1000000) || !integer(k.income, 0, 10000) || !['human', 'ai'].includes(k.controller) || (k.revolt !== undefined && !integer(k.revolt, 0, k.collapsed || !canCollapse(s, k.id) ? 10000 : 19)) || typeof k.collapsed !== 'boolean' || typeof k.hasEverControlled !== 'boolean')
             issues.push(`Invalid resources/controller for ${k.id}.`);
         const original = s.scenario.kingdoms.find(o => o.id === k.id);
         if (!original || original.side !== k.side || original.name !== k.name || original.controlLimit !== k.controlLimit || original.cityCollapseThreshold !== k.cityCollapseThreshold)
@@ -1348,8 +1976,10 @@ export function validateState(value) {
         if (!hexIds.has(u.hexId) || !defIds.has(u.defId) || !kingdomIds.has(u.kingdom))
             issues.push(`Invalid Army ${u.id}.`);
         const definition = s.unitDefinitions.find(d => d.id === u.defId);
-        if (definition?.kingdom !== u.kingdom && !s.advanced?.enslaved?.[u.id])
+        if (definition?.kingdom !== u.kingdom && !s.advanced?.enslaved?.[u.id] && !(s.scenario.sourceCampaign && (actingKingdom(s, definition?.kingdom ?? '') === u.kingdom || campaignRules(s).some(r => r.type === 'fixed-defender' && r.defId === u.defId && r.hexId === u.hexId))))
             issues.push(`Army ${u.id} belongs to the wrong Kingdom.`);
+        if (campaignRules(s).some(r => r.type === 'fragile-defender' && r.defId === u.defId && r.hexId !== u.hexId))
+            issues.push(`Anchored defender ${u.id} left its source location.`);
         if (definition && characteristic(definition, 'fragile') && u.weakened)
             issues.push(`Fragile Army ${u.id} cannot be weakened.`);
         const h = s.hexes.find(h => h.id === u.hexId), passing = !!h && inTransit(u) && canPass(s, u, h, !!transit.ship);
@@ -1366,7 +1996,7 @@ export function validateState(value) {
         if (s.units.filter(u => u.defId === d.id).length > d.count)
             issues.push(`Army supply exceeded for ${d.name}.`);
     for (const [id, k] of Object.entries(s.controls ?? {}))
-        if (!hexIds.has(id) || !kingdomIds.has(k) || !s.hexes.find(h => h.id === id)?.settlement)
+        if (!hexIds.has(id) || (!kingdomIds.has(k) && !(s.scenario.sourceCampaign && s.unitDefinitions.some(d => d.kingdom === k))) || !s.hexes.find(h => h.id === id)?.settlement)
             issues.push('Invalid control marker.');
     for (const k of s.kingdoms)
         if (Object.values(s.controls).filter(id => id === k.id).length + (k.id === 'night' ? s.covens.length : 0) > controlCapacity(k))
@@ -1431,21 +2061,25 @@ export function importGame(json) {
 }
 export function consumeTableHit(s) { if (!s.tabletop)
     throw new Error('This is not a tabletop campaign.'); Advanced.consumeTableHit(s, advancedContext()); Advanced.flushAdvancedEvents(s, advancedContext()); canonicalizeAdvanced(s); }
-export const advancedActor = (s) => s.tabletop?.review ? Advanced.playerFor(s, s.currentKingdom)?.id === s.tabletop.review.playerId ? s.currentKingdom : s.advanced.players.find(p => p.id === s.tabletop.review.playerId).kingdoms[0] : Advanced.advancedActor(s);
+export const advancedActor = (s) => s.phase === 'opening' || s.campaignRuntime?.pendingAbandon?.length || s.campaignRuntime?.pendingBitterDisplacement ? s.currentKingdom : s.tabletop?.review ? Advanced.playerFor(s, s.currentKingdom)?.id === s.tabletop.review.playerId ? s.currentKingdom : s.advanced.players.find(p => p.id === s.tabletop.review.playerId).kingdoms[0] : Advanced.advancedActor(s);
 const ADVANCED_ACTIONS = new Set(['winter-ruling', 'store-satchel', 'remove-curse', 'play-card', 'hero-power', 'magic-pass', 'study', 'finish-study', 'sell-treasure', 'finish-winter', 'recruit-hero', 'drop-hero', 'drop-army', 'request-cantrip', 'join-stack', 'allocate-hit', 'accept-hit', 'explore-lair', 'attack-monster', 'monster-strike', 'monster-pass', 'slink-away', 'command-monster', 'magic-choice']);
 function moveAdvancedStep(s, id, toId, ship, join) {
     const u = s.units.find(v => v.id === id);
     if (!u)
         return false;
     const from = u.hexId, to = hexById(s, toId), group = Advanced.stackIds(s, id);
+    if (toId !== from && group.some(id => anchoredDefender(s, unitById(s, id))))
+        return false;
     if (!adjacent(s, from, toId) || !canCross(s, u, from, toId, ship) || !canPass(s, u, to, ship))
         return false;
+    restoreCampaignLoyalty(s, u, toId);
     for (const member of group) {
         const v = unitById(s, member);
         if (!ship)
             s.advanced.movement[member] = (s.advanced.movement[member] ?? defOf(s, v).movement) - movementCost(s, v, from, to);
         v.hexId = toId;
     }
+    razeMagicOccupancy(s, group, toId);
     if (!ship) {
         s.remainingMP = Math.min(...group.map(id => s.advanced.movement[id]));
         s.allRoad = s.allRoad && !!edge(s, from, toId).road && !ability(defOf(s, u), 'flying');
@@ -1461,14 +2095,23 @@ function moveAdvancedStep(s, id, toId, ship, join) {
     }
     return true;
 }
+function restoreCampaignLoyalty(s, u, hexId) {
+    for (const r of campaignRules(s))
+        if (r.type === 'restore-loyalty' && r.hexId === hexId && r.kingdom === u.kingdom && s.controls[hexId] === r.controller) {
+            delete s.controls[hexId];
+            gainIncome(s, u.kingdom);
+            loseIncome(s, r.controller);
+            log(s, `${hexById(s, hexId).settlement.name} peacefully restores its loyalty; no Loot.`);
+        }
+}
 function advancedContext() {
-    return { log, die: randomDie, hex: hexById, unit: unitById, def: defOf, rawDef, sameSide, adjacent: adjacentHexes, welcoming: isWelcoming, controller: settlementController, besieged: isBesieged, canEnd, buildLocations, recoverable, finish: finishActivation, start: startActivation, hit: hitArmy, forecast: combatForecast, complete: completeCombat, advanceTurn, raze, moveStep: moveAdvancedStep, advance: (s, id, to) => advanceInto(s, id, to, true),
+    return { log, die: randomDie, hex: hexById, unit: unitById, def: defOf, rawDef, sameSide, adjacent: adjacentHexes, welcoming: isWelcoming, controller: settlementController, besieged: isBesieged, canEnd, buildLocations, recoverable, finish: finishActivation, start: startActivation, hit: hitArmy, forecast: combatForecast, complete: completeCombat, advanceTurn, raze, entered: (s, ids, hex) => { razeMagicOccupancy(s, ids, hex); }, moveStep: moveAdvancedStep, advance: (s, id, to) => advanceInto(s, id, to, true),
         attackTargets: (s, id) => { const u = unitById(s, id); return adjacentHexes(s, u.hexId).filter(h => canAttack(s, u, h, true) || !siege(defOf(s, u)) && s.advanced.monsters.some(m => m.hexId === h.id && (!m.kingdom || !sameSide(s, m.kingdom, u.kingdom)))); },
-        canAdvance: (s, id, to) => { const u = unitById(s, id), h = hexById(s, to), group = Advanced.stackIds(s, id); return adjacent(s, u.hexId, to) && canCross(s, u, u.hexId, to) && !h.prohibited && h.terrain !== 'sea' && h.terrain !== 'lair' && (!h.entry || h.entry === u.kingdom) && !s.advanced?.monsters.some(m => m.hexId === to) && !s.units.some(v => v.hexId === to && !group.includes(v.id) && (!Advanced.isHero(s, v) || sameSide(s, v.kingdom, u.kingdom) && (v.kingdom !== u.kingdom || group.some(x => Advanced.isHero(s, unitById(s, x)))))) && !(characteristic(defOf(s, u), 'huge') && isWelcoming(s, h, u.kingdom)); },
+        canAdvance: (s, id, to) => { const u = unitById(s, id), h = hexById(s, to), group = Advanced.stackIds(s, id); return !group.some(id => anchoredDefender(s, unitById(s, id))) && adjacent(s, u.hexId, to) && canCross(s, u, u.hexId, to) && !h.prohibited && h.terrain !== 'sea' && h.terrain !== 'lair' && (!h.entry || h.entry === u.kingdom) && !s.advanced?.monsters.some(m => m.hexId === to) && !s.units.some(v => v.hexId === to && !group.includes(v.id) && (!Advanced.isHero(s, v) || sameSide(s, v.kingdom, u.kingdom) && (v.kingdom !== u.kingdom || group.some(x => Advanced.isHero(s, unitById(s, x)))))) && !(characteristic(defOf(s, u), 'huge') && isWelcoming(s, h, u.kingdom)); },
         bonusSteps: (s, id) => { const u = unitById(s, id); return adjacentHexes(s, u.hexId).filter(h => canCross(s, u, u.hexId, h.id) && canEnd(s, u, h)); },
         bonusMove: (s, id, to) => { const moving = unitById(s, id); for (const hero of s.units.filter(v => v.hexId === to && !sameSide(s, v.kingdom, moving.kingdom) && Advanced.isHero(s, v)))
             hitArmy(s, hero.id, 1); for (const member of Advanced.stackIds(s, id))
-            unitById(s, member).hexId = to; log(s, `The Sacred Banner moves its stack one hex to ${hexById(s, to).settlement?.name ?? to}.`); },
+            unitById(s, member).hexId = to; razeMagicOccupancy(s, Advanced.stackIds(s, id), to); log(s, `The Sacred Banner moves its stack one hex to ${hexById(s, to).settlement?.name ?? to}.`); },
         attack: (s, id, to) => { const u = unitById(s, id); startActivation(s, u); const f = combatForecast(s, id, to); s.pendingCombat = { attackerId: id, targetHex: to, stage: 'ambush', decisionKingdom: f.defenderCanAmbush ? s.units.find(v => v.id === f.defenderUnitId)?.kingdom ?? s.advanced.monsters.find(m => m.id === f.defenderUnitId)?.kingdom ?? u.kingdom : u.kingdom, ...(f.defenderUnitId ? { defenderUnitId: f.defenderUnitId } : {}) }; Advanced.startBattleMagic(s, advancedContext()); }, claimCoven: (s, id) => { const h = hexById(s, id), owner = settlementController(s, h); loseIncome(s, owner); s.covens = s.covens.filter(x => x !== id); s.controls[id] = 'night'; gainIncome(s, 'night'); kingdomOf(s, 'night').hasEverControlled = true; s.newlyFriendly.push(id); log(s, 'Knives in the Dark: all enemies eliminated; flip the Coven to Night control.'); }, seaEdge: (s, from, to) => !!edge(s, from, to).sea, seaCoastalEdge: (s, from, to) => !!(edge(s, from, to).sea || edge(s, from, to).coastal) };
 }
 function canonicalizeAdvanced(s) { if (s.advanced && s.activeUnitId)

@@ -1,5 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+writeFileSync('src/map-data.ts', '// Generated from the reviewed map evidence by build.mjs.\nexport const mapEvidence = '+readFileSync('content/maps-reviewed.json','utf8')+';\n');
+writeFileSync('src/published-campaign-data.ts', '// Generated from source-checked campaign facts by build.mjs.\nexport const publishedCampaignCatalog = '+readFileSync('content/published-campaigns.json','utf8')+';\n');
 writeFileSync('src/advanced-data.ts', '// Generated from the verified content catalog by build.mjs.\nexport const advancedCatalog = '+JSON.stringify({...JSON.parse(readFileSync('content/advanced-catalog.json','utf8')),campaigns:JSON.parse(readFileSync('content/campaign-catalog.json','utf8')),maps:JSON.parse(readFileSync('content/maps-catalog.json','utf8'))})+';\n');
 const run = spawnSync(process.execPath, ['node_modules/typescript/bin/tsc', '-p', 'tsconfig.json'], {stdio:'inherit'});
 if (run.status) process.exit(run.status);

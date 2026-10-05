@@ -1,6 +1,7 @@
 import test from 'node:test';
+import {compilePublishedCampaign} from '../dist/js/published-campaigns.js';
 import assert from 'node:assert/strict';
-import { createGame, applyAction, exportGame, importGame } from '../dist/js/engine.js';
+import { createGame, applyAction, legalActions, exportGame, importGame } from '../dist/js/engine.js';
 import { getScenarioOptions } from '../dist/js/scenarios.js';
 import { cardById } from '../dist/js/advanced.js';
 import { renderCampaignDesk } from '../dist/js/campaign-desk.js';
@@ -11,6 +12,25 @@ import {
   setDelegation, updateCompanionDifficulty, savePrivateNote,
   validateCompanionShape, EVENT_LIMIT, MESSAGE_LIMIT, messageTemplates
 } from '../dist/js/async-play.js';
+
+test('a published opening Coven remains private in opponent briefings and replay',()=>{
+  let s=local({...compilePublishedCampaign('campaign-6'),seed:931});
+  for(let step=0;step<12;step++){
+    const actions=legalActions(s),coven=actions.find(a=>a.type==='opening-coven');
+    if(coven){
+      const next=recordCampaignEvent(s,applyAction(s,coven),coven);
+      const opponent=getReplayEvents(next,'oathborn').at(-1),owner=getReplayEvents(next,'night').at(-1);
+      assert.equal(opponent.summary,'Army of the Night conducted a secret operation.');
+      assert.ok(!opponent.after.covens?.length);
+      assert.ok(!opponent.lines.some(line=>line.includes(coven.hexId)));
+      assert.ok(owner.after.covens.includes(coven.hexId));
+      assert.equal(exportGame(importGame(exportGame(next))),exportGame(next));return;
+    }
+    const action=actions.find(a=>a.type==='opening-hero')??actions.find(a=>a.type==='opening-done');
+    assert.ok(action,'Required Hero placement should lead to Night opening');s=applyAction(s,action);
+  }
+  assert.fail('The source opening must offer its printed free Coven');
+});
 
 function local(config = fixture({ profile: 'basic' })) {
   const state = createGame(config);

@@ -11,7 +11,10 @@
 @media(max-width:760px){.setup-modal .setup-art{min-height:185px;flex-shrink:0}.setup-panel{flex-shrink:0;overflow-y:visible}}
 
 /* Keyboard focus must not scroll the map behind its camera coordinates. */
-.board-wrap,.map-marker-layer{overflow:clip}
+.workspace,.board-wrap,.map-marker-layer{overflow:clip}
+
+/* Preserve separate 44px targets when the phone toolbar has only 320px. */
+@media(max-width:360px){.map-nav button[data-command="next-ready"],.map-nav button[data-command="map-find"]{width:44px;min-width:44px;padding:0;justify-content:center}.map-nav button[data-command="next-ready"] span,.map-nav button[data-command="map-find"] span{display:none}.map-nav button[data-command="next-ready"] svg,.map-nav button[data-command="map-find"] svg{display:block}}
 
 /* Keep an attached Hero beside its own counter, clear of the next hex's name. */
 .hero-stack-badge{left:calc(100% + 4px);top:12px;bottom:auto;transform:none;width:24px;max-width:24px;padding:2px 4px;font-size:0;line-height:14px}
@@ -19,3 +22,4 @@
 
 .decision-panel .action-list button.decision-attack {display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;padding:12px 14px;background:#fbf8ec;border:1px solid #a7ad99;color:#293c3d}
 .decision-panel .action-list button.decision-attack small {font-size:12px;line-height:1.5;color:#49595a;white-space:normal}
+.opening-counters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}.opening-counters button{text-align:left;min-height:68px;border:1px solid #c7b58e;padding:10px;border-radius:8px;background:#f6f0df;color:#342f27}.opening-counters button.active{border:2px solid #536c59;background:#e7eedf}.opening-counters strong,.opening-counters small{display:block}.opening-counters small{margin-top:6px;font-size:11px}.opening-form{display:grid;gap:8px;margin:14px 0}.opening-form select{max-width:100%;width:100%;min-height:44px;padding:8px;border:1px solid #b7a27b;border-radius:6px;background:#fbf6e8}.opening-form button{min-height:44px}.opening-covens{margin:12px 0}.opening-covens summary{padding:10px;cursor:pointer}.map-waterway{stroke:#517b8c;stroke-width:8;fill:none;stroke-linecap:round;opacity:.8;pointer-events:none}

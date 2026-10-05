@@ -3,7 +3,7 @@
   "sources": [
     {
       "id": "publisher-hub",
-      "title": "Burning Banners: Rage of the Witch Queen — product and downloads",
+      "title": "Burning Banners: Rage of the Witch Queen \u2014 product and downloads",
       "issuer": "Compass Games",
       "url": "https://www.compassgames.com/product/burning-banners-rage-of-the-witch-queen/",
       "retrieved": "2026-10-04",
@@ -28,7 +28,7 @@
       "bytes": 13410446,
       "researchPath": "/workspace/scratch/a8aa4deba18b/research/Undying-Rules-v1.1.pdf",
       "additionalReviewDate": "2026-10-05",
-      "additionalReview": "Advanced §§13–18 timing, Hero stacks, Monster play, Study, Winter and card corrections; docs/advanced-rules-audit.md"
+      "additionalReview": "Advanced \u00a7\u00a713\u201318 timing, Hero stacks, Monster play, Study, Winter and card corrections; docs/advanced-rules-audit.md"
     },
     {
       "id": "undying-campaign-notes-1.0",
@@ -76,7 +76,7 @@
     },
     {
       "id": "vassal-component-pack-1.7",
-      "title": "Burning Banners VASSAL module v1.7 — component research",
+      "title": "Burning Banners VASSAL module v1.7 \u2014 component research",
       "issuer": "VASSAL community module using physical components",
       "url": "https://vassalengine.org/library/projects/Burning_Banners",
       "retrieved": "2026-10-04",
@@ -120,7 +120,7 @@
     },
     {
       "id": "campaign-contents-transcription",
-      "title": "Ouverture Burning Banners — contents witness",
+      "title": "Ouverture Burning Banners \u2014 contents witness",
       "issuer": "Strategeek",
       "url": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/",
       "retrieved": "2026-10-05",
@@ -139,6 +139,681 @@
       "authority": "printed-primary-header-in-secondary-hosting",
       "status": "visually-checked-header; opening-and-victory-instructions-incomplete",
       "redistribution": "Research image only; not bundled",
+      "auditRecord": "docs/campaign-map-audit.md"
+    },
+    {
+      "id": "spanish-publisher-campaign-book-review",
+      "title": "Complete Burning Banners Campaign Book \u2014 Spanish preproduction review gallery",
+      "issuer": "Ediciones MasQueOca, Spanish publisher",
+      "url": "https://edicionesmasqueoca.com/diarios/2025/06/12/a-punto-para-pre-produccion/",
+      "retrieved": "2026-10-05",
+      "documentDate": null,
+      "authority": "publisher-primary-preproduction-review-copy",
+      "status": "all-60-pages-retrieved-and-visually-reviewed; factual-mechanics-transcribed; unresolved-proof-errors-qualified",
+      "pages": 60,
+      "language": "Spanish",
+      "sourceQualification": "The publisher explicitly warns that these preproduction files may contain errors. English living notes, errata and legible printed English evidence take precedence over identified discrepancies.",
+      "redistribution": "Page images and complete narrative remain research-only; repository includes mechanical facts, paraphrases, URLs and page hashes.",
+      "pageManifestSha256": "30ce2757fe37a2946ba652f8c1b1c6d01f9815b7cb349405f954498fa1654011",
+      "pageEvidence": [
+        {
+          "page": 1,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_01-scaled.jpg",
+          "sha256": "29bd237f86025cc5a3226049707130730d102d91bff63c9365c57d0fc646dd21",
+          "bytes": 658944,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 2,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_02-scaled.jpg",
+          "sha256": "ae57b8ee777851ba6445c327f8bf3dcf10b494b92d3e09baf4e89b14550b7c92",
+          "bytes": 677337,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 3,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_03-1672x2048.jpg",
+          "sha256": "8ce8691f9dd7b4e61de0b27694a41af2f6d6ded72a04a951b36aeedd2e3a2eb5",
+          "bytes": 491707,
+          "dimensions": [
+            1672,
+            2048
+          ]
+        },
+        {
+          "page": 4,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_04-scaled.jpg",
+          "sha256": "8dddb91c933d39e0c9bc5aac7247fe897e8573d1d0b10de5a3ce13e8509c0756",
+          "bytes": 635321,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 5,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_05-scaled.jpg",
+          "sha256": "ed7da6668674226f6e71cbbdf270805e6b0340595f82e92c7f9a42118313533d",
+          "bytes": 781575,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 6,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_06.jpg",
+          "sha256": "3e774e63c1955728b2059393e6a5cde132aceb5920a6a4bd3508e9fa2838b89d",
+          "bytes": 668912,
+          "dimensions": [
+            1881,
+            2381
+          ]
+        },
+        {
+          "page": 7,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_07-scaled.jpg",
+          "sha256": "885240504bb39d985d7448934eee44c2065e20d87b4e6b8e2322858391621cf3",
+          "bytes": 513685,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 8,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_08-scaled.jpg",
+          "sha256": "6ddbe5b3f81e750cc05424964cd92b1b03bab9ce86cfa16af34e5acf01ce15ed",
+          "bytes": 553963,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 9,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_09-scaled.jpg",
+          "sha256": "3e16a23f4de8f2c5197f5dbc1fae6078625c87bfc6e8405ca6eb68dd72a0f9b4",
+          "bytes": 716291,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 10,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_10-scaled.jpg",
+          "sha256": "89b0c19b24e5748ea0e0d9da451e09d97d4aade1a35d0400629afe483ac3528d",
+          "bytes": 497388,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 11,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_11.jpg",
+          "sha256": "9cb31678bfc7932fa32208eb8980e8ef0a2b0a2bbd2398b63c69b6a5c74b6e29",
+          "bytes": 832148,
+          "dimensions": [
+            1881,
+            2381
+          ]
+        },
+        {
+          "page": 12,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_12.jpg",
+          "sha256": "1a06b4d9d1f6796afe17667061ef82b868e45149fc13030587e45c7f634ea137",
+          "bytes": 704729,
+          "dimensions": [
+            1881,
+            2381
+          ]
+        },
+        {
+          "page": 13,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_13-scaled.jpg",
+          "sha256": "35d65b0fcb326870fddc4ca1e367418f2e9a3414d3008c6971777df29e4cf4fb",
+          "bytes": 565282,
+          "dimensions": [
+            2023,
+            2560
+          ]
+        },
+        {
+          "page": 14,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_14.jpg",
+          "sha256": "d37106b931ebb966494e6a6e1a3374fb17054e5c8a10e6eb7145a505fa6793f5",
+          "bytes": 785811,
+          "dimensions": [
+            1881,
+            2381
+          ]
+        },
+        {
+          "page": 15,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_15.jpg",
+          "sha256": "9c3f3c532665991d048c37099a2902cec498041485cf7aa8a45c3f9942c49bab",
+          "bytes": 1093976,
+          "dimensions": [
+            1881,
+            2381
+          ]
+        },
+        {
+          "page": 16,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_16-scaled.jpg",
+          "sha256": "044f91cd930196a4e991f0ecaead23c59c1ccde8dd47009491cc4e641219a3a3",
+          "bytes": 511635,
+          "dimensions": [
+            2023,
+            2560
+          ]
+        },
+        {
+          "page": 17,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_17-scaled.jpg",
+          "sha256": "389508e598ce3c940b95e7f3aebd1774b39ef756d9a2186535461d0bd1299b42",
+          "bytes": 755476,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 18,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_18.jpg",
+          "sha256": "1df2a609d8f33cc2a895bed30267c65137ac1ca3b555316b79dbacf393bf8d1e",
+          "bytes": 831852,
+          "dimensions": [
+            1881,
+            2381
+          ]
+        },
+        {
+          "page": 19,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_19-scaled.jpg",
+          "sha256": "e74b990a04fa7088b72089903f171d2505a4f13d1c2927f825031678d1f9a721",
+          "bytes": 343533,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 20,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_20-scaled.jpg",
+          "sha256": "a547a34431b23a3fecad397391aef7a1ab0340f9c9ff4214c229f4d792dd8ec7",
+          "bytes": 520651,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 21,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_21-scaled.jpg",
+          "sha256": "f4800dca65ae067f2ca876017691d0802415994010ee0d27ef9731824f7e78d8",
+          "bytes": 658670,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 22,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_22-scaled.jpg",
+          "sha256": "5235dec157a974e7044e180d446532f3a5d507889f83d63ac3ae079390b0fa23",
+          "bytes": 472115,
+          "dimensions": [
+            2030,
+            2560
+          ]
+        },
+        {
+          "page": 23,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_23-scaled.jpg",
+          "sha256": "3881e729e286c9ba2e083059a898472cf070f8abc48b187882cf73e4c2dab988",
+          "bytes": 434751,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 24,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_24-scaled.jpg",
+          "sha256": "169dce9166b26d5cfbeac8f33c9ebad6b72537fd21f5b2a1cf12685501af5054",
+          "bytes": 499487,
+          "dimensions": [
+            2023,
+            2560
+          ]
+        },
+        {
+          "page": 25,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_25-scaled.jpg",
+          "sha256": "ac8ad27e075347bbcc19de96a782685f1e63ab419c59eb6d74b3056f86ab6785",
+          "bytes": 518335,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 26,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_26-scaled.jpg",
+          "sha256": "b9fc620a1fcf914343a2b46ea0fa4e071127123add91f403f293b9fbb2046c19",
+          "bytes": 480621,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 27,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_27.jpg",
+          "sha256": "deddeba18d8f3cfeeff3601ee10e7b7abc1a7df2781756b603b580e42314e4ee",
+          "bytes": 754401,
+          "dimensions": [
+            1881,
+            2381
+          ]
+        },
+        {
+          "page": 28,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_28-scaled.jpg",
+          "sha256": "2b1f875bae237227e07b9fb15fe167d92d129581b7e8c30ced216d06dd25d2ff",
+          "bytes": 560698,
+          "dimensions": [
+            2030,
+            2560
+          ]
+        },
+        {
+          "page": 29,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_29-scaled.jpg",
+          "sha256": "47a1d3d05422c85c3a39d5cd89f3f3a0fc7265b059fd7d8f913361eb87118dff",
+          "bytes": 279966,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 30,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_30-scaled.jpg",
+          "sha256": "95df1e3a09a76d7b8629a30b7c71306d16666293fd3b1069b986629e766dfd97",
+          "bytes": 547592,
+          "dimensions": [
+            2203,
+            2560
+          ]
+        },
+        {
+          "page": 31,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_31-1763x2048.jpg",
+          "sha256": "0e8e4da0c1e1c8ef4d0745ea557b836fa13865e27e7f8be29d6dfb69c6c28159",
+          "bytes": 456156,
+          "dimensions": [
+            1763,
+            2048
+          ]
+        },
+        {
+          "page": 32,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_32-1694x2048.jpg",
+          "sha256": "73fbbea3a0c0ea941ee31771a4005a69f0b4b84f7f6e0dafd14cc07d31e55d6c",
+          "bytes": 378430,
+          "dimensions": [
+            1694,
+            2048
+          ]
+        },
+        {
+          "page": 33,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_33.jpg",
+          "sha256": "cf36bd240ae83b11b00e90034c30a5af4e1a20c47fd25069ffd5d14a9f827c7f",
+          "bytes": 862528,
+          "dimensions": [
+            1881,
+            2381
+          ]
+        },
+        {
+          "page": 34,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_34-scaled.jpg",
+          "sha256": "6c5fa956c5942131714b0ba62bb202d9e0b8c8c66c8fb7510c2dce591da771c2",
+          "bytes": 590746,
+          "dimensions": [
+            2030,
+            2560
+          ]
+        },
+        {
+          "page": 35,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_35.jpg",
+          "sha256": "9d57b3570c1d674000d638b43b748f217536b0809d8df627846a3babfbc8c632",
+          "bytes": 782599,
+          "dimensions": [
+            1881,
+            2381
+          ]
+        },
+        {
+          "page": 36,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_36-scaled.jpg",
+          "sha256": "51d6422b9c3aacb33c6f54948ff6411e5ef4e48bbe435bee883e000ccb6a0b91",
+          "bytes": 593814,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 37,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_37-scaled.jpg",
+          "sha256": "5ff557bb3c2bd07fb003712b71792c28739ba8da1cdf745b8466dd19ab1e99e2",
+          "bytes": 662949,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 38,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_38-scaled.jpg",
+          "sha256": "4bdd75270ecfc1c3fb5a44831c1f80e62917d21515d49d2b83e051e958e852cb",
+          "bytes": 584491,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 39,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_39-scaled.jpg",
+          "sha256": "a9918d1053545435d031b65e86d3b5c43e2ba3b198059c9afcd7e656286e72f9",
+          "bytes": 489569,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 40,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_40-scaled.jpg",
+          "sha256": "01dedee9c97aacbcc6d990601fd998751bc589b5c502d212d6885dfca76a90bc",
+          "bytes": 527523,
+          "dimensions": [
+            2016,
+            2560
+          ]
+        },
+        {
+          "page": 41,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_41-scaled.jpg",
+          "sha256": "17f80547b3a77eb95c7d1b6a6f32195c5b0fec53862c523b8c13b28acd38ca58",
+          "bytes": 478214,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 42,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_42-scaled.jpg",
+          "sha256": "db2754df35beefc0d218a7e36fb01494a480eba367793d379eeed459d7076632",
+          "bytes": 552959,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 43,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_43-scaled.jpg",
+          "sha256": "e2d00f81f44abb54f7eb9a65e56cce390ceb7613ffa2917a0cd9249c23cb3e7b",
+          "bytes": 667062,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 44,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_44-scaled.jpg",
+          "sha256": "06eb9381e7c656b40fb84ea447e6b77c3d83d9903b6cccd6c54b2c8828e67dd8",
+          "bytes": 507636,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 45,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_45-scaled.jpg",
+          "sha256": "4ccf493ac72b97a8fca268926dc70bf54fd882fe06aeb7df3e89d1924fe0c2ee",
+          "bytes": 517592,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 46,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_46-scaled.jpg",
+          "sha256": "3399f79e5ef0762a52aa09c369f4911d49fc8e149fd2548ed623f6863ed60521",
+          "bytes": 572911,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 47,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_47-scaled.jpg",
+          "sha256": "d9065262d59493abcec2bda3f7ace3e389492cde5b98a5009342cc80fc7951f7",
+          "bytes": 513812,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 48,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_48-scaled.jpg",
+          "sha256": "e263ba56dc9a912599002e4c0e011ccf7aa6555e57b58e9d0921820ae4247954",
+          "bytes": 599526,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 49,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_49-scaled.jpg",
+          "sha256": "fe69f9546a1e9895c5f4c6f80bb6e87f486a9109d30b009a8f2b86f8f9cfd32c",
+          "bytes": 485284,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 50,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_50-scaled.jpg",
+          "sha256": "433d30dc6203e2e94d22267c08fa35767f11b3e4a4c1a92614690449f5d6611c",
+          "bytes": 541257,
+          "dimensions": [
+            2023,
+            2560
+          ]
+        },
+        {
+          "page": 51,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_51-scaled.jpg",
+          "sha256": "4bd1579379b56d920dab8c2b41ee7afdbe4ee7f1fd573d50e86e6cb4ea0e630c",
+          "bytes": 481838,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 52,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_52-scaled.jpg",
+          "sha256": "c50cad6aabaed09b65890d6cf0eb866a550c0dc53dd4d749da8e75ae1885db44",
+          "bytes": 591198,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 53,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_53-scaled.jpg",
+          "sha256": "42aced81634ade2e3330fe1baa6d54d7dfee0ce5737361238f4c3d9bce538aa8",
+          "bytes": 523477,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 54,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_54-scaled.jpg",
+          "sha256": "3b885c4af93402128c818a8cde28a6fca3683dc35d95c51647e5b868b56d7a63",
+          "bytes": 529839,
+          "dimensions": [
+            2030,
+            2560
+          ]
+        },
+        {
+          "page": 55,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_55-scaled.jpg",
+          "sha256": "5898bdb948e615e64ea1748b18c39674887aee156fdfcfae18c4667d90aaa589",
+          "bytes": 569328,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 56,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_56-scaled.jpg",
+          "sha256": "f203fb38b48870f9153c059ae5f0850e8f439b989a0da02af1288fc361d03c9b",
+          "bytes": 608866,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 57,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_57-scaled.jpg",
+          "sha256": "56d9abd0d7bb799cf93453dafeb85162779ea892fcce8c0136bbcf9be2268e00",
+          "bytes": 505985,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 58,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_58-scaled.jpg",
+          "sha256": "5e8641d80caf7311dfb89a8214f226425e7585b676c4c16464b2ae6743a23c72",
+          "bytes": 724351,
+          "dimensions": [
+            2022,
+            2560
+          ]
+        },
+        {
+          "page": 59,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_59-scaled.jpg",
+          "sha256": "49b600e51de4ea7c5fd30509528663e1888d6d36bab1180a2975c3e5a5bad02a",
+          "bytes": 812971,
+          "dimensions": [
+            2023,
+            2560
+          ]
+        },
+        {
+          "page": 60,
+          "url": "https://edicionesmasqueoca.com/diarios/wp-content/uploads/2025/06/ESP_Burning-Banners-Campaigns_QCv2_Pagina_60-scaled.jpg",
+          "sha256": "990a77049772b1a227c633b40388cd4f2b1161561259862e222ade9d9e3456d1",
+          "bytes": 645489,
+          "dimensions": [
+            2023,
+            2560
+          ]
+        }
+      ],
+      "auditRecord": "docs/campaign-map-audit.md",
+      "factsRecord": "content/published-campaigns.json"
+    },
+    {
+      "id": "campaign-7-printed-header",
+      "title": "Campaign 7 printed English header photograph",
+      "issuer": "The Boardgames Chronicle, photograph of Compass Games material",
+      "url": "https://i0.wp.com/theboardgameschronicle.com/wp-content/uploads/2024/11/img_3682.jpg",
+      "articleUrl": "https://theboardgameschronicle.com/2024/11/03/burning-banners-session-reports-campaign-7-fire-in-the-fields-of-ash/",
+      "retrieved": "2026-10-05",
+      "documentDate": null,
+      "authority": "printed-primary-header-in-secondary-hosting",
+      "status": "visually-reviewed-English-header; Spring-Year1-to-Autumn-Year2-six-season-dates",
+      "sha256": "40226d9476ae14abe8b01b20c6caed52dd5dfbb47b26196354ae8c37b4ecea6e",
+      "bytes": 409434,
+      "redistribution": "Research photograph only; not bundled",
+      "auditRecord": "docs/campaign-map-audit.md"
+    },
+    {
+      "id": "control-and-monster-marker-countersheet",
+      "title": "Printed countersheet photograph \u2014 Control and Monster marker supplies",
+      "issuer": "Strategeek, photograph of Compass Games material",
+      "url": "https://strategeek.net/wp-content/uploads/2024/05/img_0956.jpeg",
+      "articleUrl": "https://strategeek.net/2024/05/03/ouverture-burning-banners-compass-games/",
+      "retrieved": "2026-10-05",
+      "documentDate": null,
+      "authority": "printed-primary-countersheet-in-secondary-hosting",
+      "status": "complete-countersheet-visually-reviewed; Control10-Night-Oathborn-Fjordland-Empire-Control12-Goblins-Orcs; Monster-command3-per-kingdom",
+      "sha256": "466b89db18689c4022476e62beb02043b511b4c0c87890c6b3ee69fa12390d15",
+      "bytes": 1666358,
+      "redistribution": "Research photograph only; factual inventory counts transcribed",
+      "auditRecord": "docs/campaign-map-audit.md"
+    },
+    {
+      "id": "spanish-publisher-errata-discussion-2026",
+      "title": "FAQs y erratas detectadas \u2014 Spanish publisher discussion",
+      "issuer": "Ediciones MasQueOca, Spanish publisher",
+      "url": "https://edicionesmasqueoca.com/diarios/2026/04/06/faqs-y-erratas-detectadas/",
+      "retrieved": "2026-10-05",
+      "documentDate": null,
+      "authority": "publisher-discussion-with-player-comments",
+      "status": "checked-for-correction-leads; unverified-player-proposals-not-promoted-to-operative-rules",
+      "redistribution": "Source link and factual provenance only; no article or comments reproduced",
+      "auditRecord": "docs/campaign-map-audit.md"
+    },
+    {
+      "id": "campaigns-at-a-glance-v4-user-reference",
+      "title": "Campaigns at a Glance v4 \u2014 supplied English campaign overview",
+      "issuer": "Community overview; supplied by user",
+      "sourceFileName": "Campaigns_at_a_Glance_v4.pdf",
+      "retrieved": "2026-10-05",
+      "documentDate": null,
+      "authority": "community-secondary-user-supplied-reference",
+      "status": "season-and-board-count-cross-check; not-authoritative-complete-setup",
+      "sha256": "1771288daac98d567bd2837a23ea34188fe0281bd0b35fde1d4cb88cb69a7a58",
+      "bytes": 223088,
+      "redistribution": "Research PDF only; overview states designer artwork permission, which is not treated as permission for this repository to redistribute the PDF",
       "auditRecord": "docs/campaign-map-audit.md"
     }
   ]

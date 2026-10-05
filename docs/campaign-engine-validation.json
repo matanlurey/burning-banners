@@ -1,0 +1,41 @@
+{
+  "build": "22659",
+  "verifiedAt": "2026-10-05T17:06:58.644978+00:00",
+  "total": 43,
+  "passed": 43,
+  "failed": 0,
+  "runs": [
+    {
+      "command": "node --test tests/campaign-runtime.test.mjs tests/map-movement.test.mjs",
+      "tests": 40,
+      "passed": 40,
+      "failed": 0,
+      "exitCode": 0,
+      "files": [
+        "tests/campaign-runtime.test.mjs",
+        "tests/map-movement.test.mjs"
+      ]
+    },
+    {
+      "command": "node --test --test-name-pattern 'enabling Full tabletop|enabling recorded table rulings|a recorded relocation recovers' tests/tabletop.test.mjs",
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "exitCode": 0,
+      "files": [
+        "tests/tabletop.test.mjs"
+      ]
+    }
+  ],
+  "sourceChangesAfterBuild": false,
+  "inputs": {
+    "src/engine.ts": "7c866e9ab4ca03623d155901b55638fb1100ad5cdd1a1c8b2ec4a3bbfbf67c0b",
+    "src/advanced.ts": "0589400cdff029c317d8acdb1ff5335e633d3e5f4e3d0f0b8777ad5c64299f79",
+    "src/campaign-runtime.ts": "52d28d0766a32744b4ebe5e921934f732f64430fa1afc8125e80239b446b64f5",
+    "src/tabletop.ts": "333de0521ac8b407cde9cfea758426799d139b73ffb0266f3b3838b4d9b3c1b2",
+    "tests/campaign-runtime.test.mjs": "6e852bbb7f1a727051a42ae272b1594b3868ae6b00c12b3340086e003deaa613",
+    "tests/map-movement.test.mjs": "f0daea185ae1538074ab82e4f3dc87ef5ac30d9fa58542d80f49dd33d11a107c",
+    "tests/tabletop.test.mjs": "92e98aa2ec743185a2316b8238310d8fddf790b749e66b099ee4d2920b0190cc"
+  },
+  "scope": "Final lifecycle, source victory timing, shipping and explicit table-ruling recovery regression tests; separate from the 99-case earlier source-integration run."
+}

@@ -1,6 +1,12 @@
 # Burning Banners content research
 
-Research date: October 4, 2026. The published subtitle is **Rage of the Witch Queen**.
+Research baseline: October 4, 2026. The published subtitle is **Rage of the Witch Queen**.
+
+## October 5 campaign and map update
+
+The later source pass obtained all 60 public publisher Campaign Book review pages, transcribed 28 named starts and implemented linked Chronicle play through the 35-season full war. New gameplay uses reviewed records from all four actual boards, joins shared edge cells and preserves explicit crossing/source qualifications. Physical Control supplies are now verified as Night/Oathborn/Fjordland/Empire 10 each and Goblins/Orcs 12 each. See the current [campaign/map source audit](campaign-map-audit.md), [campaign facts](../content/published-campaigns.json) and [reviewed geography](../content/maps-reviewed.json).
+
+The notes below preserve the earlier limited-source research baseline. Its missing-book, unimported-board, introductory-fixture and supply-gap statements describe that earlier stage. Its original southern-edge assumption is superseded by measured visible coverage: Wildlands `(0,15)` has less than half a standalone hex and is prohibited until joined geometry restores it. The Intro's 15-Gold purchasing allowance is distinct from the corrected quick card's 7-Gold remainder.
 
 ## Evidence acquired
 

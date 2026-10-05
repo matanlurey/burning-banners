@@ -94,7 +94,7 @@ function newLogLines(before, after) {
     }
     return [...after];
 }
-const privateAction = (action) => action.type === 'coven' || action.type === 'remove-coven';
+const privateAction = (action) => ['coven', 'remove-coven', 'opening-coven', 'opening-exchange-coven'].includes(action.type);
 function summarize(before, after, action, actor) {
     const who = kingdomName(before, actor);
     const unit = 'unitId' in action ? before.units.find(u => u.id === action.unitId) : undefined;
@@ -105,13 +105,18 @@ function summarize(before, after, action, actor) {
         case 'move':
         case 'ship': return `${who}: ${name} ${action.type === 'ship' ? 'sailed' : 'moved'} from ${place(unit.hexId)} to ${place(action.toHex)}.`;
         case 'build': return `${who} recruited ${before.unitDefinitions.find(d => d.id === action.defId)?.name ?? action.defId} at ${place(action.hexId)}.`;
+        case 'opening-build': return `${who} deployed ${before.unitDefinitions.find(d => d.id === action.defId)?.name ?? action.defId} at ${place(action.hexId)}.`;
+        case 'opening-hero': return `${who} placed ${before.unitDefinitions.find(d => d.id === action.defId)?.name ?? action.defId} at ${place(action.hexId)}.`;
+        case 'opening-done': return `${who} finished opening deployment.`;
         case 'play-card':
         case 'hero-power': return `${who} ${action.type === 'hero-power' ? 'used' : 'played'} ${cardById(action.cardId)?.name ?? 'Magic'}${action.type === 'play-card' && action.tomeId ? ` with ${cardById(action.tomeId)?.name ?? 'a Tome'}` : ''}.`;
         case 'study': return `${who} studied ${action.discipline}.`;
         case 'finish-study': return `${who} finished Arcane Study.`;
         case 'finish-winter': return `${who} finished Winter preparation.`;
         case 'coven':
-        case 'remove-coven': return `${who} conducted a secret operation.`;
+        case 'remove-coven':
+        case 'opening-coven':
+        case 'opening-exchange-coven': return `${who} conducted a secret operation.`;
         case 'collect-income': return `${who} collected income.`;
         case 'end-turn': return `${who} ended its kingdom turn.`;
         case 'attack':

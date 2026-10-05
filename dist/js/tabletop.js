@@ -1,6 +1,6 @@
+import { joinReviewedBoards } from './official-maps.js';
 import { validateState, consumeTableHit } from './engine.js';
 import { cards, cardById, monsterById, isHero, stackIds, playerFor, runtimePlayable } from './advanced.js';
-import { advancedCatalog } from './advanced-data.js';
 import { validateContentPack } from './content-validation.js';
 import { unitDefinitions } from './content.js';
 const fail = (message) => { throw new Error(message); };
@@ -54,6 +54,56 @@ export function validateTabletop(value) {
     if (t.enslaved !== undefined && (!Array.isArray(t.enslaved) || t.enslaved.length > 4 || t.enslaved.some(x => !x || typeof x.id !== 'string' || typeof x.armyId !== 'string') || new Set(t.enslaved.map(x => x.id)).size !== t.enslaved.length || new Set(t.enslaved.map(x => x.armyId)).size !== t.enslaved.length))
         return ['Invalid Enslaved Hero markers.'];
     return [];
+}
+/** Explicitly change an existing Advanced position to a recorded physical table.
+ * No position, movement allowance or counter status is adjudicated here. */
+export function enableFullTabletop(state, reason, actorPlayerId) {
+    if (!state.advanced)
+        fail('Table controls require an Advanced game.');
+    if (state.tabletop)
+        fail('This game already has Full tabletop controls.');
+    if (typeof reason !== 'string' || reason.trim().length < 3 || reason.length > 800)
+        fail('Describe the printed rule or table ruling (3–800 characters).');
+    const previousIssues = validateState(state);
+    if (previousIssues.length)
+        fail(previousIssues.slice(0, 3).join('; '));
+    const s = structuredClone(state), a = s.advanced, playerId = actorPlayerId ?? playerFor(s, s.currentKingdom)?.id;
+    const resolvedPlayer = a.players.find(p => p.id === playerId) ?? fail('Choose a player.');
+    const inventory = new Set([...Object.values(a.hands).flat(), ...Object.values(a.owned).flat(), ...Object.values(a.decks).flat(), ...Object.values(a.discards).flat(), ...a.eliminatedTreasures, ...a.removedCards]);
+    let inserted = 0;
+    for (const c of cards.filter(c => c.verified && c.kind !== 'hero' && !runtimePlayable(c) && (!c.kingdom || s.kingdoms.some(k => k.id === c.kingdom)))) {
+        if (inventory.has(c.id))
+            continue;
+        const deck = a.decks[c.kind === 'spell' ? 'spells' : c.kind === 'treasure' ? 'treasures' : `blessings-${c.kingdom}`] ??= [];
+        const n = deck.length + 1;
+        let index = 0;
+        if (n > 1)
+            for (;;) {
+                let value = 0, space = 1;
+                while (space < n) {
+                    value = value * 6 + die(s, 6) - 1;
+                    space *= 6;
+                }
+                const limit = Math.floor(space / n) * n;
+                if (value < limit) {
+                    index = value % n;
+                    break;
+                }
+            }
+        deck.splice(index, 0, c.id);
+        inventory.add(c.id);
+        inserted++;
+    }
+    s.tabletop = { version: 1, review: null, rulings: [], manualVictory: !s.scenario.sourceCampaign, setupSource: s.scenario.source };
+    const summary = `Enabled Full tabletop controls; ${inserted} missing manual Magic card${inserted === 1 ? '' : 's'} entered the decks.`, log = `Table: ${summary} Rule: ${reason.trim()}`;
+    s.log.push(log);
+    s.log = s.log.slice(-250);
+    s.tabletop.rulings.push(log);
+    validateContentPack({ version: 1, hexes: s.hexes, unitDefinitions: s.unitDefinitions, scenario: s.scenario });
+    const issues = validateState(s);
+    if (issues.length)
+        fail(issues.slice(0, 3).join('; '));
+    return { state: s, summary, private: false, playerId: resolvedPlayer.id };
 }
 export function applyTableOperation(state, operation, reason, actorPlayerId) {
     if (!state.tabletop || !state.advanced)
@@ -485,36 +535,13 @@ export function applyTableOperation(state, operation, reason, actorPlayerId) {
         fail(issues.slice(0, 3).join('; '));
     return { state: s, summary, private: privateChange, playerId };
 }
-/** Blank calibration templates carry location labels but make no terrain claims. */
+/** Custom campaigns use the same source-reviewed lattice as the published starts. */
 export function tabletopConfig(boardIds, name, startYear = 1, endYear = 10) {
-    const boards = advancedCatalog.maps.boards.filter(b => boardIds.includes(b.id));
-    if (!boards.length)
-        fail('Choose at least one board.');
-    const hexes = [], coordinates = new Set();
-    for (const [index, board] of boards.entries()) {
-        const offsetQ = (index % 2) * 15, offsetR = Math.floor(index / 2) * 17 - Math.floor(offsetQ / 2);
-        for (let q = 0; q < 14; q++)
-            for (let j = 0; j < 15; j++) {
-                const r = j - Math.floor(q / 2), globalQ = q + offsetQ, globalR = r + offsetR, key = `${globalQ},${globalR}`;
-                if (coordinates.has(key))
-                    continue;
-                coordinates.add(key);
-                // The scanned-board coordinate inventory and the cropped digital Wildlands
-                // graph have different origins. Never copy mechanics across those origins.
-                const h = { id: `${board.id}-${q}-${r}`, q: globalQ, r: globalR, terrain: 'clear' };
-                const settlement = board.settlements.find(x => x.axialQ === q && x.axialR === r);
-                if (settlement && !h.settlement)
-                    h.settlement = { name: settlement.name, loyalty: null, city: false, fortified: 0, port: false };
-                if (board.mines.some(x => x.axialQ === q && x.axialR === r))
-                    h.mine = true;
-                if (board.lairs.some(x => x.axialQ === q && x.axialR === r))
-                    h.terrain = 'lair';
-                hexes.push(h);
-            }
-    }
+    const joined = joinReviewedBoards(boardIds);
+    const hexes = joined.hexes;
     const names = { empire: 'Eastern Empire', fjordland: 'Fjordland', oathborn: 'Oathborn', goblins: 'Goblins', orcs: 'Orcs', night: 'Army of the Night' };
     const ids = ['empire', 'fjordland', 'oathborn', 'goblins', 'orcs', 'night'];
-    const scenario = { id: 'tabletop-custom', name: name.trim() || 'Custom campaign table', official: false, source: 'Player-entered Campaign Book setup; board template has unverified terrain and seams.', startYear, endYear, startSeason: 0, endSeason: 2, turnOrder: ids, kingdoms: ids.map(id => ({ id, name: names[id], side: ['goblins', 'orcs', 'night'].includes(id) ? 'invader' : 'resistance', gold: 10, income: ['goblins', 'orcs'].includes(id) ? 0 : 3, controlLimit: id === 'night' ? 5 : 100, ...(id === 'empire' ? { revolt: 0 } : {}) })), initialUnits: [], objective: { type: 'survival', hexIds: [], count: 0, deadlineOnly: true }, notes: ['Full tabletop: enter the printed setup before play. Unknown terrain defaults to clear as an editable placeholder. Boards are separated by a gap; calibrate joins in a content pack. Victory is adjudicated from the printed scenario.'] };
+    const scenario = { id: 'tabletop-custom', name: name.trim() || 'Custom campaign table', official: false, source: 'Player-entered campaign setup on source-reviewed VASSAL boards; individual unresolved crossings are documented in the map reference.', startYear, endYear, startSeason: 0, endSeason: 2, turnOrder: ids, kingdoms: ids.map(id => ({ id, name: names[id], side: ['goblins', 'orcs', 'night'].includes(id) ? 'invader' : 'resistance', gold: 10, income: ['goblins', 'orcs'].includes(id) ? 0 : 3, controlLimit: ['orcs', 'goblins'].includes(id) ? 12 : 10, ...(id === 'empire' ? { revolt: 0 } : {}) })), initialUnits: [], objective: { type: 'survival', hexIds: [], count: 0, deadlineOnly: true }, notes: ['Custom tabletop: enter the printed setup before play. Terrain, settlements and joins use reviewed source data. Consult the Maps reference for unresolved crossings. Victory is adjudicated from your scenario.'] };
     return { hexes, unitDefinitions: structuredClone(unitDefinitions), scenario, profile: 'advanced', tabletop: true, controllers: Object.fromEntries(ids.map(id => [id, 'human'])) };
 }
 export const manualEffectCount = cards.filter(c => !runtimePlayable(c)).length;

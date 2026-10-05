@@ -32,7 +32,7 @@ function eventList(s: GameState, events: VisibleTimelineEvent[], maximum = 20): 
 function briefing(s: GameState, viewer: string, c: CampaignCompanion): string {
   const b = getBriefing(s, viewer);
   const actor = advancedActor(s), decisionKingdom = s.kingdoms.find(k => k.id === actor);
-  const decision = s.phase === 'game-over' ? 'Campaign finished' : `${name(s, actor)} · ${c.delegated[actor] ? 'Delegated computer' : decisionKingdom?.controller === 'ai' ? 'Computer' : 'Human'} · ${advancedDescription(s)?.title ?? (s.pendingCombat ? `${s.pendingCombat.stage} decision` : s.phase === 'income-actions' ? 'Income actions' : 'Activations')}`;
+  const decision = s.phase === 'game-over' ? 'Campaign finished' : `${name(s, actor)} · ${c.delegated[actor] ? 'Delegated computer' : decisionKingdom?.controller === 'ai' ? 'Computer' : 'Human'} · ${advancedDescription(s)?.title ?? (s.pendingCombat ? `${s.pendingCombat.stage} decision` : s.phase === 'opening' ? 'Opening deployment' : s.phase === 'income-actions' ? 'Income actions' : 'Activations')}`;
   const counts = [
     [b.keyChanges.moved, 'Moves'], [b.keyChanges.recruited, 'Recruits'],
     [b.keyChanges.eliminated, 'Losses'], [b.keyChanges.weakened, 'Weakened'],

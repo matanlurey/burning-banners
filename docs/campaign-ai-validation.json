@@ -1,0 +1,1082 @@
+{
+  "scope": "Deterministic source-campaign rule and decision-loop validation; no statistical AI strength or faction balance claim.",
+  "seeds": [
+    931,
+    1327
+  ],
+  "sourceSetupRulings": "AI stops for review-copy choices. A test table explicitly chooses the first documented option where required.",
+  "perActionChecks": [
+    "Action belongs to engine legalActions",
+    "validateState returns no issues",
+    "importGame(exportGame(state)) every 50 actions"
+  ],
+  "results": [
+    {
+      "pass": "initial source-policy pass",
+      "id": "intro",
+      "difficulty": "easy",
+      "seed": 931,
+      "steps": 66,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "invader",
+      "reason": "Campaign deadline score: Invader 4, Resistance 1.",
+      "year": 1,
+      "season": 2,
+      "turn": 6,
+      "units": 12,
+      "elapsedMs": 1778
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "intro",
+      "difficulty": "easy",
+      "seed": 1327,
+      "steps": 81,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "invader",
+      "reason": "Campaign deadline score: Invader 3, Resistance 2.",
+      "year": 1,
+      "season": 2,
+      "turn": 6,
+      "units": 13,
+      "elapsedMs": 1543
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "intro",
+      "difficulty": "normal",
+      "seed": 931,
+      "steps": 115,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "invader",
+      "reason": "Campaign deadline score: Invader 1, Resistance 0.",
+      "year": 1,
+      "season": 2,
+      "turn": 6,
+      "units": 20,
+      "elapsedMs": 1521
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "intro",
+      "difficulty": "normal",
+      "seed": 1327,
+      "steps": 113,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "invader",
+      "reason": "Campaign deadline score: Invader 2, Resistance 0.",
+      "year": 1,
+      "season": 2,
+      "turn": 6,
+      "units": 19,
+      "elapsedMs": 1284
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "intro",
+      "difficulty": "hard",
+      "seed": 931,
+      "steps": 67,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "invader",
+      "reason": "Campaign deadline score: Invader 5, Resistance 1.",
+      "year": 1,
+      "season": 2,
+      "turn": 6,
+      "units": 12,
+      "elapsedMs": 1029
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "intro",
+      "difficulty": "hard",
+      "seed": 1327,
+      "steps": 73,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "invader",
+      "reason": "Campaign deadline score: Invader 4, Resistance 1.",
+      "year": 1,
+      "season": 2,
+      "turn": 6,
+      "units": 11,
+      "elapsedMs": 1091
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "campaign-3",
+      "difficulty": "easy",
+      "seed": 931,
+      "steps": 185,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 3,
+      "season": 0,
+      "turn": 12,
+      "units": 17,
+      "elapsedMs": 6287
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "campaign-3",
+      "difficulty": "easy",
+      "seed": 1327,
+      "steps": 194,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 3,
+      "season": 0,
+      "turn": 12,
+      "units": 16,
+      "elapsedMs": 6649
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "campaign-3",
+      "difficulty": "normal",
+      "seed": 931,
+      "steps": 362,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 3,
+      "season": 0,
+      "turn": 11,
+      "units": 12,
+      "elapsedMs": 14230
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "campaign-3",
+      "difficulty": "normal",
+      "seed": 1327,
+      "steps": 320,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 3,
+      "season": 0,
+      "turn": 10,
+      "units": 12,
+      "elapsedMs": 15918
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "campaign-3",
+      "difficulty": "hard",
+      "seed": 931,
+      "steps": 193,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 3,
+      "season": 0,
+      "turn": 12,
+      "units": 15,
+      "elapsedMs": 4357
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "campaign-3",
+      "difficulty": "hard",
+      "seed": 1327,
+      "steps": 170,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 3,
+      "season": 0,
+      "turn": 12,
+      "units": 14,
+      "elapsedMs": 5741
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "campaign-6",
+      "difficulty": "easy",
+      "seed": 931,
+      "steps": 162,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 2,
+      "season": 2,
+      "turn": 10,
+      "units": 9,
+      "elapsedMs": 6213
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "campaign-6",
+      "difficulty": "easy",
+      "seed": 1327,
+      "steps": 173,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 2,
+      "season": 2,
+      "turn": 10,
+      "units": 12,
+      "elapsedMs": 4363
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "campaign-6",
+      "difficulty": "normal",
+      "seed": 931,
+      "steps": 286,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 2,
+      "season": 2,
+      "turn": 10,
+      "units": 16,
+      "elapsedMs": 12892
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "campaign-6",
+      "difficulty": "normal",
+      "seed": 1327,
+      "steps": 261,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 2,
+      "season": 2,
+      "turn": 10,
+      "units": 18,
+      "elapsedMs": 11444
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "campaign-6",
+      "difficulty": "hard",
+      "seed": 931,
+      "steps": 234,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 2,
+      "season": 2,
+      "turn": 10,
+      "units": 40,
+      "elapsedMs": 8031
+    },
+    {
+      "pass": "initial source-policy pass",
+      "id": "campaign-6",
+      "difficulty": "hard",
+      "seed": 1327,
+      "steps": 219,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 2,
+      "season": 2,
+      "turn": 10,
+      "units": 23,
+      "elapsedMs": 10265
+    },
+    {
+      "pass": "current regression",
+      "id": "intro",
+      "difficulty": "hard",
+      "seed": 931,
+      "steps": 73,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "invader",
+      "reason": "Campaign deadline score: Invader 4, Resistance 1.",
+      "year": 1,
+      "season": 2,
+      "turn": 6,
+      "units": 14,
+      "elapsedMs": 1843
+    },
+    {
+      "pass": "current regression",
+      "id": "campaign-3",
+      "difficulty": "hard",
+      "seed": 931,
+      "steps": 200,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 3,
+      "season": 0,
+      "turn": 12,
+      "units": 21,
+      "elapsedMs": 7207
+    },
+    {
+      "pass": "current regression",
+      "id": "campaign-6",
+      "difficulty": "hard",
+      "seed": 931,
+      "steps": 195,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The opposing side prevented the published campaign objective.",
+      "year": 2,
+      "season": 2,
+      "turn": 10,
+      "units": 28,
+      "elapsedMs": 9180
+    },
+    {
+      "pass": "current regression",
+      "id": "campaign-10",
+      "difficulty": "hard",
+      "seed": 931,
+      "steps": 522,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The published campaign victory condition was met.",
+      "year": 2,
+      "season": 2,
+      "turn": 17,
+      "units": 28,
+      "elapsedMs": 16150
+    },
+    {
+      "pass": "current regression",
+      "id": "campaign-10",
+      "difficulty": "easy",
+      "seed": 931,
+      "steps": 133,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The published campaign victory condition was met.",
+      "year": 1,
+      "season": 2,
+      "turn": 5,
+      "units": 25,
+      "elapsedMs": 5077
+    },
+    {
+      "pass": "current regression",
+      "id": "campaign-10",
+      "difficulty": "normal",
+      "seed": 931,
+      "steps": 200,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The published campaign victory condition was met.",
+      "year": 1,
+      "season": 2,
+      "turn": 5,
+      "units": 28,
+      "elapsedMs": 5740
+    },
+    {
+      "pass": "final City-goal regression",
+      "id": "campaign-17",
+      "difficulty": "hard",
+      "seed": 931,
+      "steps": 102,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "invader",
+      "reason": "The published campaign victory condition was met.",
+      "year": 1,
+      "season": 2,
+      "turn": 3,
+      "units": 26,
+      "elapsedMs": 4783
+    },
+    {
+      "pass": "final Huge and Hero-arrival regression",
+      "id": "campaign-12",
+      "difficulty": "hard",
+      "seed": 931,
+      "steps": 560,
+      "status": "complete",
+      "manualSetupRulings": 0,
+      "winner": "resistance",
+      "reason": "The published campaign victory condition was met.",
+      "year": 2,
+      "season": 2,
+      "turn": 23,
+      "units": 36,
+      "elapsedMs": 37782
+    }
+  ],
+  "baselineSetupMatrix": {
+    "tests": 90,
+    "setupTests": 84,
+    "goalTests": 6,
+    "passed": 87,
+    "failed": 3,
+    "failures": [
+      "chronicle-8/easy",
+      "chronicle-8/normal",
+      "chronicle-8/hard"
+    ],
+    "durationMs": 1179214.903798,
+    "scope": "Before constrained allied-contingent priority; changed policy requires targeted reruns."
+  },
+  "baselineAllStartsFirstRound": {
+    "generatedAt": "2026-10-05T16:43:13.432Z",
+    "mode": "round",
+    "maxActions": 1800,
+    "results": [
+      {
+        "id": "intro",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 32,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 3,
+        "units": 10,
+        "elapsedMs": 1051
+      },
+      {
+        "id": "campaign-1",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 66,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 3,
+        "units": 16,
+        "elapsedMs": 5498
+      },
+      {
+        "id": "campaign-2",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 46,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 3,
+        "units": 12,
+        "elapsedMs": 6343
+      },
+      {
+        "id": "campaign-3",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 45,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 2,
+        "turn": 3,
+        "units": 14,
+        "elapsedMs": 1260
+      },
+      {
+        "id": "campaign-4",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 60,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 3,
+        "units": 13,
+        "elapsedMs": 1317
+      },
+      {
+        "id": "campaign-5",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 81,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 3,
+        "units": 22,
+        "elapsedMs": 5844
+      },
+      {
+        "id": "campaign-6",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 34,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 2,
+        "turn": 3,
+        "units": 9,
+        "elapsedMs": 525
+      },
+      {
+        "id": "campaign-7",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 201,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 5,
+        "units": 30,
+        "elapsedMs": 6860
+      },
+      {
+        "id": "campaign-8",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 220,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 6,
+        "units": 46,
+        "elapsedMs": 6747
+      },
+      {
+        "id": "campaign-9",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 54,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 3,
+        "units": 21,
+        "elapsedMs": 1991
+      },
+      {
+        "id": "campaign-10",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 156,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 2,
+        "turn": 5,
+        "units": 21,
+        "elapsedMs": 2660
+      },
+      {
+        "id": "campaign-11",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 70,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 2,
+        "turn": 4,
+        "units": 16,
+        "elapsedMs": 1126
+      },
+      {
+        "id": "campaign-12",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 91,
+        "status": "no-legal-action",
+        "manualSetupRulings": 0,
+        "phase": "activation",
+        "year": 1,
+        "season": 0,
+        "turn": 2,
+        "units": 44,
+        "elapsedMs": 6520
+      },
+      {
+        "id": "campaign-13",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 106,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 4,
+        "units": 24,
+        "elapsedMs": 4473
+      },
+      {
+        "id": "campaign-14",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 81,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 3,
+        "units": 17,
+        "elapsedMs": 2222
+      },
+      {
+        "id": "campaign-15",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 129,
+        "status": "round-complete",
+        "manualSetupRulings": 1,
+        "year": 1,
+        "season": 1,
+        "turn": 4,
+        "units": 27,
+        "elapsedMs": 6593
+      },
+      {
+        "id": "campaign-16",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 114,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 4,
+        "units": 29,
+        "elapsedMs": 7880
+      },
+      {
+        "id": "campaign-17",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 102,
+        "status": "complete",
+        "manualSetupRulings": 0,
+        "winner": "invader",
+        "reason": "The published campaign victory condition was met.",
+        "year": 1,
+        "season": 2,
+        "turn": 3,
+        "units": 26,
+        "elapsedMs": 3874
+      },
+      {
+        "id": "chronicle-1",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 362,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 7,
+        "units": 60,
+        "elapsedMs": 36374
+      },
+      {
+        "id": "chronicle-2",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 278,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 7,
+        "units": 57,
+        "elapsedMs": 43014
+      },
+      {
+        "id": "chronicle-3",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 265,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 7,
+        "units": 58,
+        "elapsedMs": 46574
+      },
+      {
+        "id": "chronicle-4",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 272,
+        "status": "round-complete",
+        "manualSetupRulings": 1,
+        "year": 1,
+        "season": 1,
+        "turn": 7,
+        "units": 53,
+        "elapsedMs": 44052
+      },
+      {
+        "id": "chronicle-5",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 284,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 6,
+        "units": 52,
+        "elapsedMs": 36660
+      },
+      {
+        "id": "chronicle-6",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 231,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 6,
+        "units": 51,
+        "elapsedMs": 32397
+      },
+      {
+        "id": "chronicle-7",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 172,
+        "status": "no-legal-action",
+        "manualSetupRulings": 0,
+        "phase": "activation",
+        "year": 1,
+        "season": 0,
+        "turn": 4,
+        "units": 35,
+        "elapsedMs": 26566
+      },
+      {
+        "id": "chronicle-8",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 56,
+        "status": "no-legal-action",
+        "manualSetupRulings": 2,
+        "phase": "opening",
+        "year": 1,
+        "season": 0,
+        "turn": 0,
+        "units": 48,
+        "elapsedMs": 17779
+      },
+      {
+        "id": "chronicle-9",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 180,
+        "status": "round-complete",
+        "manualSetupRulings": 2,
+        "year": 1,
+        "season": 1,
+        "turn": 6,
+        "units": 43,
+        "elapsedMs": 24456
+      },
+      {
+        "id": "chronicle-10",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 232,
+        "status": "round-complete",
+        "manualSetupRulings": 2,
+        "year": 1,
+        "season": 1,
+        "turn": 5,
+        "units": 40,
+        "elapsedMs": 29249
+      }
+    ]
+  },
+  "patchedFirstRoundReplays": {
+    "generatedAt": "2026-10-05T17:02:03.489Z",
+    "mode": "round",
+    "maxActions": 1800,
+    "results": [
+      {
+        "id": "chronicle-7",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 176,
+        "status": "round-complete",
+        "manualSetupRulings": 0,
+        "year": 1,
+        "season": 1,
+        "turn": 5,
+        "units": 35,
+        "elapsedMs": 29708
+      },
+      {
+        "id": "chronicle-8",
+        "difficulty": "hard",
+        "seed": 931,
+        "steps": 209,
+        "status": "round-complete",
+        "manualSetupRulings": 2,
+        "year": 1,
+        "season": 1,
+        "turn": 6,
+        "units": 46,
+        "elapsedMs": 23929
+      }
+    ]
+  },
+  "patchedCityGoalFixtures": {
+    "tests": 2,
+    "passed": 2,
+    "durationMs": 214.791201,
+    "scope": "Hostile nonplayer City pursuit and standing City versus nearby ruins; final sourceGoals ruins exclusion."
+  },
+  "patchedTargetedMatrix": {
+    "tests": 32,
+    "passed": 32,
+    "failed": 0,
+    "durationMs": 359324.638025,
+    "setupTests": 21,
+    "sourceGoalTests": 9,
+    "regressionTests": 2,
+    "affectedCampaigns": [
+      "campaign-9",
+      "campaign-12",
+      "campaign-13",
+      "chronicle-5",
+      "chronicle-6",
+      "chronicle-7",
+      "chronicle-8"
+    ],
+    "scope": "After constrained allied-contingent and Huge rules fixes; later C17 goal filter and Magic Hero eligibility changes are covered separately by two City goal fixtures and the completed C12 game.",
+    "results": [
+      {
+        "name": "campaign-9/easy: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 3309.238684
+      },
+      {
+        "name": "campaign-12/easy: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 7175.546584
+      },
+      {
+        "name": "campaign-13/easy: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 3901.87301
+      },
+      {
+        "name": "chronicle-5/easy: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 29226.345927
+      },
+      {
+        "name": "chronicle-6/easy: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 24761.241832
+      },
+      {
+        "name": "chronicle-7/easy: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 17230.205831
+      },
+      {
+        "name": "chronicle-8/easy: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 19523.770508
+      },
+      {
+        "name": "campaign-9/normal: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 1515.118576
+      },
+      {
+        "name": "campaign-12/normal: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 4412.726944
+      },
+      {
+        "name": "campaign-13/normal: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 3514.231281
+      },
+      {
+        "name": "chronicle-5/normal: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 26571.04378
+      },
+      {
+        "name": "chronicle-6/normal: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 20487.662676
+      },
+      {
+        "name": "chronicle-7/normal: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 16381.238616
+      },
+      {
+        "name": "chronicle-8/normal: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 21271.711775
+      },
+      {
+        "name": "campaign-9/hard: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 1003.919258
+      },
+      {
+        "name": "campaign-12/hard: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 2927.169624
+      },
+      {
+        "name": "campaign-13/hard: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 2202.469814
+      },
+      {
+        "name": "chronicle-5/hard: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 18952.551472
+      },
+      {
+        "name": "chronicle-6/hard: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 14532.30273
+      },
+      {
+        "name": "chronicle-7/hard: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 9039.510438
+      },
+      {
+        "name": "chronicle-8/hard: legal recruiting and setup save/resume",
+        "status": "passed",
+        "durationMs": 17879.704491
+      },
+      {
+        "name": "Hard and Normal follow the published occupation target even when the legacy objective points elsewhere",
+        "status": "passed",
+        "durationMs": 39.147832
+      },
+      {
+        "name": "Hard directs a town race toward the printed loyalty filter and obeys deadline tie scopes",
+        "status": "passed",
+        "durationMs": 18.695217
+      },
+      {
+        "name": "Hard allows a Feral Army to pursue a source objective that explicitly counts razed settlements",
+        "status": "passed",
+        "durationMs": 3.028878
+      },
+      {
+        "name": "Hard preserves the last Army presence contributing to a source deadline",
+        "status": "passed",
+        "durationMs": 0.798756
+      },
+      {
+        "name": "Hard supports the correct allied banner instead of stealing its exclusive marker objective",
+        "status": "passed",
+        "durationMs": 4.046263
+      },
+      {
+        "name": "Hard pursues the final Shashka marker for a printed collapse objective",
+        "status": "passed",
+        "durationMs": 1.487411
+      },
+      {
+        "name": "Hard considers a hostile nonplayer City for a source occupation victory",
+        "status": "passed",
+        "durationMs": 1.053865
+      },
+      {
+        "name": "Hard chooses funded Shashka razing when the published goal counts razed towns equally",
+        "status": "passed",
+        "durationMs": 0.62054
+      },
+      {
+        "name": "Hard suppresses even a small revolt when net income determines the campaign score",
+        "status": "passed",
+        "durationMs": 1.29939
+      },
+      {
+        "name": "C12 completes every kingdom first turn without a Hero finishing its Huge Army in a friendly town",
+        "status": "passed",
+        "durationMs": 13969.970942
+      },
+      {
+        "name": "Chronicle 8 recruits its restricted contingent at every difficulty and completes the Hard first round",
+        "status": "passed",
+        "durationMs": 79149.773593
+      }
+    ]
+  },
+  "finalCoverage": {
+    "completeGames": 26,
+    "sourceStarts": 28,
+    "setupDifficultyCases": 84,
+    "affectedSetupDifficultyCasesRerun": 21,
+    "uniqueSourceGoalFixtures": 10,
+    "firstRoundRegressionFixtures": 2,
+    "scope": "Coverage combines the baseline sweep with patched affected-case replays; it is not one final-build 84-case matrix or a statistical strength benchmark."
+  },
+  "resolvedFindings": [
+    {
+      "case": "campaign-10",
+      "finding": "Opposing recruitment could besiege the precontrolled Hero build town.",
+      "resolution": "AI chooses a safe opening control anchor; all three difficulties complete seed931."
+    },
+    {
+      "case": "campaign-12",
+      "finding": "Hero pass could finish its Huge Army in a welcoming settlement; recolonization could then create the same forbidden end-turn position.",
+      "resolution": "Engine checks every linked Huge member and prevents recolonization while Huge occupies; first-round regression and final560-action full game pass."
+    },
+    {
+      "case": "chronicle-7",
+      "finding": "Old first-round sweep stalled at action172 with Huge-related activation constraints.",
+      "resolution": "Patched Hard931 first round passes176actions."
+    },
+    {
+      "case": "chronicle-8",
+      "finding": "Allied paid recruitment consumed all restricted mandatory contingent locations.",
+      "resolution": "AI switches allied setup to constrained mandatory contingents early; all three setups and Hard first round pass."
+    },
+    {
+      "case": "campaign-17",
+      "finding": "AI awarded hostile-City occupation victory value to an existing ruin.",
+      "resolution": "Exclude ruins only for enemy-city-occupied; two goal fixtures and source victory at102actions pass. Fresh Feral conquest remains valid because advance can win before mandatory Razing."
+    },
+    {
+      "case": "campaign-12",
+      "finding": "Strongheart could create an Oathborn Hero automatically stacked with a foreign printed-faction Army at action195.",
+      "resolution": "Shared Hero arrival eligibility respects printed faction, Huge state, and readiness; final560-action full game passes."
+    }
+  ]
+}

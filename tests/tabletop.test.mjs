@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGame,applyAction,legalActions,validateState,exportGame,importGame} from '../dist/js/engine.js';
-import {tabletopConfig,applyTableOperation} from '../dist/js/tabletop.js';
-import {cards,monsters,runtimeLimitations} from '../dist/js/advanced.js';
+import {tabletopConfig,applyTableOperation,enableFullTabletop} from '../dist/js/tabletop.js';
+import {cards,monsters,runtimeLimitations,runtimePlayable} from '../dist/js/advanced.js';
 import {createCompanion,recordCampaignEvent,getReplayEvents} from '../dist/js/async-play.js';
 import {fixture,give,placeHero,battle} from './fixtures/advanced.mjs';
 const fj='player-fjordland',orc='player-orcs';
@@ -16,6 +16,44 @@ test('full tabletop includes every Magic card, named Hero and Monster with a por
   assert.equal(inventory.length,148);assert.equal(new Set(inventory).size,148);assert.ok(Object.keys(runtimeLimitations).filter(id=>cards.find(c=>c.id===id).kind!=='hero').every(id=>inventory.includes(id)));
   assert.equal(Object.values(a.heroPools).flat().length,38);assert.equal(a.monsterPools.land.length+a.monsterPools.sea.length,36);
   assert.deepEqual(importGame(exportGame(s)),s);assert.deepEqual(validateState(s),[]);
+});
+test('enabling Full tabletop preserves an Advanced position and existing deck order while inserting the finite missing manual cards',()=>{
+  const config=fixture();config.scenario.kingdoms.push({id:'night',name:'Night',side:'invader',gold:0,income:0});config.scenario.turnOrder.push('night');
+  const s=createGame(config),before=structuredClone(s),reason='Players agree to review an interrupted movement at the table';
+  // A card already assigned to a physical zone must never re-enter its deck.
+  s.advanced.removedCards.push('blessing-night-02');
+  const result=enableFullTabletop(s,reason,orc),after=result.state;
+  assert.equal(result.playerId,orc);assert.equal(result.private,false);assert.equal(before.tabletop,undefined);assert.equal(s.tabletop,undefined);
+  assert.deepEqual(after.units,s.units);assert.deepEqual(after.hexes,s.hexes);assert.deepEqual(after.kingdoms,s.kingdoms);assert.deepEqual(after.advanced.hands,s.advanced.hands);assert.deepEqual(after.advanced.owned,s.advanced.owned);
+  for(const key of ['activeUnitId','remainingMP','moved','shipUsed','allRoad','phase','year','season','turnSerial'])assert.deepEqual(after[key],s[key]);
+  for(const [key,deck] of Object.entries(s.advanced.decks))assert.deepEqual(after.advanced.decks[key].filter(id=>deck.includes(id)),deck,'Existing cards retain their relative deck order');
+  const inventory=[...Object.values(after.advanced.hands).flat(),...Object.values(after.advanced.owned).flat(),...Object.values(after.advanced.decks).flat(),...Object.values(after.advanced.discards).flat(),...after.advanced.eliminatedTreasures,...after.advanced.removedCards];
+  for(const c of cards.filter(c=>c.verified&&c.kind!=='hero'&&(!c.kingdom||s.kingdoms.some(k=>k.id===c.kingdom))))assert.equal(inventory.filter(id=>id===c.id).length,1,c.id);
+  assert.equal(after.advanced.decks['blessings-night'].includes('blessing-night-02'),false);assert.equal(cards.filter(c=>c.kind!=='hero'&&!runtimePlayable(c)).length,4);
+  assert.notEqual(after.rng,s.rng);assert.deepEqual(enableFullTabletop(importGame(exportGame(s)),reason,orc),result);assert.match(after.tabletop.rulings[0],/Players agree/);
+  assert.deepEqual(validateState(after),[]);assert.deepEqual(importGame(exportGame(after)),after);
+  assert.throws(()=>enableFullTabletop(after,reason),/already/);assert.throws(()=>enableFullTabletop(s,'x'),/Describe/);assert.throws(()=>enableFullTabletop(s,reason,'unknown-seat'),/player/);
+  const corrupt=structuredClone(s);corrupt.advanced.hands[fj].push(corrupt.advanced.hands[fj][0]);assert.throws(()=>enableFullTabletop(corrupt,reason),/duplicated/);
+  assert.throws(()=>enableFullTabletop(createGame({...fixture(),profile:'basic'}),reason),/Advanced/);
+});
+test('enabling recorded table rulings retains automated published victory conditions',()=>{
+  const config=fixture();config.scenario.sourceCampaign={series:'intro',deploymentOrder:[['fjordland'],['orcs']],opening:[{kingdom:'fjordland',gold:0},{kingdom:'orcs',gold:0}],specialRules:[],victory:{immediate:[{winner:'resistance',condition:{type:'count',metric:'markers',kingdoms:['fjordland'],hexIds:['C'],atLeast:1}}],deadline:{type:'score',metric:'settlements',tieWinner:'invader'}}};
+  let s=createGame(config);s=enableFullTabletop(s,'Record a human interpretation of an interrupted move').state;
+  assert.equal(s.tabletop.manualVictory,false);assert.deepEqual(s.scenario.sourceCampaign,config.scenario.sourceCampaign);
+  while(s.phase==='opening')s=applyAction(s,legalActions(s).find(a=>a.type==='opening-done'));
+  s.controls.C='fjordland';s=applyAction(s,{type:'collect-income'});assert.equal(s.winner,'resistance');assert.equal(s.phase,'game-over');assert.deepEqual(importGame(exportGame(s)),s);
+});
+test('a recorded relocation recovers a blocked Huge position without inventing movement allowance or counter readiness',()=>{
+  const config=fixture();config.unitDefinitions[0].characteristics=['huge'];delete config.hexes[0].settlement;config.hexes[0].terrain='forest';config.hexes[1].settlement={name:'Welcoming crossing',loyalty:'fjordland',city:false,fortified:0,port:false};config.scenario.objective.hexIds=['B'];
+  let s=applyAction(createGame(config),{type:'collect-income'});s=applyAction(s,{type:'activate',unitId:'unit-1'});
+  s.units.find(u=>u.id==='unit-1').hexId='B';s.remainingMP=1;s.advanced.movement['unit-1']=1;s.moved=true;s.kingdoms.find(k=>k.id==='fjordland').gold=0;
+  for(const p of s.advanced.players){for(const id of s.advanced.hands[p.id])s.advanced.discards[cards.find(c=>c.id===id).kind==='spell'?'spells':'blessings'].push(id);s.advanced.hands[p.id]=[];}
+  assert.deepEqual(validateState(s),[]);assert.deepEqual(legalActions(s),[],'The legal state has no printed continuation after the interruption');
+  s=enableFullTabletop(s,'Horn interruption: players will adjudicate the stranded Huge Army').state;
+  const mp=s.remainingMP,activated=s.units.find(u=>u.id==='unit-1').activated;
+  s=applyTableOperation(s,{kind:'move',unitId:'unit-1',hexId:'D',wholeStack:true},'Players agree to relocate the stranded Giant to the adjacent forest').state;
+  assert.equal(s.remainingMP,mp);assert.equal(s.units.find(u=>u.id==='unit-1').activated,activated);assert.equal(s.units.find(u=>u.id==='unit-1').hexId,'D');assert.ok(legalActions(s).some(a=>a.type==='pass'&&a.unitId==='unit-1'));
+  assert.match(s.tabletop.rulings.at(-1),/Players agree to relocate/);assert.deepEqual(validateState(s),[]);assert.deepEqual(importGame(exportGame(s)),s);
 });
 test('Army and Hero placement preserve finite supply and allow a legal stack',()=>{
   let s=table();s=op(s,{kind:'place',defId:'hero-fjordland-17',hexId:'A',weakened:false,finished:false});
@@ -83,7 +121,7 @@ test('all 148 Magic cards, 38 named Heroes and 36 Monsters can traverse the phys
     const p=s.advanced.players.find(p=>!c.kingdom||p.kingdoms.includes(c.kingdom));give(s,p.id,c.id);
     s=op(s,{kind:'play',playerId:p.id,cardId:c.id});assert.equal(s.tabletop.review.cardId,c.id);s=op(s,{kind:'complete'});
   }
-  const clear=s.hexes.find(h=>!h.settlement&&!h.mine&&h.terrain==='clear').id;
+  const clear=s.hexes.find(h=>!h.prohibited&&!h.settlement&&!h.mine&&h.terrain==='clear').id;
   for(const c of cards.filter(c=>c.kind==='hero')){
     s=op(s,{kind:'place',defId:c.id,hexId:clear,weakened:false,finished:false});const u=s.units.find(u=>u.defId===c.id),p=s.advanced.players.find(p=>p.kingdoms.includes(u.kingdom));
     s=op(s,{kind:'hero-power',playerId:p.id,cardId:c.id});s=op(s,{kind:'complete'});s=op(s,{kind:'unit',unitId:u.id,status:'eliminate'});

@@ -157,7 +157,7 @@ function newLogLines(before: string[], after: string[]): string[] {
   }
   return [...after];
 }
-const privateAction = (action: Action) => action.type === 'coven' || action.type === 'remove-coven';
+const privateAction = (action: Action) => ['coven','remove-coven','opening-coven','opening-exchange-coven'].includes(action.type);
 function summarize(before: GameState, after: GameState, action: Action, actor: string): string {
   const who = kingdomName(before, actor);
   const unit = 'unitId' in action ? before.units.find(u => u.id === action.unitId) : undefined;
@@ -167,11 +167,14 @@ function summarize(before: GameState, after: GameState, action: Action, actor: s
     case 'table-ruling': return action.private?`${who} adjusted private table components.`:`${who}: ${action.summary}`;
     case 'move': case 'ship': return `${who}: ${name} ${action.type === 'ship' ? 'sailed' : 'moved'} from ${place(unit!.hexId)} to ${place(action.toHex)}.`;
     case 'build': return `${who} recruited ${before.unitDefinitions.find(d => d.id === action.defId)?.name ?? action.defId} at ${place(action.hexId)}.`;
+    case 'opening-build': return `${who} deployed ${before.unitDefinitions.find(d => d.id === action.defId)?.name ?? action.defId} at ${place(action.hexId)}.`;
+    case 'opening-hero': return `${who} placed ${before.unitDefinitions.find(d => d.id === action.defId)?.name ?? action.defId} at ${place(action.hexId)}.`;
+    case 'opening-done': return `${who} finished opening deployment.`;
     case 'play-card': case 'hero-power': return `${who} ${action.type === 'hero-power' ? 'used' : 'played'} ${cardById(action.cardId)?.name ?? 'Magic'}${action.type === 'play-card' && action.tomeId ? ` with ${cardById(action.tomeId)?.name ?? 'a Tome'}` : ''}.`;
     case 'study': return `${who} studied ${action.discipline}.`;
     case 'finish-study': return `${who} finished Arcane Study.`;
     case 'finish-winter': return `${who} finished Winter preparation.`;
-    case 'coven': case 'remove-coven': return `${who} conducted a secret operation.`;
+    case 'coven': case 'remove-coven': case 'opening-coven': case 'opening-exchange-coven': return `${who} conducted a secret operation.`;
     case 'collect-income': return `${who} collected income.`;
     case 'end-turn': return `${who} ended its kingdom turn.`;
     case 'attack': case 'attack-monster': return `${who}: ${name} attacked at ${place(action.targetHex)}.`;

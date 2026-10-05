@@ -1,6 +1,10 @@
 # Verification record
 
-## Advanced interrupts and extra-Attack pass — October 5, 2026 UTC
+## Published campaign and reviewed map pass — October 5, 2026 UTC
+
+The current source implementation adds 28 named published starts, linked Chronicle play through 35 playable seasons, opening purchasing/deployment flows and the actual reviewed four-board geography. [Source provenance and qualifications](campaign-map-audit.md) distinguish implementation availability from exact printed fidelity; unresolved source names, duplicate controls, entry lists and water/river crossings remain explicit. The records below describe earlier release milestones, including their then-current source gaps and test counts. Current campaign checks are in `tests/published-campaigns.test.mjs`, `tests/campaign-ai.test.mjs`, `tests/official-maps.test.mjs` and `tests/map-movement.test.mjs`; their final run evidence is recorded separately rather than inferred from prior release counts.
+
+## Earlier Advanced interrupts and extra-Attack pass — October 5, 2026 UTC
 
 The final strict TypeScript build and **201/201 regression tests** pass with no failures or skips (73.22 seconds). The 23 targeted interrupt/placement tests cover Ring's chosen hit, preserved remaining hits, Freyja/self-rescue, Shapeshift, Horn interception, Coven protection/discovery, Spy retrieval, Luna's success/failure, Kagash's ordered targets, Sofia/Haga-Tor/Fury choices, Huge-stack teleport legality, finished-unit magical joining and saved Flying transit through friendly/enemy stacks. The engine and UI use the same compiled modules.
 
@@ -16,7 +20,7 @@ The extra-Attack decision passed seven [responsive checks](interrupt-responsive-
 
 These are responsive Chrome frames, not physical touch-device emulation. Physical pinch hardware, audio and expert-human AI strength remain unverified. Hosted async multiplayer remains deferred. Official campaign setups and certified four-board topology still require source calibration; no original fixture is promoted to an official campaign.
 
-## Full tabletop and combat-odds completion — October 5, 2026 UTC
+## Earlier Full tabletop and combat-odds completion — October 5, 2026 UTC
 
 At the preceding milestone, the strict TypeScript build and **178/178 automated tests** passed, with zero failures, skips or timeouts (53.65 seconds). This included analytic combat forecasts compared with 20,000 real engine battles, advanced effect interactions, private replay/briefing isolation, collapsed-kingdom and finished-stack AI regressions, human-only Winter rulings, nested manual responses, and finite tabletop inventories. The same compiled modules run in the browser.
 
